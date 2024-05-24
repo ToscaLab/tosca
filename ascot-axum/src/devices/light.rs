@@ -31,6 +31,8 @@ where
     router: Router,
     // Light state.
     state: Option<S>,
+    // Allowed light hazards.
+    allowed_hazards: FnvIndexSet<Hazard, MAXIMUM_ELEMENTS>,
 }
 
 impl<'a, S> Light<'a, S>
@@ -73,11 +75,15 @@ where
         let _ = routes.insert(turn_light_on.route);
         let _ = routes.insert(turn_light_off.route);
 
+        let mut allowed_hazards = FnvIndexSet::new();
+        let _ = allowed_hazards.insert(Hazard::FireHazard);
+
         Ok(Self {
             main_route: LIGHT_MAIN_ROUTE,
             routes,
             router,
             state: None,
+            allowed_hazards,
         })
     }
 
@@ -88,11 +94,19 @@ where
     }
 
     /// Adds an additional action for a [`Light`].
-    pub fn add_action<H, T>(mut self, light_chainer: DeviceAction<'a, H, T>) -> Self
+    pub fn add_action<H, T>(mut self, light_chainer: DeviceAction<'a, H, T>) -> Result<Self>
     where
         H: Handler<T, ()>,
         T: 'static,
     {
+        // Return an error if light_chainer hazards is not a subset of allowed hazards.
+        if !light_chainer.route.hazards.is_subset(&self.allowed_hazards) {
+            return Err(Error::new(
+                ErrorKind::Light,
+                "light_chainer has hazards that are not allowed for light",
+            ));
+        }
+
         self.router = self.router.merge(Device::<S>::build_router(
             light_chainer.route.route,
             light_chainer.route.config.rest_kind,
@@ -100,7 +114,7 @@ where
         ));
 
         let _ = self.routes.insert(light_chainer.route);
-        self
+        Ok(self)
     }
 
     /// Sets a state for a [`Light`].

@@ -11,6 +11,8 @@ pub enum ErrorKind {
     Serialization,
     /// Light error.
     Light,
+    /// Fridge error.
+    Fridge,
 }
 
 impl ErrorKind {
@@ -20,6 +22,7 @@ impl ErrorKind {
             ErrorKind::NotFoundAddress => "not found address",
             ErrorKind::Serialization => "serialization",
             ErrorKind::Light => "light error",
+            ErrorKind::Fridge => "fridge error",
         }
     }
 }

@@ -2,7 +2,9 @@ extern crate alloc;
 
 use alloc::sync::Arc;
 
+use ascot_axum::devices::fridge::Fridge;
 use async_lock::Mutex;
+use device_fridge::{increase_temperature, decrease_temperature, FridgeState};
 use serde::Serialize;
 
 // Library.
@@ -20,6 +22,8 @@ use ascot_axum::devices::light::Light;
 
 // Server.
 use ascot_axum::server::AscotServer;
+
+mod device_fridge;
 
 mod device_light {
     #[derive(Clone)]
@@ -133,12 +137,38 @@ async fn main() -> Result<(), Error> {
         DeviceAction::with_hazard(light_on_config, turn_light_on, Hazard::FireHazard),
         DeviceAction::no_hazards(light_off_config, turn_light_off),
     )?
-    .add_action(DeviceAction::no_hazards(toggle_config, toggle))
+    .add_action(DeviceAction::no_hazards(toggle_config, toggle))?
     .state(DeviceState::new(device_light::Light::default()))
     .build();
 
+    // FRIDGE 
+    // Configuration for the increase temperature route.
+    let increase_temp_config = Route::put("/temperature/increase/:increment")
+        .description("Increase temperature.")
+        .inputs([Input::rangef64("increment", (0., 6., 0.1, 4.))]);
+
+    // Configuration for the decrease temperature route.
+    let decrease_temp_config = Route::put("/temperature/decrease/:decrement")
+        .description("Decrease temperature.")
+        .inputs([Input::rangef64("decrement", (0., 6., 0.1, 4.))]);
+
+    // A fridge device which is going to be run on the server.
+    let fridge = Fridge::new()
+        .increase_temperature(DeviceAction::with_hazards(
+            increase_temp_config,
+            increase_temperature,
+            &[Hazard::ElectricEnergyConsumption, Hazard::FireHazard],
+        ))?
+        .decrease_temperature(DeviceAction::with_hazard(
+            decrease_temp_config,
+            decrease_temperature,
+            Hazard::ElectricEnergyConsumption,
+        ))?
+        .state(FridgeState::new(device_fridge::Fridge::default()))
+        .build()?;
+        
     // Run a discovery service and the device on the server.
-    AscotServer::new(device)
+    AscotServer::new(fridge)
         .run_service(ServiceBuilder::new("mdns-sd"))?
         .run()
         .await

@@ -24,6 +24,8 @@ pub struct DeviceData<'a> {
 pub enum DeviceKind {
     /// Light.
     Light,
+    /// Fridge.
+    Fridge,
 }
 
 /// A trait to serialize device data.
