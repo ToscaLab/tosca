@@ -1,8 +1,10 @@
+use core::result::Result;
+
 use ascot_library::device::{DeviceData, DeviceKind, DeviceSerializer};
 use ascot_library::hazards::{Hazard, Hazards};
 use ascot_library::route::{Route, RouteConfigs, RouteHazards};
 
-use esp_idf_svc::http::server::{EspHttpConnection, Request};
+use esp_idf_svc::http::server::{EspHttpConnection, Request, Response};
 use esp_idf_svc::io::EspIOError;
 
 use heapless::Vec;
@@ -13,80 +15,126 @@ const DEFAULT_MAIN_ROUTE: &str = "/device";
 // Maximum stack elements.
 const MAXIMUM_ELEMENTS: usize = 16;
 
-// Handler type
-type Handler = dyn for<'r> Fn(Request<&mut EspHttpConnection<'r>>) -> core::result::Result<(), EspIOError>
-    + Send
-    + 'static;
+// An internal module to avoid declaring the trait as public.
+mod internal {
+    use super::{EspHttpConnection, EspIOError, Request, Response};
+    // A trait to avoid writing over and over the same definition across
+    // functions.
+    pub trait ResponseTrait:
+        for<'a, 'r> Fn(
+            Request<&'a mut EspHttpConnection<'r>>,
+        ) -> Result<Response<&'a mut EspHttpConnection<'r>>, EspIOError>
+        + Send
+        + 'static
+    {
+    }
+}
+
+impl<T> internal::ResponseTrait for T where
+    T: for<'a, 'r> Fn(
+            Request<&'a mut EspHttpConnection<'r>>,
+        ) -> Result<Response<&'a mut EspHttpConnection<'r>>, EspIOError>
+        + Send
+        + 'static
+{
+}
+
+/// Constructs a response which the server returns whenever the associated
+/// action is being invoked.
+pub struct ResponseBuilder<R: internal::ResponseTrait>(
+    /// The closure called by a server whenever an action is called.
+    /// It is responsible for showing the response content.
+    pub R,
+    /// Response content.
+    pub &'static str,
+);
 
 /// A device action connects a server route with a device handler and,
 /// optionally, with every possible hazards associated with the handler.
 pub struct DeviceAction {
     // Route and hazards.
     pub(crate) route_hazards: RouteHazards,
-    // Handler.
-    pub(crate) handler: Box<Handler>,
+    // Body.
+    pub(crate) body: Option<Box<dyn Fn() -> Result<(), EspIOError> + Send + 'static>>,
+    // Response-
+    pub(crate) response: Box<dyn internal::ResponseTrait>,
+    // Response content.
+    pub(crate) content: &'static str,
 }
 
 impl DeviceAction {
     /// Creates a new [`DeviceAction`].
-    pub fn no_hazards<F>(route: Route, function: F) -> Self
-    where
-        F: for<'r> Fn(Request<&mut EspHttpConnection<'r>>) -> core::result::Result<(), EspIOError>
-            + Send
-            + 'static,
-    {
-        Self::init(route, function, Hazards::init())
+    #[inline]
+    pub fn no_hazards<R: internal::ResponseTrait>(
+        route: Route,
+        response: ResponseBuilder<R>,
+    ) -> Self {
+        Self::init(route, response, Hazards::init())
     }
 
     /// Creates a new [`DeviceAction`] with a single [`Hazard`].
-    pub fn with_hazard<F>(route: Route, function: F, hazard: Hazard) -> Self
-    where
-        F: for<'r> Fn(Request<&mut EspHttpConnection<'r>>) -> core::result::Result<(), EspIOError>
-            + Send
-            + 'static,
-    {
+    #[inline]
+    pub fn with_hazard<R: internal::ResponseTrait>(
+        route: Route,
+        response: ResponseBuilder<R>,
+        hazard: Hazard,
+    ) -> Self {
         let mut hazards = Hazards::init();
         hazards.add(hazard);
 
-        Self::init(route, function, hazards)
+        Self::init(route, response, hazards)
     }
 
     /// Creates a new [`DeviceAction`] with [`Hazard`]s.
-    pub fn with_hazards<F>(route: Route, function: F, input_hazards: &'static [Hazard]) -> Self
-    where
-        F: for<'r> Fn(Request<&mut EspHttpConnection<'r>>) -> core::result::Result<(), EspIOError>
-            + Send
-            + 'static,
-    {
+    #[inline]
+    pub fn with_hazards<R: internal::ResponseTrait>(
+        route: Route,
+        response: ResponseBuilder<R>,
+        input_hazards: &'static [Hazard],
+    ) -> Self {
         let mut hazards = Hazards::init();
         input_hazards.iter().for_each(|hazard| {
             hazards.add(*hazard);
         });
 
-        Self::init(route, function, hazards)
+        Self::init(route, response, hazards)
     }
 
     /// Checks whether a [`DeviceAction`] misses a specific [`Hazard`].
+    #[inline(always)]
     pub fn miss_hazard(&self, hazard: Hazard) -> bool {
         !self.route_hazards.hazards.contains(hazard)
     }
 
     /// Checks whether a [`DeviceAction`] misses the given [`Hazard`]s.
+    #[inline(always)]
     pub fn miss_hazards(&self, hazards: &'static [Hazard]) -> bool {
         !hazards
             .iter()
             .all(|hazard| self.route_hazards.hazards.contains(*hazard))
     }
 
-    fn init<F>(route: Route, handler: F, hazards: Hazards) -> Self
+    /// Adds the body necessary to construct the response of an action.
+    #[inline(always)]
+    pub fn body<B>(mut self, body: B) -> Self
     where
-        F: for<'r> Fn(Request<&mut EspHttpConnection<'r>>) -> core::result::Result<(), EspIOError>
-            + Send
-            + 'static,
+        B: Fn() -> Result<(), EspIOError> + Send + 'static,
     {
+        self.body = Some(Box::new(body));
+        self
+    }
+
+    #[inline(always)]
+    fn init<R: internal::ResponseTrait>(
+        route: Route,
+        response: ResponseBuilder<R>,
+        hazards: Hazards,
+    ) -> Self {
         Self {
             route_hazards: RouteHazards::new(route, hazards),
-            handler: Box::new(handler),
+            body: None,
+            response: Box::new(response.0),
+            content: response.1,
         }
     }
 }
@@ -118,7 +166,7 @@ impl DeviceSerializer for Device {
 
 impl Device {
     /// Creates a new [`Device`] instance.
-    pub fn new(kind: DeviceKind) -> Self {
+    pub const fn new(kind: DeviceKind) -> Self {
         Self {
             kind,
             main_route: DEFAULT_MAIN_ROUTE,
@@ -127,7 +175,7 @@ impl Device {
     }
 
     /// Sets a new main route.
-    pub fn main_route(mut self, main_route: &'static str) -> Self {
+    pub const fn main_route(mut self, main_route: &'static str) -> Self {
         self.main_route = main_route;
         self
     }
