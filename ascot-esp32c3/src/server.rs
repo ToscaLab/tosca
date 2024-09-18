@@ -5,6 +5,7 @@ use std::time::Duration;
 
 use esp_idf_svc::http::server::{Configuration, EspHttpServer};
 use esp_idf_svc::http::Method;
+use esp_idf_svc::io::Write;
 
 use ascot_library::route::RestKind;
 
@@ -66,7 +67,20 @@ impl AscotServer {
                 RestKind::Post => Method::Post,
                 RestKind::Put => Method::Put,
             };
-            server.fn_handler(route.route_hazards.route.route(), method, route.handler)?;
+            if let Some(body) = route.body {
+                server.fn_handler(route.route_hazards.route.route(), method, move |req| {
+                    // Run body.
+                    body()?;
+
+                    // Write response.
+                    (route.response)(req)?.write_all(route.content.as_bytes())
+                })?;
+            } else {
+                server.fn_handler(route.route_hazards.route.route(), method, move |req| {
+                    // Write only response.
+                    (route.response)(req)?.write_all(route.content.as_bytes())
+                })?;
+            }
         }
 
         // Run service
