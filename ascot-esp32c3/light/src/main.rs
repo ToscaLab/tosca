@@ -5,11 +5,11 @@
 use std::sync::{Arc, Mutex};
 
 // Ascot library
-use ascot_library::device::DeviceKind;
 use ascot_library::route::Route;
 
 // Ascot Esp32
-use ascot_esp32c3::device::{Device, DeviceAction, ResponseBuilder};
+use ascot_esp32c3::device::{DeviceAction, ResponseBuilder};
+use ascot_esp32c3::devices::light::Light;
 use ascot_esp32c3::server::AscotServer;
 use ascot_esp32c3::wifi::Wifi;
 
@@ -110,10 +110,9 @@ fn main() -> anyhow::Result<()> {
         Ok(())
     });
 
-    let device = Device::new(DeviceKind::Light)
-        .add_action(main_page_action)
-        .add_action(light_on_action)
-        .add_action(light_off_action);
+    let light = Light::new(light_on_action, light_off_action)?
+        .add_action(main_page_action)?
+        .build();
 
-    AscotServer::new(device, wifi.ip).run()
+    AscotServer::new(light, wifi.ip).run()
 }
