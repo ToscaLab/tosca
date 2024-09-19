@@ -1,6 +1,6 @@
 # Stack size used by the board. If there are some stack blowups, increase this
 # value until there are no more issue.
-CONFIG_ESP_MAIN_TASK_STACK_SIZE=95000
+CONFIG_ESP_MAIN_TASK_STACK_SIZE=150000
 # Stack size associated to system event
 CONFIG_ESP_SYSTEM_EVENT_TASK_STACK_SIZE=8192
 # Default stack size associated to each thread
