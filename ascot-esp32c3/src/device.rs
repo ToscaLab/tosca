@@ -139,6 +139,11 @@ impl DeviceAction {
     }
 }
 
+// Build a device from a precise device.
+pub(crate) trait DeviceBuilder {
+    fn into_device(self) -> Device;
+}
+
 /// A general smart home device.
 pub struct Device {
     // Kind.
