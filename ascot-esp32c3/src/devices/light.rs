@@ -57,7 +57,7 @@ impl Light {
     }
 
     /// Sets a new main route.
-    pub fn main_route(mut self, main_route: &'static str) -> Self {
+    pub const fn main_route(mut self, main_route: &'static str) -> Self {
         self.main_route = main_route;
         self
     }
@@ -77,6 +77,7 @@ impl Light {
     }
 
     /// Builds a new [`Device`].
+    #[inline(always)]
     pub fn build(self) -> Device {
         self.into_device()
     }

@@ -2,7 +2,7 @@ use core::net::Ipv4Addr;
 
 use anyhow::bail;
 
-use embedded_svc::wifi::{AuthMethod, ClientConfiguration, Configuration};
+use esp_idf_svc::wifi::{AuthMethod, ClientConfiguration, Configuration};
 
 use esp_idf_svc::hal::modem::Modem;
 use esp_idf_svc::hal::peripheral::Peripheral;

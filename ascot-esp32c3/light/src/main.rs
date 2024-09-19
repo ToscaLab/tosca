@@ -5,6 +5,7 @@
 use std::sync::{Arc, Mutex};
 
 // Ascot library
+use ascot_library::hazards::Hazard;
 use ascot_library::route::Route;
 
 // Ascot Esp32
@@ -78,9 +79,10 @@ fn main() -> anyhow::Result<()> {
     let light_on_config = Route::put("/on").description("Turn light on.");
 
     let temp_led_on = temp_led_main.clone();
-    let light_on_action = DeviceAction::no_hazards(
+    let light_on_action = DeviceAction::with_hazard(
         light_on_config,
         ResponseBuilder(|req| req.into_ok_response(), "Turning led on went well!"),
+        Hazard::FireHazard,
     )
     .body(move || {
         // Turn built-in led on.

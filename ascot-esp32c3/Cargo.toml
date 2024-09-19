@@ -6,20 +6,18 @@ edition = "2021"
 [dependencies]
 
 # Esp
-embedded-svc = "0.28"
 esp-idf-svc = "0.49.1"
 
 # Mdns-sd
 edge-mdns = "0.3"
-edge-nal = "0.3"
-edge-nal-std = "0.3"
-embassy-sync = "0.6"
-embassy-time= { version = "0.3.2", features = ["std", "generic-queue-8"] }
-futures-lite = "2.3.0"
-rand = "0.8.5"
+edge-nal = { version = "0.3", default-features = false }
+edge-nal-std = { version = "0.3", default-features = false }
+embassy-sync = { version = "0.6", default-features = false }
+embassy-time = { version = "0.3.2", features = ["std", "generic-queue-8"] }
+rand = {version = "0.8.5", feature = ["std", "std_rng"] }
 
 # Other dependencies
 ascot-library = { path = "../" }
 anyhow = "1"
-heapless = "0.8.0"
+heapless = { version = "0.8.0", default-features = false }
 log = { version = "0.4", default-features = false }
