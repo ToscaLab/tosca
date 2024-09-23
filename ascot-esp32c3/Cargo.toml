@@ -3,6 +3,11 @@ name = "ascot-esp32c3"
 version = "0.1.0"
 edition = "2021"
 
+# Patches to fix the Wi-Fi timeout
+[patch.crates-io]
+esp-idf-hal = { git = "https://github.com/esp-rs/esp-idf-hal" }
+esp-idf-sys = { git = "https://github.com/esp-rs/esp-idf-sys" }
+
 [dependencies]
 
 # Esp
