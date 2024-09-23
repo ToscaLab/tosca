@@ -1,10 +1,8 @@
 use core::net::{Ipv4Addr, Ipv6Addr};
 
-use anyhow::anyhow;
-
 use edge_mdns::buf::{BufferAccess, VecBufAccess};
 use edge_mdns::domain::base::Ttl;
-use edge_mdns::io::{self, MdnsIoError, DEFAULT_SOCKET};
+use edge_mdns::io::{self, DEFAULT_SOCKET};
 use edge_mdns::{host::Host, HostAnswersMdnsHandler};
 use edge_nal::{UdpBind, UdpSplit};
 use edge_nal_std::Stack;
@@ -17,6 +15,8 @@ use esp_idf_svc::hal::task::block_on;
 use log::info;
 
 use rand::{thread_rng, RngCore};
+
+use crate::error::Result;
 
 // Service name
 const SERVICE_NAME: &str = "ascot";
@@ -42,7 +42,7 @@ impl MdnsSdService {
         }
     }
 
-    pub(crate) fn run(self, ip: Ipv4Addr) -> anyhow::Result<()> {
+    pub(crate) fn run(self, ip: Ipv4Addr) -> Result<()> {
         // Run mdns-sd service
         block_on(Self::mdns_sd_service::<Stack, _, _>(
             &self.stack,
@@ -51,7 +51,6 @@ impl MdnsSdService {
             SERVICE_NAME,
             ip,
         ))
-        .map_err(|e| anyhow!("Error running mdns-sd service: {}", e))
     }
 
     async fn mdns_sd_service<T, RB, SB>(
@@ -60,7 +59,7 @@ impl MdnsSdService {
         send_buf: SB,
         our_name: &str,
         our_ip: Ipv4Addr,
-    ) -> Result<(), MdnsIoError<T::Error>>
+    ) -> Result<()>
     where
         T: UdpBind,
         RB: BufferAccess<[u8]>,
@@ -108,6 +107,8 @@ impl MdnsSdService {
             &signal,
         );
 
-        mdns.run(HostAnswersMdnsHandler::new(&host)).await
+        mdns.run(HostAnswersMdnsHandler::new(&host))
+            .await
+            .map_err(|e| e.into())
     }
 }

@@ -1,7 +1,5 @@
 use core::net::Ipv4Addr;
 
-use anyhow::bail;
-
 use esp_idf_svc::wifi::{AuthMethod, ClientConfiguration, Configuration};
 
 use esp_idf_svc::hal::modem::Modem;
@@ -13,6 +11,8 @@ use esp_idf_svc::{eventloop::EspSystemEventLoop, nvs::EspDefaultNvsPartition};
 
 use log::info;
 
+use crate::error::{Error, ErrorKind, Result};
+
 pub struct Wifi {
     pub ip: Ipv4Addr,
     _wifi: AsyncWifi<EspWifi<'static>>,
@@ -23,13 +23,13 @@ impl Wifi {
         ssid: &'static str,
         password: &'static str,
         modem: impl Peripheral<P = Modem> + 'static,
-    ) -> anyhow::Result<Self> {
+    ) -> Result<Self> {
         if ssid.is_empty() {
-            bail!("Missing Wi-Fi SSID")
+            return Err(Error::new(ErrorKind::WiFi, "Missing Wi-Fi SSID"));
         }
 
         if password.is_empty() {
-            bail!("Missing Wifi password");
+            return Err(Error::new(ErrorKind::WiFi, "Missing Wi-Fi password"));
         }
 
         // Retrieve system loop (singleton)
@@ -61,7 +61,7 @@ impl Wifi {
         wifi: &mut AsyncWifi<EspWifi<'static>>,
         ssid: &str,
         password: &str,
-    ) -> anyhow::Result<()> {
+    ) -> Result<()> {
         let wifi_configuration: Configuration = Configuration::Client(ClientConfiguration {
             ssid: ssid.try_into().unwrap(),
             bssid: None,
