@@ -2,6 +2,9 @@
 //!
 //! Go to 192.168.1.126 to test
 
+// The `unwrap` function is necessary to reduce the stack usage. Unwinding
+// the errors in the stack leads to some stack blowups.
+
 use std::sync::{Arc, Mutex};
 
 // Ascot library
@@ -11,7 +14,6 @@ use ascot_library::route::Route;
 // Ascot Esp32
 use ascot_esp32c3::device::{DeviceAction, ResponseBuilder};
 use ascot_esp32c3::devices::light::Light;
-use ascot_esp32c3::error::Result;
 use ascot_esp32c3::server::AscotServer;
 use ascot_esp32c3::wifi::Wifi;
 
@@ -29,14 +31,7 @@ pub struct WifiConfig {
     password: &'static str,
 }
 
-// TODO:
-//
-// Developer define how to contact the device and should do that through a json
-// file.
-//
-// - Define how to send data through POST method
-
-fn main() -> Result<()> {
+fn main() {
     // A hack to make sure that a few patches to the ESP-IDF which are
     // implemented in Rust are linked to the final executable
     esp_idf_svc::sys::link_patches();
@@ -46,21 +41,22 @@ fn main() -> Result<()> {
 
     // `async-io` uses the ESP IDF `eventfd` syscall to implement async IO.
     // If you use `tokio`, you still have to do the same as it also uses the `eventfd` syscall
-    esp_idf_svc::io::vfs::initialize_eventfd(5)?;
+    esp_idf_svc::io::vfs::initialize_eventfd(5).unwrap();
 
     // Retrieve all esp32c3 peripherals (singleton)
-    let peripherals = Peripherals::take()?;
+    let peripherals = Peripherals::take().unwrap();
 
     // Retrieve ssid e password
     let wifi_config = WIFI_CONFIG;
 
-    // Connects to Wi-Fi
-    let wifi = Wifi::connect_wifi(wifi_config.ssid, wifi_config.password, peripherals.modem)?;
+    // Connects to Wi-Fi.
+    let wifi =
+        Wifi::connect_wifi(wifi_config.ssid, wifi_config.password, peripherals.modem).unwrap();
 
     // Create the driver for the built-in led in output mode
-    let mut built_in_led_output = PinDriver::output(peripherals.pins.gpio8)?;
+    let mut built_in_led_output = PinDriver::output(peripherals.pins.gpio8).unwrap();
     // Turn the built-in led off setting the impedance high
-    built_in_led_output.set_high()?;
+    built_in_led_output.set_high().unwrap();
     // Delay 1ms
     Ets::delay_ms(1u32);
 
@@ -113,9 +109,11 @@ fn main() -> Result<()> {
         Ok(())
     });
 
-    let light = Light::new(light_on_action, light_off_action)?
-        .add_action(main_page_action)?
+    let light = Light::new(light_on_action, light_off_action)
+        .unwrap()
+        .add_action(main_page_action)
+        .unwrap()
         .build();
 
-    AscotServer::new(light, wifi.ip).run()
+    AscotServer::new(light, wifi.ip).run().unwrap()
 }
