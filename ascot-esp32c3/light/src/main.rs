@@ -11,6 +11,7 @@ use ascot_library::route::Route;
 // Ascot Esp32
 use ascot_esp32c3::device::{DeviceAction, ResponseBuilder};
 use ascot_esp32c3::devices::light::Light;
+use ascot_esp32c3::error::Result;
 use ascot_esp32c3::server::AscotServer;
 use ascot_esp32c3::wifi::Wifi;
 
@@ -35,7 +36,7 @@ pub struct WifiConfig {
 //
 // - Define how to send data through POST method
 
-fn main() -> anyhow::Result<()> {
+fn main() -> Result<()> {
     // A hack to make sure that a few patches to the ESP-IDF which are
     // implemented in Rust are linked to the final executable
     esp_idf_svc::sys::link_patches();
