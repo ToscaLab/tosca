@@ -10,6 +10,7 @@ use esp_idf_svc::io::Write;
 use ascot_library::route::RestKind;
 
 use crate::device::Device;
+use crate::error::Result;
 use crate::service::MdnsSdService;
 
 // Default port.
@@ -54,7 +55,7 @@ impl AscotServer {
     }
 
     /// Runs a smart home device on the server.
-    pub fn run(self) -> anyhow::Result<()> {
+    pub fn run(self) -> Result<()> {
         let mut server = EspHttpServer::new(&Configuration {
             stack_size: self.stack_size,
             http_port: self.port,

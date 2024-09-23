@@ -1,9 +1,8 @@
-use anyhow::anyhow;
-
 use ascot_library::device::DeviceKind;
 use ascot_library::hazards::Hazard;
 
 use crate::device::{Device, DeviceAction, DeviceBuilder};
+use crate::error::{Error, ErrorKind, Result};
 
 // The default main route for a light.
 const LIGHT_MAIN_ROUTE: &str = "/light";
@@ -37,11 +36,14 @@ impl DeviceBuilder for Light {
 
 impl Light {
     /// Creates a new [`Light`] instance.
-    pub fn new(turn_light_on: DeviceAction, turn_light_off: DeviceAction) -> anyhow::Result<Self> {
+    pub fn new(turn_light_on: DeviceAction, turn_light_off: DeviceAction) -> Result<Self> {
         // Raise an error whether turn light_on does not contain a
         // fire hazard.
         if turn_light_on.miss_hazard(TURN_LIGHT_ON) {
-            return Err(anyhow!("No fire hazard for the `turn_light_on` route"));
+            return Err(Error::new(
+                ErrorKind::Light,
+                "No fire hazard for the `turn_light_on` route",
+            ));
         }
 
         // Create a new device.
@@ -63,11 +65,14 @@ impl Light {
     }
 
     /// Adds an additional action for a [`Light`].
-    pub fn add_action(mut self, light_action: DeviceAction) -> anyhow::Result<Self> {
+    pub fn add_action(mut self, light_action: DeviceAction) -> Result<Self> {
         // Return an error if action hazards are not a subset of allowed hazards.
         for hazard in light_action.route_hazards.hazards.iter() {
             if !self.allowed_hazards.contains(hazard) {
-                return Err(anyhow!("{hazard} hazard is not allowed for light"));
+                return Err(Error::new(
+                    ErrorKind::Light,
+                    format!("{hazard} hazard is not allowed for light"),
+                ));
             }
         }
 
