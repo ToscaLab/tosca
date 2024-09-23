@@ -1,7 +1,7 @@
 use alloc::borrow::Cow;
 
 /// All possible error kinds.
-#[derive(Debug, Copy, Clone)]
+#[derive(Copy, Clone)]
 pub enum ErrorKind {
     /// Wi-Fi connection error.
     WiFi,
@@ -30,26 +30,42 @@ impl ErrorKind {
     }
 }
 
+impl core::fmt::Debug for ErrorKind {
+    #[inline(always)]
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        self.description().fmt(f)
+    }
+}
+
 impl core::fmt::Display for ErrorKind {
+    #[inline(always)]
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         self.description().fmt(f)
     }
 }
 
 /// Library error.
-#[derive(Debug)]
 pub struct Error {
     kind: ErrorKind,
     info: Cow<'static, str>,
 }
 
+impl core::fmt::Debug for Error {
+    #[inline(always)]
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        self.error().fmt(f)
+    }
+}
+
 impl core::fmt::Display for Error {
+    #[inline(always)]
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         self.error().fmt(f)
     }
 }
 
 impl Error {
+    #[inline(always)]
     pub(crate) fn new(kind: ErrorKind, info: impl Into<Cow<'static, str>>) -> Self {
         Self {
             kind,
@@ -57,24 +73,28 @@ impl Error {
         }
     }
 
+    #[inline(always)]
     pub(crate) fn error(&self) -> String {
         format!("{}: {}", self.kind, self.info)
     }
 }
 
 impl From<esp_idf_svc::hal::sys::EspError> for Error {
+    #[inline(always)]
     fn from(e: esp_idf_svc::hal::sys::EspError) -> Self {
         Self::new(ErrorKind::Esp32C3, e.to_string())
     }
 }
 
 impl From<esp_idf_svc::io::EspIOError> for Error {
+    #[inline(always)]
     fn from(e: esp_idf_svc::io::EspIOError) -> Self {
         Self::new(ErrorKind::Esp32C3IO, e.to_string())
     }
 }
 
 impl<E: core::fmt::Debug> From<edge_mdns::io::MdnsIoError<E>> for Error {
+    #[inline(always)]
     fn from(e: edge_mdns::io::MdnsIoError<E>) -> Self {
         Self::new(ErrorKind::Service, format!("{:?}", e))
     }
