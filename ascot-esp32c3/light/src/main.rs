@@ -64,14 +64,6 @@ fn main() {
     // server route.
     let temp_led_main = Arc::new(Mutex::new(built_in_led_output));
 
-    // Configuration for the main page route.
-    let main_page_config = Route::get("/").description("Main page.");
-
-    let main_page_action = DeviceAction::no_hazards(
-        main_page_config,
-        ResponseBuilder(|req| req.into_ok_response(), "Main page!"),
-    );
-
     // Configuration for the `PUT` turn light on route.
     let light_on_config = Route::put("/on").description("Turn light on.");
 
@@ -110,8 +102,6 @@ fn main() {
     });
 
     let light = Light::new(light_on_action, light_off_action)
-        .unwrap()
-        .add_action(main_page_action)
         .unwrap()
         .build();
 

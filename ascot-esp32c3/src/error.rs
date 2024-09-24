@@ -79,6 +79,12 @@ impl Error {
     }
 }
 
+impl From<serde_json::Error> for Error {
+    fn from(e: serde_json::Error) -> Self {
+        Self::new(ErrorKind::Serialization, e.to_string())
+    }
+}
+
 impl From<esp_idf_svc::hal::sys::EspError> for Error {
     #[inline(always)]
     fn from(e: esp_idf_svc::hal::sys::EspError) -> Self {
