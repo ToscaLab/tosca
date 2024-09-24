@@ -6,7 +6,7 @@ edition = "2021"
 [dependencies]
 
 # Esp
-esp-idf-svc = "0.49.1"
+esp-idf-svc = { git = "https://github.com/esp-rs/esp-idf-svc" }
 
 # Mdns-sd
 edge-mdns = "0.3"

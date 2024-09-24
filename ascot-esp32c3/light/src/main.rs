@@ -41,7 +41,7 @@ fn main() {
 
     // `async-io` uses the ESP IDF `eventfd` syscall to implement async IO.
     // If you use `tokio`, you still have to do the same as it also uses the `eventfd` syscall
-    esp_idf_svc::io::vfs::initialize_eventfd(5).unwrap();
+    let _event = esp_idf_svc::io::vfs::MountedEventfs::mount(5).unwrap();
 
     // Retrieve all esp32c3 peripherals (singleton)
     let peripherals = Peripherals::take().unwrap();
