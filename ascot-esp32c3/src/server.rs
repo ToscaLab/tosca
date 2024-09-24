@@ -78,13 +78,21 @@ impl AscotServer {
                 RestKind::Put => Method::Put,
             };
             if let Some(body) = route.body {
-                server.fn_handler(route.route_hazards.route.route(), method, move |req| {
-                    // Run body.
-                    body()?;
+                server.fn_handler(
+                    &format!(
+                        "{}{}",
+                        self.device.main_route,
+                        route.route_hazards.route.route()
+                    ),
+                    method,
+                    move |req| {
+                        // Run body.
+                        body()?;
 
-                    // Write response.
-                    (route.response)(req)?.write_all(route.content.as_bytes())
-                })?;
+                        // Write response.
+                        (route.response)(req)?.write_all(route.content.as_bytes())
+                    },
+                )?;
             } else {
                 server.fn_handler(route.route_hazards.route.route(), method, move |req| {
                     // Write only response.
