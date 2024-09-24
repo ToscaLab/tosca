@@ -2,7 +2,7 @@
 # value until there are no more issues. This value is based on a Rust build with
 # a release profile and an unwrap strategy for errors. It is necessary to fiddle
 # with the debug profile not to have stack blowups for a debug build.
-CONFIG_ESP_MAIN_TASK_STACK_SIZE=70000
+CONFIG_ESP_MAIN_TASK_STACK_SIZE=130000
 # The stack size for a default debug build profile should be higher since it
 # has less optizations.
 #CONFIG_ESP_MAIN_TASK_STACK_SIZE=150000

@@ -7,6 +7,7 @@ use esp_idf_svc::http::server::{Configuration, EspHttpServer};
 use esp_idf_svc::http::Method;
 use esp_idf_svc::io::Write;
 
+use ascot_library::device::DeviceSerializer;
 use ascot_library::route::RestKind;
 
 use crate::device::Device;
@@ -62,7 +63,15 @@ impl AscotServer {
             ..Default::default()
         })?;
 
+        // Format the device description as a pretty string.
+        let device_description = serde_json::to_string_pretty(&self.device.serialize_data())?;
+
         for route in self.device.routes_data {
+            // Skip the "/" route because it has already been taken to return
+            // the JSON which represents the device description.
+            if route.route_hazards.route.route() == "/" {
+                continue;
+            }
             let method = match route.route_hazards.route.kind() {
                 RestKind::Get => Method::Get,
                 RestKind::Post => Method::Post,
@@ -83,6 +92,12 @@ impl AscotServer {
                 })?;
             }
         }
+
+        // Add main route
+        server.fn_handler("/", Method::Get, move |req| {
+            req.into_response(200, Some("OK"), &[("Content-Type", "application/json")])?
+                .write_all(device_description.as_bytes())
+        })?;
 
         // Run service
         MdnsSdService::new().run(self.http_address)?;
