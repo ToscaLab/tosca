@@ -13,12 +13,15 @@ use log::info;
 
 use crate::error::{Error, ErrorKind, Result};
 
+/// The Wi-Fi connection mechanism.
 pub struct Wifi {
+    /// Ipv4 assigned by the DHCP to the board.
     pub ip: Ipv4Addr,
     _wifi: AsyncWifi<EspWifi<'static>>,
 }
 
 impl Wifi {
+    /// Connects to Wi-Fi given an input SSID and password.
     pub fn connect_wifi(
         ssid: &'static str,
         password: &'static str,
