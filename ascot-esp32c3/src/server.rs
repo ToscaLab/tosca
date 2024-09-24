@@ -67,11 +67,6 @@ impl AscotServer {
         let device_description = serde_json::to_string_pretty(&self.device.serialize_data())?;
 
         for route in self.device.routes_data {
-            // Skip the "/" route because it has already been taken to return
-            // the JSON which represents the device description.
-            if route.route_hazards.route.route() == "/" {
-                continue;
-            }
             let method = match route.route_hazards.route.kind() {
                 RestKind::Get => Method::Get,
                 RestKind::Post => Method::Post,
@@ -102,7 +97,7 @@ impl AscotServer {
         }
 
         // Add main route
-        server.fn_handler("/", Method::Get, move |req| {
+        server.fn_handler(self.device.main_route, Method::Get, move |req| {
             req.into_response(200, Some("OK"), &[("Content-Type", "application/json")])?
                 .write_all(device_description.as_bytes())
         })?;
