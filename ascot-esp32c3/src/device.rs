@@ -149,7 +149,7 @@ pub struct Device {
     // Kind.
     kind: DeviceKind,
     // Main device route.
-    main_route: &'static str,
+    pub(crate) main_route: &'static str,
     // All device routes with their hazards and handlers.
     pub(crate) routes_data: Vec<DeviceAction, MAXIMUM_ELEMENTS>,
 }
