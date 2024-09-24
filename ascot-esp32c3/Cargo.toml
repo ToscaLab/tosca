@@ -3,11 +3,6 @@ name = "ascot-esp32c3"
 version = "0.1.0"
 edition = "2021"
 
-# Patches to fix the Wi-Fi timeout
-[patch.crates-io]
-esp-idf-hal = { git = "https://github.com/esp-rs/esp-idf-hal" }
-esp-idf-sys = { git = "https://github.com/esp-rs/esp-idf-sys" }
-
 [dependencies]
 
 # Esp
@@ -19,7 +14,7 @@ edge-nal = { version = "0.3", default-features = false }
 edge-nal-std = { version = "0.3", default-features = false }
 embassy-sync = { version = "0.6", default-features = false }
 embassy-time = { version = "0.3.2", features = ["std", "generic-queue-8"] }
-rand = {version = "0.8.5", feature = ["std", "std_rng"] }
+rand = "0.8.5"
 
 # Other dependencies
 ascot-library = { path = "../" }
