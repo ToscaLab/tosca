@@ -2,8 +2,10 @@ use core::net::{Ipv4Addr, Ipv6Addr};
 
 use edge_mdns::buf::{BufferAccess, VecBufAccess};
 use edge_mdns::domain::base::Ttl;
+use edge_mdns::host::{Service, ServiceAnswers};
 use edge_mdns::io::{self, DEFAULT_SOCKET};
 use edge_mdns::{host::Host, HostAnswersMdnsHandler};
+
 use edge_nal::{UdpBind, UdpSplit};
 use edge_nal_std::Stack;
 
@@ -17,6 +19,9 @@ use log::info;
 use rand::{thread_rng, RngCore};
 
 use crate::error::Result;
+
+// Service host
+const SERVICE_HOST: &str = "ascot";
 
 // Service name
 const SERVICE_NAME: &str = "ascot";
@@ -48,7 +53,7 @@ impl MdnsSdService {
             &self.stack,
             &self.recv_buf,
             &self.send_buf,
-            SERVICE_NAME,
+            SERVICE_HOST,
             ip,
         ))
     }
@@ -91,6 +96,17 @@ impl MdnsSdService {
             ttl: Ttl::from_secs(60),
         };
 
+        let service = Service {
+            name: SERVICE_NAME,
+            priority: 1,
+            weight: 5,
+            service: "_https",
+            protocol: "_tcp",
+            port: 443,
+            service_subtypes: &[],
+            txt_kvs: &[],
+        };
+
         // A way to notify the mDNS responder that the data in `Host` had changed
         // Not necessary for this example, because the data is hard-coded
         let signal = Signal::new();
@@ -107,8 +123,10 @@ impl MdnsSdService {
             &signal,
         );
 
-        mdns.run(HostAnswersMdnsHandler::new(&host))
-            .await
-            .map_err(|e| e.into())
+        mdns.run(HostAnswersMdnsHandler::new(ServiceAnswers::new(
+            &host, &service,
+        )))
+        .await
+        .map_err(|e| e.into())
     }
 }
