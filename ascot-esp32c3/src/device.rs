@@ -7,13 +7,8 @@ use ascot_library::route::{Route, RouteConfigs, RouteHazards};
 use esp_idf_svc::http::server::{EspHttpConnection, Request, Response};
 use esp_idf_svc::io::EspIOError;
 
-use heapless::Vec;
-
 // Default main route for a device.
 const DEFAULT_MAIN_ROUTE: &str = "/device";
-
-// Maximum stack elements.
-const MAXIMUM_ELEMENTS: usize = 16;
 
 // An internal module to avoid declaring the trait as public.
 mod internal {
@@ -102,12 +97,14 @@ impl DeviceAction {
 
     /// Checks whether a [`DeviceAction`] misses a specific [`Hazard`].
     #[inline(always)]
+    // FIXME: It consumes a lot of stack.
     pub fn miss_hazard(&self, hazard: Hazard) -> bool {
         !self.route_hazards.hazards.contains(hazard)
     }
 
     /// Checks whether a [`DeviceAction`] misses the given [`Hazard`]s.
     #[inline(always)]
+    // FIXME: It consumes a lot of stack.
     pub fn miss_hazards(&self, hazards: &'static [Hazard]) -> bool {
         !hazards
             .iter()
@@ -151,10 +148,11 @@ pub struct Device {
     // Main device route.
     pub(crate) main_route: &'static str,
     // All device routes with their hazards and handlers.
-    pub(crate) routes_data: Vec<DeviceAction, MAXIMUM_ELEMENTS>,
+    pub(crate) routes_data: Vec<DeviceAction>,
 }
 
 impl DeviceSerializer for Device {
+    // FIXME: It consumes a lot of stack.
     fn serialize_data(&self) -> DeviceData {
         let mut route_configs = RouteConfigs::init();
         for route_data in self.routes_data.iter() {
@@ -187,7 +185,7 @@ impl Device {
 
     /// Adds a [`DeviceAction`].
     pub fn add_action(mut self, device_action: DeviceAction) -> Self {
-        let _ = self.routes_data.push(device_action);
+        self.routes_data.push(device_action);
         self
     }
 }
