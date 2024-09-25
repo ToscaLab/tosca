@@ -1,8 +1,5 @@
 use core::net::Ipv4Addr;
 
-use std::thread::sleep;
-use std::time::Duration;
-
 use esp_idf_svc::http::server::{Configuration, EspHttpServer};
 use esp_idf_svc::http::Method;
 use esp_idf_svc::io::Write;
@@ -104,12 +101,6 @@ impl AscotServer {
         })?;
 
         // Run service
-        MdnsSdService::new().run(self.http_address)?;
-
-        // Run the server endlessly.
-        loop {
-            // Sleep for one second and then continue the execution.
-            sleep(Duration::from_millis(1000));
-        }
+        MdnsSdService::new().run(self.http_address)
     }
 }
