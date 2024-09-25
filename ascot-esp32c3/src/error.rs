@@ -18,7 +18,7 @@ pub enum ErrorKind {
 }
 
 impl ErrorKind {
-    pub(crate) const fn description(self) -> &'static str {
+    const fn description(self) -> &'static str {
         match self {
             ErrorKind::WiFi => "Wi-Fi",
             ErrorKind::Esp32C3 => "Esp32-C3 internal error",
@@ -68,7 +68,8 @@ impl Error {
         }
     }
 
-    pub(crate) fn error(&self) -> String {
+    #[inline]
+    fn error(&self) -> String {
         format!("{}: {}", self.kind, self.info)
     }
 }
