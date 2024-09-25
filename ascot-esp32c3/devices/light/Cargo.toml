@@ -4,8 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-ascot-library = { version = "0.1.0", path = "../../" }
-ascot-esp32c3 = { version = "0.1.0", path = "../" }
+ascot-library = { version = "0.1.0", path = "../../../" }
+ascot-esp32c3 = { version = "0.1.0", path = "../../" }
 esp-idf-svc = { git = "https://github.com/esp-rs/esp-idf-svc" }
 toml-cfg = "0.2.0"
 
@@ -18,6 +18,8 @@ toml-cfg = "0.2.0"
 debug = true
 # Optimize memory
 opt-level = "z"
+# Use lto 
+lto = true
 
 [profile.release]
 codegen-units = 1 # LLVM can perform better optimizations using a single thread

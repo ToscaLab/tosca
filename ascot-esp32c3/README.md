@@ -1,51 +1,64 @@
-# Ascot firmware for an `ESP32-C3` board
+# Ascot library for `ESP32-C3` firmware
 
-An `Ascot`-compliant HTTP server, mainly thought as a **IoT** firmware,
-for an `ESP32-C3` board.
+An `Ascot` library to create a firmware for an `ESP32-C3` board.
 
-This firmware also implements a thin-layer library to manage routes, errors and
-hazards.
+It contains APIs which allow to connect the board to a router through Wi-Fi,
+configure and run an HTTP server with a `mDNS-SD` service.
 
-## Prerequisites
+This library also provides a thin-layer to the [ascot-library](../README) to
+manage routes, errors and hazards.
 
-Follow the [Prerequisites](https://github.com/esp-rs/esp-idf-template#prerequisites) 
-section in the `esp-idf-template` crate.
+## Building Prerequisites
 
-Specific prerequisites for the project:
-
-- Connect the board to a system through its serial connection
-- Fill in the `wifi_confi.toml` with the Wi-Fi credentials: `SSID` and `PASSWORD`
+Follow the [Prerequisites](https://github.com/esp-rs/esp-idf-template#prerequisites)
+section contained in the `esp-idf-template` crate.
 
 ## Building
 
-To build the code in `debug` mode:
+To build this library in `debug` mode:
 
 ```console
 cargo build
 ```
 
-To build the code in `release` mode in order to have all optimizations enabled:
+To build this library in `release` mode, so that all optimizations are enabled:
 
 ```console
 cargo build --release
 ```
 
-## Running
+## Usage Prerequisites
+
+Some prerequisites for projects which are going to use this library:
+
+- The [sdkconfig.defaults](./sdkconfig.defaults) configuration file will
+probably be different from firmware to firmware, so copy this file into your
+project and then change its values according to your needs.
+For example, the stack size might be increased or a specific option might be
+added or removed.
+
+## Building devices
+
+The directory [devices](../devices) contains firmware implemented with
+the `ascot-esp32c3` crate. Each firmware is independent from another and it can
+be moved in a separate repository.
+
+To build a firmware run:
+
+```console
+cd devices/[firmware directory name]
+cargo build
+```
+
+It is necessary to enter the `devices/[firmware directory name]` to use the
+`sdkconfig.defaults` file specific for that firmware.
 
 To flash and run the firmware on an `ESP32-C3` board:
 
 ```console
+cd devices/[firmware directory name]
 cargo run [--release]
 ```
 
 The optional `--release` parameter enables all optimizations and makes the
 final firmware smaller.
-
-## Board usage on WSL
-
-Support for connecting `USB` devices is not natively available on [Windows
-Subsystem for Linux (WSL)](https://learn.microsoft.com/en-us/windows/wsl/).
-
-In order to use the `ESP32-C3` board with `WSL`, follow this
-[guide](https://learn.microsoft.com/en-us/windows/wsl/connect-usb) and manually
-connect the `USB` port used by the board to `WSL`.
