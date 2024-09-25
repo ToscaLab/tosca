@@ -31,7 +31,7 @@ pub struct WifiConfig {
     password: &'static str,
 }
 
-fn main() {
+fn main() -> ascot_esp32c3::error::Result<()> {
     // A hack to make sure that a few patches to the ESP-IDF which are
     // implemented in Rust are linked to the final executable
     esp_idf_svc::sys::link_patches();
@@ -41,22 +41,21 @@ fn main() {
 
     // `async-io` uses the ESP IDF `eventfd` syscall to implement async IO.
     // If you use `tokio`, you still have to do the same as it also uses the `eventfd` syscall
-    let _event = esp_idf_svc::io::vfs::MountedEventfs::mount(5).unwrap();
+    let _event = esp_idf_svc::io::vfs::MountedEventfs::mount(5)?;
 
     // Retrieve all esp32c3 peripherals (singleton)
-    let peripherals = Peripherals::take().unwrap();
+    let peripherals = Peripherals::take()?;
 
     // Retrieve ssid e password
     let wifi_config = WIFI_CONFIG;
 
     // Connects to Wi-Fi.
-    let wifi =
-        Wifi::connect_wifi(wifi_config.ssid, wifi_config.password, peripherals.modem).unwrap();
+    let wifi = Wifi::connect_wifi(wifi_config.ssid, wifi_config.password, peripherals.modem)?;
 
     // Create the driver for the built-in led in output mode
-    let mut built_in_led_output = PinDriver::output(peripherals.pins.gpio8).unwrap();
+    let mut built_in_led_output = PinDriver::output(peripherals.pins.gpio8)?;
     // Turn the built-in led off setting the impedance high
-    built_in_led_output.set_high().unwrap();
+    built_in_led_output.set_high()?;
     // Delay 1ms
     Ets::delay_ms(1u32);
 
@@ -101,9 +100,7 @@ fn main() {
         Ok(())
     });
 
-    let light = Light::new(light_on_action, light_off_action)
-        .unwrap()
-        .build();
+    let light = Light::new(light_on_action, light_off_action)?.build();
 
-    AscotServer::new(light, wifi.ip).run().unwrap()
+    AscotServer::new(light, wifi.ip).run()
 }

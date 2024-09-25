@@ -64,6 +64,7 @@ impl AscotServer {
         })?;
 
         // Format the device description as a pretty string.
+        // FIXME: It consumes a lot of stack.
         let device_description = serde_json::to_string_pretty(&self.device.serialize_data())?;
 
         for route in self.device.routes_data {
