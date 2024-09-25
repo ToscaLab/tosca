@@ -2,9 +2,6 @@
 //!
 //! Go to 192.168.1.126 to test
 
-// The `unwrap` function is necessary to reduce the stack usage. Unwinding
-// the errors in the stack leads to some stack blowups.
-
 use std::sync::{Arc, Mutex};
 
 // Ascot library
