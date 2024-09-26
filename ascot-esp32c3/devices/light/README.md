@@ -1,12 +1,14 @@
-# Light Firmware
+# Light Ascot Firmware
 
-A light firmware to turn on and off the built-in LED of an `ESP32-C3` board.
+A light `Ascot` firmware to turn on and off the built-in LED of
+an `ESP32-C3` board.
 
 It implements an HTTP server which replies to `light/on` and
-`light/off` **REST** requests, in charge of modifying built-in LED state.
-The server constructs a response containing the status of the requested action.
+`light/off` **REST** requests responsible for changing the state of the
+board built-in LED.
+For each request, the server response with the status of the ongoing action.
 
-The board can de discovered in a trusted network through a `mDNS-SD` service.
+The board can de discovered in a network through a `mDNS-SD` service.
 
 ## Building Prerequisites
 
@@ -15,14 +17,17 @@ section contained in the `esp-idf-template` crate.
 
 ## Building
 
-To build the code with the `debug` profile run:
+Before any kind of build, run `cargo clean` to remove old builds configurations,
+and then run `cargo update` to update all dependencies.
+
+To build this firmware with the `debug` profile run:
 
 ```console
 cargo build
 ```
 
-To build the code with the `release` profile in order to enable some time and
-size optimizations:
+To build this firmware with a `release` profile which enables all time and
+memory optimizations run:
 
 ```console
 cargo build --release
@@ -36,8 +41,8 @@ To flash and run the firmware on an `ESP32-C3` board:
 cargo run [--release]
 ```
 
-The optional `--release` parameter enables all optimizations and makes the
-final firmware smaller.
+The optional `--release` parameter is recommended since it enables all
+optimizations and makes the final firmware smaller.
 
 ## Board usage on WSL
 
@@ -56,7 +61,8 @@ For example, the stack size might be increased or a specific option might be
 added or removed.
 - Rename `cfg.toml.example` to `cfg.toml` and fill it with your
 Wi-Fi credentials: `SSID` and `PASSWORD`
-- Connect the board to a laptop through a serial connection to visualize logs
+- Connect the board to a laptop through a serial connection to visualize
+the log
 - Update the `ESP_IDF_VERSION` environment variable in the `.cargo/config.toml`
 file if any problems arise
-- Pin the `nightly` version to be more stable
+- Pin to a specific `nightly` version if more stability is requested
