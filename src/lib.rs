@@ -1,5 +1,10 @@
 #![no_std]
 
+// REMINDERS:
+//
+// - The `heapless` dependency can consume a lot of stack. Reduce the number
+//   of elements in the stack structures if some issues arises.
+
 pub mod device;
 pub mod error;
 pub mod hazards;
