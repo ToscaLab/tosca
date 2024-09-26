@@ -65,7 +65,6 @@ impl Light {
     }
 
     /// Adds an additional action for a [`Light`].
-    // FIXME: It consumes a lot of stack.
     pub fn add_action(mut self, light_action: DeviceAction) -> Result<Self> {
         // Return an error if action hazards are not a subset of allowed hazards.
         for hazard in light_action.route_hazards.hazards.iter() {

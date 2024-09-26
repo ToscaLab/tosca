@@ -97,14 +97,12 @@ impl DeviceAction {
 
     /// Checks whether a [`DeviceAction`] misses a specific [`Hazard`].
     #[inline(always)]
-    // FIXME: It consumes a lot of stack.
     pub fn miss_hazard(&self, hazard: Hazard) -> bool {
         !self.route_hazards.hazards.contains(hazard)
     }
 
     /// Checks whether a [`DeviceAction`] misses the given [`Hazard`]s.
     #[inline(always)]
-    // FIXME: It consumes a lot of stack.
     pub fn miss_hazards(&self, hazards: &'static [Hazard]) -> bool {
         !hazards
             .iter()
@@ -152,7 +150,6 @@ pub struct Device {
 }
 
 impl DeviceSerializer for Device {
-    // FIXME: It consumes a lot of stack.
     fn serialize_data(&self) -> DeviceData {
         let mut route_configs = RouteConfigs::init();
         for route_data in self.routes_data.iter() {
