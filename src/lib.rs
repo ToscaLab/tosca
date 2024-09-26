@@ -17,7 +17,7 @@ use serde::{Deserialize, Serialize};
 use crate::error::Result;
 
 // Maximum number of elements on stack for a data structure.
-const MAXIMUM_ELEMENTS: usize = 16;
+const MAXIMUM_ELEMENTS: usize = 8;
 
 // Maximum string length for a mini string.
 const MINI_STRING_LENGHT: usize = 32;
