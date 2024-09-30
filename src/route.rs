@@ -8,21 +8,31 @@ use crate::{MiniString, MAXIMUM_ELEMENTS};
 
 /// Route inputs writing modes.
 ///
-/// Route inputs can be represented in different ways according to
-/// the server used to run a device. A server, indeed, can parse and reply to
-/// routes whose inputs present a specific structure.
+/// Route inputs can be added to a route in a different way depending on the
+/// underlying implementation of a server.
+///
+/// A server, indeed, might produce a response for a request if and only if
+/// a route presents a specific structure for its inputs.
 #[derive(Debug, Clone, Copy)]
 pub enum RouteMode {
-    /// Linear routes. Inputs are written on after the other i.e. route/input1/input2
+    /// Linear routes. Inputs are written on after the other in the route:
+    /// i.e. route/input1/input2
+    ///
+    /// If a server implements another kind of linear schema, the produced
+    /// route should be changed accordingly by a developer.
     Linear,
 }
 
 impl RouteMode {
+    // Some servers requires a symbol to represent inputs.
     #[inline]
-    fn join_input(self, route: &mut MiniString, text: &str) -> Result<()> {
+    fn join_input(self, route: &mut MiniString, text: &str, symbol: Option<&str>) -> Result<()> {
         match self {
             Self::Linear => {
-                route.push("/:")?;
+                route.push("/")?;
+                if let Some(symbol) = symbol {
+                    route.push(symbol)?;
+                }
                 route.push(text)
             }
         }
@@ -175,15 +185,21 @@ impl Route {
         self
     }
 
-    /// Computes a new route joining together the given inputs according to the
-    /// chosen route mode.
+    /// Changes the route joining together the given inputs according to the
+    /// schema defined by the [`RouteMode`] argument.
+    ///
+    /// An optional symbol to identify an input can be added if a server
+    /// requires that kind of schema.
+    ///
+    /// This operation is performed **only** for the `GET` route mode.
+    ///
     ///
     /// A route remains unchanged in the following cases:
-    /// - A `POST` REST kind has been set
+    /// - Any other route kind has been set
     /// - No inputs have been provided
     /// - An internal error occurred
-    pub fn join_inputs(&mut self, route_mode: RouteMode) {
-        if self.rest_kind == RestKind::Post
+    pub fn join_inputs(&mut self, route_mode: RouteMode, symbol: Option<&str>) {
+        if self.rest_kind != RestKind::Get
             || !self.inputs_route.is_empty()
             || self.inputs_route.push(self.route).is_err()
         {
@@ -194,7 +210,7 @@ impl Route {
             // If an error occurred adding an input, reset the input string,
             // and break the loop.
             if route_mode
-                .join_input(&mut self.inputs_route, input.name)
+                .join_input(&mut self.inputs_route, input.name, symbol)
                 .is_err()
             {
                 self.inputs_route = MiniString::empty();
