@@ -126,7 +126,7 @@ impl DeviceAction {
         H: Handler<T, ()> + OutputTypeName<T>,
         T: 'static,
     {
-        route.join_inputs(RouteMode::Linear);
+        route.join_inputs(RouteMode::Linear, Some(":"));
 
         Self {
             hazards,
@@ -136,6 +136,7 @@ impl DeviceAction {
                     RestKind::Get => axum::routing::get(handler),
                     RestKind::Put => axum::routing::put(handler),
                     RestKind::Post => axum::routing::post(handler),
+                    RestKind::Delete => axum::routing::delete(handler),
                 },
             ),
             route,
