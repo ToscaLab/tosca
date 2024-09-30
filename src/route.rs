@@ -66,6 +66,8 @@ pub enum RestKind {
     Put,
     // `POST` API.
     Post,
+    // `DELETE` API
+    Delete,
 }
 
 /// A server route configuration.
