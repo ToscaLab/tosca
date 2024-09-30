@@ -14,10 +14,11 @@ directory.
 In order to build a statically-linked firmware, run the following command:
 
 ```bash
-cargo build --package firmware_device --target=x86_64-unknown-linux-musl
+cargo build --package firmware_device [--release] --target=x86_64-unknown-linux-musl
 ```
 
-where `firmware_device` is the name of the example to build.
+where `firmware_device` is the name of the example to build, while `--release`
+is an optional argument which enables all time and memory optimizations.
 
 # Cross-compilation to aarch64 (ARM64) architecture
 
