@@ -11,3 +11,11 @@ ascot-library = { version = "0.1.0", path = "../../../" }
 ascot-axum = { version = "0.1.0", path = "../../" }
 serde = { version = "1.0", features = ["derive"] }
 tokio = { version = "1.0", features = ["full"] }
+
+[profile.release]
+codegen-units = 1 # LLVM can perform better optimizations using a single thread
+incremental = false
+lto = 'fat'
+# Optimize for binary size, but with loop vectorization.
+opt-level = 's'
+overflow-checks = false

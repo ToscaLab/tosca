@@ -25,14 +25,3 @@ default = ["mdns-sd-service"]
 
 # Services
 mdns-sd-service = ["dep:mdns-sd", "dep:gethostname", "dep:if-addrs"]
-
-[workspace]
-members = ["examples/fridge", "examples/light"]
-
-[profile.release]
-codegen-units = 1 # LLVM can perform better optimizations using a single thread
-incremental = false
-lto = 'fat'
-# Optimize for binary size, but with loop vectorization.
-opt-level = 's'
-overflow-checks = false

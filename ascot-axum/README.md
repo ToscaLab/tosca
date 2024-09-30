@@ -9,12 +9,21 @@ REST APIs.
 The implemented devices can be found inside the [examples](./examples)
 directory.
 
+## Building complete firmware devices
+
+The directory [devices](../devices) contains firmware implemented with
+the `ascot-axum` crate. Each firmware is independent from another one and it can
+be moved in a separate repository.
+
+Before any kind of build, run `cargo clean` to remove old builds configurations,
+and then run `cargo update` to update all dependencies.
+
 # Statically-linked firmware device
 
 In order to build a statically-linked firmware, run the following command:
 
 ```bash
-cargo build --package firmware_device [--release] --target=x86_64-unknown-linux-musl
+cargo build --manifest-path devices/firmware_device/Cargo.toml [--release] --target=x86_64-unknown-linux-musl
 ```
 
 where `firmware_device` is the name of the example to build, while `--release`
@@ -33,7 +42,8 @@ cargo install -f cross
 In order to build a binary for `ARM64` architecture run:
 
 ```console
-cross build --package firmware_device [--release] --target=aarch64-unknown-linux-musl
+cd devices/firmware_device
+cross build [--release] --target=aarch64-unknown-linux-musl
 ```
 
 where `firmware_device` is the name of the example to build, while `--release`
