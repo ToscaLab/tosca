@@ -68,6 +68,7 @@ impl AscotServer {
                 RestKind::Get => Method::Get,
                 RestKind::Post => Method::Post,
                 RestKind::Put => Method::Put,
+                RestKind::Delete => Method::Delete,
             };
             if let Some(body) = route.body {
                 server.fn_handler(
