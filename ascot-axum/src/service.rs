@@ -32,8 +32,8 @@ pub struct ServiceBuilder {
 }
 
 impl ServiceBuilder {
-    /// Creates a new [`ServiceBuilder`].
-    pub fn new(instance_name: &'static str) -> Self {
+    /// Creates a new [`ServiceBuilder`] for a `mDNS-SD` service.
+    pub fn mdns_sd(instance_name: &'static str) -> Self {
         Self {
             instance_name,
             port: DEFAULT_SERVER_PORT,
