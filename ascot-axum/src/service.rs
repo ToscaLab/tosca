@@ -24,7 +24,7 @@ pub(crate) const DNS_TYPE: &str = "Ascot Device";
 #[derive(Debug)]
 pub struct ServiceBuilder {
     /// Instance name.
-    pub(crate) name: &'static str,
+    pub(crate) instance_name: &'static str,
     /// Service port.
     pub(crate) port: u16,
     /// Service properties.
@@ -33,9 +33,9 @@ pub struct ServiceBuilder {
 
 impl ServiceBuilder {
     /// Creates a new [`ServiceBuilder`].
-    pub fn new(name: &'static str) -> Self {
+    pub fn new(instance_name: &'static str) -> Self {
         Self {
-            name,
+            instance_name,
             port: DEFAULT_SERVER_PORT,
             properties: FnvIndexMap::new(),
         }

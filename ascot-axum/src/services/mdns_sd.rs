@@ -74,7 +74,7 @@ pub(crate) fn run(service: ServiceBuilder) -> std::result::Result<(), Error> {
         // Domain label and service type
         &domain,
         // Instance name
-        service.name,
+        service.instance_name,
         // DNS hostname.
         //
         // For the same hostname in the same local network, the service resolves
