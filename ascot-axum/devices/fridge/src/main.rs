@@ -135,7 +135,7 @@ async fn main() -> Result<(), Error> {
 
     // Run a discovery service and the device on the server.
     AscotServer::new(device)
-        .run_service(ServiceBuilder::new("mdns-sd"))?
+        .run_service(ServiceBuilder::mdns_sd("fridge"))?
         .run()
         .await
 }
