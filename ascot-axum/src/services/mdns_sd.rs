@@ -6,7 +6,18 @@ use mdns_sd::{ServiceDaemon, ServiceInfo};
 use tracing::debug;
 
 use crate::error::{Error, ErrorKind};
-use crate::service::{ServiceBuilder, DNS_TYPE, SERVICE_TYPE};
+use crate::service::ServiceBuilder;
+
+// Service type
+//
+// It constitutes part of the mDNS domain.
+// This also allows the firmware to be detected during the mDNS discovery phase.
+const SERVICE_TYPE: &str = "_ascot";
+
+// DNS type.
+//
+// It defines the mDNS type. In this case, the firmware is an `Ascot Device`.
+const DNS_TYPE: &str = "Ascot Device";
 
 impl From<mdns_sd::Error> for Error {
     fn from(e: mdns_sd::Error) -> Self {

@@ -9,17 +9,6 @@ use crate::server::DEFAULT_SERVER_PORT;
 // Maximum stack elements.
 const MAXIMUM_ELEMENTS: usize = 16;
 
-// Service type
-//
-// It constitutes part of the mDNS domain.
-// This also allows the firmware to be detected during the mDNS discovery phase.
-pub(crate) const SERVICE_TYPE: &str = "_ascot";
-
-// DNS type.
-//
-// It defines the mDNS type. In this case, the firmware is an `Ascot Device`.
-pub(crate) const DNS_TYPE: &str = "Ascot Device";
-
 /// A service builder.
 #[derive(Debug)]
 pub struct ServiceBuilder {
