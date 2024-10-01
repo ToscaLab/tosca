@@ -43,7 +43,7 @@ pub(crate) fn run(service: ServiceBuilder) -> std::result::Result<(), Error> {
     // .local is a special domain name for hostnames in local area networks
     // which can be resolved via the Multicast DNS name resolution protocol.
     if !hostname.ends_with(".local") {
-        hostname.push_str(".local");
+        hostname.push_str(".local.");
     }
 
     debug!("Hostname: {hostname}");
