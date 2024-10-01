@@ -132,7 +132,7 @@ where
         let http_address = self
             .http_addresses
             .first()
-            .map(|ip| *ip)
+            .copied()
             .unwrap_or(DEFAULT_HTTP_ADDRESS);
 
         let listener_bind = format!("{}:{}", http_address, self.port);
