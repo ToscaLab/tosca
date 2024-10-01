@@ -81,6 +81,10 @@ pub(crate) fn run(service: ServiceBuilder) -> std::result::Result<(), Error> {
     // Define mDNS domain
     let domain = format!("{SERVICE_TYPE}._tcp.local.");
 
+    debug!("Domain: {domain}");
+    debug!("Instance name: {}", service.instance_name);
+    debug!("Hostname: {hostname}");
+
     let service = ServiceInfo::new(
         // Domain label and service type
         &domain,
