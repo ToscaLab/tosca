@@ -1,6 +1,8 @@
 //! The firmware can be discovered in the local network, which also represents
 //! the trusted network, through the `mDNS` protocol.
 
+use core::net::IpAddr;
+
 use heapless::FnvIndexMap;
 
 use crate::error::Result;
@@ -52,8 +54,8 @@ pub(crate) struct Service;
 
 impl Service {
     // Runs a service.
-    pub(crate) fn run(service_builder: ServiceBuilder) -> Result<()> {
+    pub(crate) fn run(service_builder: ServiceBuilder, http_addresses: &[IpAddr]) -> Result<()> {
         #[cfg(feature = "mdns-sd-service")]
-        crate::services::mdns_sd::run(service_builder)
+        crate::services::mdns_sd::run(service_builder, http_addresses)
     }
 }
