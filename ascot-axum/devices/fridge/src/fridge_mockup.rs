@@ -1,15 +1,15 @@
 #[derive(Clone)]
-pub(crate) struct DummyFridge {
+pub(crate) struct FridgeMockup {
     pub(crate) temperature: f64,
 }
 
-impl Default for DummyFridge {
+impl Default for FridgeMockup {
     fn default() -> Self {
         Self::init(2.0)
     }
 }
 
-impl DummyFridge {
+impl FridgeMockup {
     pub(crate) const fn init(temperature: f64) -> Self {
         Self { temperature }
     }

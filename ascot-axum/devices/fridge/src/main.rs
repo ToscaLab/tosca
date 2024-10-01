@@ -1,6 +1,6 @@
 extern crate alloc;
 
-mod dummy_fridge;
+mod fridge_mockup;
 
 use alloc::sync::Arc;
 
@@ -25,20 +25,20 @@ use ascot_axum::device::{DeviceAction, DeviceError, DevicePayload};
 // Server.
 use ascot_axum::server::AscotServer;
 
-// Fake fridge implementation
-use dummy_fridge::DummyFridge;
+// A fridge implementation mock-up
+use fridge_mockup::FridgeMockup;
 
 #[derive(Clone, Default)]
-struct DeviceState(Arc<Mutex<DummyFridge>>);
+struct DeviceState(Arc<Mutex<FridgeMockup>>);
 
 impl DeviceState {
-    fn new(fridge: DummyFridge) -> Self {
+    fn new(fridge: FridgeMockup) -> Self {
         Self(Arc::new(Mutex::new(fridge)))
     }
 }
 
 impl core::ops::Deref for DeviceState {
-    type Target = Arc<Mutex<DummyFridge>>;
+    type Target = Arc<Mutex<FridgeMockup>>;
 
     fn deref(&self) -> &Self::Target {
         &self.0
@@ -81,7 +81,7 @@ async fn increase_temp_post(
     fridge.increase_temperature(inputs.increment);
 
     DevicePayload::new(ChangeTempResponse {
-        temperature: fridge.temperature
+        temperature: fridge.temperature,
     })
 }
 
@@ -130,7 +130,7 @@ async fn main() -> Result<(), Error> {
             increase_temp_post_config,
             increase_temp_post,
         ))?
-        .state(DeviceState::new(DummyFridge::default()))
+        .state(DeviceState::new(FridgeMockup::default()))
         .build()?;
 
     // Run a discovery service and the device on the server.
