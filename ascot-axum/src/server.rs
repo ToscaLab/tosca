@@ -129,11 +129,12 @@ where
 
     /// Runs a smart home device on the server.
     pub async fn run(self) -> Result<()> {
-        let http_address = self
-            .http_addresses
-            .first()
-            .copied()
-            .unwrap_or(DEFAULT_HTTP_ADDRESS);
+        let http_address = self.http_addresses.first().copied().unwrap_or_else(|| {
+            info!(
+                "Cannot find any ip interface for the current device, use {DEFAULT_HTTP_ADDRESS}"
+            );
+            DEFAULT_HTTP_ADDRESS
+        });
 
         let listener_bind = format!("{}:{}", http_address, self.port);
 
