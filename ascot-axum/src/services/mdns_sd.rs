@@ -1,5 +1,6 @@
+use core::net::IpAddr;
+
 use std::collections::HashMap;
-use std::net::IpAddr;
 
 use mdns_sd::{ServiceDaemon, ServiceInfo};
 
@@ -31,7 +32,10 @@ impl From<std::io::Error> for Error {
     }
 }
 
-pub(crate) fn run(service: ServiceBuilder) -> std::result::Result<(), Error> {
+pub(crate) fn run(
+    service: ServiceBuilder,
+    http_addresses: &[IpAddr],
+) -> std::result::Result<(), Error> {
     // Create a new mDNS service daemon
     let mdns = ServiceDaemon::new()?;
 
@@ -47,26 +51,6 @@ pub(crate) fn run(service: ServiceBuilder) -> std::result::Result<(), Error> {
     }
 
     debug!("Hostname: {hostname}");
-
-    // Retrieve all listening network IPs
-    //
-    // Do not exclude loopback interfaces in order to allow the communication
-    // among the processes on the same machine for testing purposes.
-    //
-    // Only IPv4 addresses are considered.
-    let listening_ips = if_addrs::get_if_addrs()?
-        .iter()
-        .filter(|iface| !iface.is_loopback())
-        .filter_map(|iface| {
-            let ip = iface.ip();
-            match ip {
-                IpAddr::V4(_) => Some(ip),
-                _ => None,
-            }
-        })
-        .collect::<Vec<IpAddr>>();
-
-    debug!("IPs: {:?}", listening_ips);
 
     // Allocates properties on heap
     let mut properties = service
@@ -97,7 +81,7 @@ pub(crate) fn run(service: ServiceBuilder) -> std::result::Result<(), Error> {
         // records.
         &hostname,
         // Considered IP addresses which allow to reach out the service
-        listening_ips.as_slice(),
+        http_addresses,
         // Port on which the service listens to. It has to be same of the
         // server.
         service.port,

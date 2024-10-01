@@ -4,7 +4,7 @@ use ascot_library::device::DeviceSerializer;
 
 use axum::{response::Redirect, Extension, Router};
 
-use tracing::info;
+use tracing::{debug, info};
 
 use crate::device::Device;
 use crate::error::Result;
@@ -35,8 +35,8 @@ pub struct AscotServer<S>
 where
     S: Clone + Send + Sync + 'static,
 {
-    // HTTP address.
-    http_address: IpAddr,
+    // HTTP addresses.
+    http_addresses: Vec<IpAddr>,
     // Server port.
     port: u16,
     // Scheme.
@@ -56,8 +56,32 @@ where
         // Initialize tracing subscriber.
         tracing_subscriber::fmt::init();
 
+        // Retrieve all listening network IPs
+        //
+        // Do not exclude loopback interfaces in order to allow the communication
+        // among the processes on the same machine for testing purposes.
+        //
+        // Only IPv4 addresses are considered.
+        let http_addresses = if let Ok(if_addresses) = if_addrs::get_if_addrs() {
+            if_addresses
+                .iter()
+                .filter(|iface| !iface.is_loopback())
+                .filter_map(|iface| {
+                    let ip = iface.ip();
+                    match ip {
+                        IpAddr::V4(_) => Some(ip),
+                        _ => None,
+                    }
+                })
+                .collect::<Vec<IpAddr>>()
+        } else {
+            Vec::new()
+        };
+
+        debug!("Http Addresses: {:?}", http_addresses);
+
         Self {
-            http_address: DEFAULT_HTTP_ADDRESS,
+            http_addresses,
             port: DEFAULT_SERVER_PORT,
             scheme: DEFAULT_SCHEME,
             well_known_uri: WELL_KNOWN_URI,
@@ -67,7 +91,7 @@ where
 
     /// Sets a new HTTP address.
     pub fn http_address(mut self, http_address: IpAddr) -> Self {
-        self.http_address = http_address;
+        self.http_addresses.push(http_address);
         self
     }
 
@@ -98,19 +122,22 @@ where
             .property(("path", self.well_known_uri));
 
         // Run service.
-        Service::run(service)?;
+        Service::run(service, &self.http_addresses)?;
 
         Ok(self)
     }
 
     /// Runs a smart home device on the server.
     pub async fn run(self) -> Result<()> {
-        let listener_bind = format!("{}:{}", self.http_address, self.port);
+        let http_address = self
+            .http_addresses
+            .first()
+            .map(|ip| *ip)
+            .unwrap_or(DEFAULT_HTTP_ADDRESS);
 
-        let info = format!(
-            "Starting the Ascot server at {}:{}",
-            self.http_address, self.port
-        );
+        let listener_bind = format!("{}:{}", http_address, self.port);
+
+        let info = format!("Starting the Ascot server at {listener_bind}");
 
         // Create application.
         let router = self.build_app()?;
