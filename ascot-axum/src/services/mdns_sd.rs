@@ -4,7 +4,7 @@ use std::collections::HashMap;
 
 use mdns_sd::{ServiceDaemon, ServiceInfo};
 
-use tracing::debug;
+use tracing::info;
 
 use crate::error::{Error, ErrorKind};
 use crate::service::ServiceBuilder;
@@ -42,6 +42,7 @@ pub(crate) fn run(
     // Retrieve the hostname associated with the machine on which the firmware
     // is running on
     let mut hostname = gethostname::gethostname().to_string_lossy().to_string();
+
     // Add the .local domain as hostname suffix when not present.
     //
     // .local is a special domain name for hostnames in local area networks
@@ -49,8 +50,6 @@ pub(crate) fn run(
     if !hostname.ends_with(".local") {
         hostname.push_str(".local.");
     }
-
-    debug!("Hostname: {hostname}");
 
     // Allocates properties on heap
     let mut properties = service
@@ -65,14 +64,23 @@ pub(crate) fn run(
     // Define mDNS domain
     let domain = format!("{SERVICE_TYPE}._tcp.local.");
 
-    debug!("Domain: {domain}");
-    debug!("Instance name: {}", service.instance_name);
-    debug!("Hostname: {hostname}");
+    info!("Service instance name: {}", service.instance_name);
+    info!("Service domain: {domain}");
+    info!("Service port: {}", service.port);
+    info!("Service HTTP addresses : {:?}", http_addresses);
+    info!(
+        "Service hostname: {}:{}",
+        &hostname[0..hostname.len() - 1],
+        service.port
+    );
+
+    // Retrieve first HTTP address
+    let http_address = http_addresses.first().unwrap();
 
     let service = ServiceInfo::new(
         // Domain label and service type
         &domain,
-        // Instance name
+        // Service instance name
         service.instance_name,
         // DNS hostname.
         //
@@ -81,7 +89,7 @@ pub(crate) fn run(
         // records.
         &hostname,
         // Considered IP addresses which allow to reach out the service
-        http_addresses,
+        http_address,
         // Port on which the service listens to. It has to be same of the
         // server.
         service.port,
