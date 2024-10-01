@@ -1,6 +1,6 @@
 extern crate alloc;
 
-mod dummy_light;
+mod light_mockup;
 
 use alloc::sync::Arc;
 
@@ -26,20 +26,20 @@ use ascot_axum::devices::light::Light;
 // Server.
 use ascot_axum::server::AscotServer;
 
-// Fake light implementation
-use dummy_light::DummyLight;
+// A light implementation mock-up
+use light_mockup::LightMockup;
 
 #[derive(Clone, Default)]
-struct DeviceState(Arc<Mutex<DummyLight>>);
+struct DeviceState(Arc<Mutex<LightMockup>>);
 
 impl DeviceState {
-    fn new(light: DummyLight) -> Self {
+    fn new(light: LightMockup) -> Self {
         Self(Arc::new(Mutex::new(light)))
     }
 }
 
 impl core::ops::Deref for DeviceState {
-    type Target = Arc<Mutex<DummyLight>>;
+    type Target = Arc<Mutex<LightMockup>>;
 
     fn deref(&self) -> &Self::Target {
         &self.0
@@ -134,7 +134,7 @@ async fn main() -> Result<(), Error> {
         light_on_post_config,
         turn_light_on_post,
     ))?
-    .state(DeviceState::new(DummyLight::default()))
+    .state(DeviceState::new(LightMockup::default()))
     .build();
 
     // Run a discovery service and the device on the server.
