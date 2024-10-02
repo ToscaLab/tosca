@@ -55,8 +55,8 @@ pub(crate) struct Service;
 impl Service {
     // Runs a service.
     #[inline]
-    pub(crate) fn run(service_builder: ServiceBuilder, main_http_address: Ipv4Addr) -> Result<()> {
+    pub(crate) fn run(service_builder: ServiceBuilder, http_address: Ipv4Addr) -> Result<()> {
         #[cfg(feature = "mdns-sd-service")]
-        crate::services::mdns_sd::run(service_builder, main_http_address)
+        crate::services::mdns_sd::run(service_builder, http_address)
     }
 }
