@@ -45,6 +45,8 @@ where
     scheme: &'static str,
     // Well-known URI.
     well_known_uri: &'static str,
+    // Service
+    service: Option<ServiceBuilder>,
     // Device.
     device: Device<S>,
 }
@@ -94,23 +96,9 @@ where
             port: DEFAULT_SERVER_PORT,
             scheme: DEFAULT_SCHEME,
             well_known_uri: WELL_KNOWN_URI,
+            service: None,
             device,
         }
-    }
-
-    /// Sets a new main HTTP address.
-    ///
-    /// This HTTP address will be the main one used by the server.
-    pub fn main_http_address(mut self, http_address: Ipv4Addr) -> Self {
-        self.main_http_address = http_address;
-        self
-    }
-
-    /// Adds more HTTP addresses to reach the server.
-    pub fn http_addresses(mut self, http_addresses: &[Ipv4Addr]) -> Self {
-        self.http_addresses.extend(http_addresses);
-        info!("Updated Ipv4 interfaces: {:?}", self.http_addresses);
-        self
     }
 
     /// Sets server port.
@@ -131,22 +119,15 @@ where
         self
     }
 
-    /// Runs a service.
-    pub fn run_service(self, service: ServiceBuilder) -> Result<Self> {
-        // Add server properties.
-        let service = service
-            .port(self.port)
-            .property(("scheme", self.scheme))
-            .property(("path", self.well_known_uri));
-
-        // Run service.
-        Service::run(service, self.main_http_address)?;
-
-        Ok(self)
+    /// Sets a service.
+    pub fn service(mut self, service: ServiceBuilder) -> Self {
+        self.service = Some(service);
+        self
     }
 
     /// Runs a smart home device on the server.
     pub async fn run(self) -> Result<()> {
+        // Create listener bind.
         let listener_bind = format!("{}:{}", self.main_http_address, self.port);
 
         // Print server Ip and port.
@@ -175,6 +156,18 @@ where
 
         // Finalize a device composing all correct routes.
         let device = self.device.finalize();
+
+        // Run a service if present.
+        if let Some(service) = self.service {
+            // Add server properties.
+            let service = service
+                .port(self.port)
+                .property(("scheme", self.scheme))
+                .property(("path", self.well_known_uri));
+
+            // Run service.
+            Service::run(service, self.main_http_address)?;
+        }
 
         // Create the main router.
         //
