@@ -35,10 +35,8 @@ pub struct AscotServer<S>
 where
     S: Clone + Send + Sync + 'static,
 {
-    // HTTP addresses.
-    http_addresses: Vec<Ipv4Addr>,
-    // Main HTTP address.
-    main_http_address: Ipv4Addr,
+    // HTTP address.
+    http_address: Ipv4Addr,
     // Server port.
     port: u16,
     // Scheme.
@@ -60,39 +58,30 @@ where
         // Initialize tracing subscriber.
         tracing_subscriber::fmt::init();
 
-        // Retrieve all listening network IPs
-        //
-        // Do not exclude loopback interfaces in order to establish a connection
-        // with external devices which try to access the server running on this
-        // device.
+        let mut http_address = DEFAULT_HTTP_ADDRESS;
+
+        // Retrieve the network IPs associated to the wlo1 interface.
         //
         // Only IPv4 addresses are considered.
-        let http_addresses = if let Ok(if_addresses) = if_addrs::get_if_addrs() {
-            let ips = if_addresses
-                .iter()
-                .filter(|iface| !iface.is_loopback())
-                .filter_map(|iface| match iface.ip() {
-                    IpAddr::V4(ip) => Some(ip),
-                    _ => None,
-                })
-                .collect::<Vec<Ipv4Addr>>();
-            info!("Device Ipv4 interfaces: {:?}", ips);
-            ips
-        } else {
-            Vec::new()
-        };
+        if let Ok(if_addresses) = if_addrs::get_if_addrs() {
+            for iface in if_addresses {
+                if iface.name == "wlo1" {
+                    if let IpAddr::V4(ip) = iface.ip() {
+                        http_address = ip;
+                        break;
+                    }
+                }
+            }
+        }
 
-        // Retrieve first IP which is the main one.
-        let main_http_address = http_addresses.first().copied().unwrap_or_else(|| {
+        if http_address == DEFAULT_HTTP_ADDRESS {
             info!(
                 "Cannot find any Ipv4 interface for the current device, use {DEFAULT_HTTP_ADDRESS}"
             );
-            DEFAULT_HTTP_ADDRESS
-        });
+        }
 
         Self {
-            http_addresses,
-            main_http_address,
+            http_address,
             port: DEFAULT_SERVER_PORT,
             scheme: DEFAULT_SCHEME,
             well_known_uri: WELL_KNOWN_URI,
@@ -128,7 +117,7 @@ where
     /// Runs a smart home device on the server.
     pub async fn run(self) -> Result<()> {
         // Create listener bind.
-        let listener_bind = format!("{}:{}", self.main_http_address, self.port);
+        let listener_bind = format!("{}:{}", self.http_address, self.port);
 
         // Print server Ip and port.
         info!("Device reachable at this HTTP address: {listener_bind}");
@@ -166,7 +155,7 @@ where
                 .property(("path", self.well_known_uri));
 
             // Run service.
-            Service::run(service, self.main_http_address)?;
+            Service::run(service, self.http_address)?;
         }
 
         // Create the main router.

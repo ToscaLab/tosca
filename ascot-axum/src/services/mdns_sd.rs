@@ -34,7 +34,7 @@ impl From<std::io::Error> for Error {
 
 pub(crate) fn run(
     service: ServiceBuilder,
-    main_http_address: Ipv4Addr,
+    http_address: Ipv4Addr,
 ) -> std::result::Result<(), Error> {
     // Create a new mDNS service daemon
     let mdns = ServiceDaemon::new()?;
@@ -84,10 +84,8 @@ pub(crate) fn run(
         // in the same addresses. It is used for A (IPv4) and AAAA (IPv6)
         // records.
         &hostname,
-        // Considered IP addresses which allow to reach out the service.
-        //
-        // Only Ipv4 addresses are supported.
-        IpAddr::V4(main_http_address),
+        // Considered IP address which allow to reach out the service.
+        IpAddr::V4(http_address),
         // Port on which the service listens to. It has to be same of the
         // server.
         service.port,
