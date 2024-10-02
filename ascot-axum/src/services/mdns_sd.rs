@@ -93,8 +93,7 @@ pub(crate) fn run(
         service.port,
         // Service properties
         properties,
-    )?
-    .enable_addr_auto();
+    )?;
 
     mdns.register(service)?;
 
