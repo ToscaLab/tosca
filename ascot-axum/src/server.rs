@@ -4,7 +4,7 @@ use ascot_library::device::DeviceSerializer;
 
 use axum::{response::Redirect, Extension, Router};
 
-use tracing::{debug, info};
+use tracing::info;
 
 use crate::device::Device;
 use crate::error::Result;
@@ -14,7 +14,7 @@ use crate::service::{Service, ServiceBuilder};
 //
 // The entire local network is considered, so the Ipv4 unspecified address is
 // used.
-const DEFAULT_HTTP_ADDRESS: IpAddr = IpAddr::V4(Ipv4Addr::UNSPECIFIED);
+const DEFAULT_HTTP_ADDRESS: Ipv4Addr = Ipv4Addr::UNSPECIFIED;
 
 // Default port.
 pub(crate) const DEFAULT_SERVER_PORT: u16 = 3000;
@@ -36,7 +36,9 @@ where
     S: Clone + Send + Sync + 'static,
 {
     // HTTP addresses.
-    http_addresses: Vec<IpAddr>,
+    http_addresses: Vec<Ipv4Addr>,
+    // Main HTTP address.
+    main_http_address: Ipv4Addr,
     // Server port.
     port: u16,
     // Scheme.
@@ -63,25 +65,31 @@ where
         //
         // Only IPv4 addresses are considered.
         let http_addresses = if let Ok(if_addresses) = if_addrs::get_if_addrs() {
-            if_addresses
+            let ips = if_addresses
                 .iter()
                 .filter(|iface| !iface.is_loopback())
-                .filter_map(|iface| {
-                    let ip = iface.ip();
-                    match ip {
-                        IpAddr::V4(_) => Some(ip),
-                        _ => None,
-                    }
+                .filter_map(|iface| match iface.ip() {
+                    IpAddr::V4(ip) => Some(ip),
+                    _ => None,
                 })
-                .collect::<Vec<IpAddr>>()
+                .collect::<Vec<Ipv4Addr>>();
+            info!("Device Ipv4 interfaces: {:?}", ips);
+            ips
         } else {
             Vec::new()
         };
 
-        debug!("Http Addresses: {:?}", http_addresses);
+        // Retrieve first IP which is the main one.
+        let main_http_address = http_addresses.first().copied().unwrap_or_else(|| {
+            info!(
+                "Cannot find any Ipv4 interface for the current device, use {DEFAULT_HTTP_ADDRESS}"
+            );
+            DEFAULT_HTTP_ADDRESS
+        });
 
         Self {
             http_addresses,
+            main_http_address,
             port: DEFAULT_SERVER_PORT,
             scheme: DEFAULT_SCHEME,
             well_known_uri: WELL_KNOWN_URI,
@@ -89,9 +97,18 @@ where
         }
     }
 
-    /// Sets a new HTTP address.
-    pub fn http_address(mut self, http_address: IpAddr) -> Self {
-        self.http_addresses.push(http_address);
+    /// Sets a new main HTTP address.
+    ///
+    /// This HTTP address will be the main one used by the server.
+    pub fn main_http_address(mut self, http_address: Ipv4Addr) -> Self {
+        self.main_http_address = http_address;
+        self
+    }
+
+    /// Adds more HTTP addresses to reach the server.
+    pub fn http_addresses(mut self, http_addresses: &[Ipv4Addr]) -> Self {
+        self.http_addresses.extend(http_addresses);
+        info!("Updated Ipv4 interfaces: {:?}", self.http_addresses);
         self
     }
 
@@ -122,23 +139,17 @@ where
             .property(("path", self.well_known_uri));
 
         // Run service.
-        Service::run(service, &self.http_addresses)?;
+        Service::run(service, self.main_http_address)?;
 
         Ok(self)
     }
 
     /// Runs a smart home device on the server.
     pub async fn run(self) -> Result<()> {
-        let http_address = self.http_addresses.first().copied().unwrap_or_else(|| {
-            info!(
-                "Cannot find any ip interface for the current device, use {DEFAULT_HTTP_ADDRESS}"
-            );
-            DEFAULT_HTTP_ADDRESS
-        });
+        let listener_bind = format!("{}:{}", self.main_http_address, self.port);
 
-        let listener_bind = format!("{}:{}", http_address, self.port);
-
-        let info = format!("Starting the Ascot server at {listener_bind}");
+        // Print server Ip and port.
+        info!("Device reachable at this HTTP address: {listener_bind}");
 
         // Create application.
         let router = self.build_app()?;
@@ -148,7 +159,7 @@ where
         let listener = tokio::net::TcpListener::bind(listener_bind).await?;
 
         // Print server start message
-        info!("{info}");
+        info!("Starting Ascot server...");
 
         // Start the server
         axum::serve(listener, router).await?;
