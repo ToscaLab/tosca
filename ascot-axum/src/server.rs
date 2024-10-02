@@ -60,8 +60,9 @@ where
 
         // Retrieve all listening network IPs
         //
-        // Do not exclude loopback interfaces in order to allow the communication
-        // among the processes on the same machine for testing purposes.
+        // Do not exclude loopback interfaces in order to establish a connection
+        // with external devices which try to access the server running on this
+        // device.
         //
         // Only IPv4 addresses are considered.
         let http_addresses = if let Ok(if_addresses) = if_addrs::get_if_addrs() {
