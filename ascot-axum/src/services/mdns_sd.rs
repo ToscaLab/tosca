@@ -1,4 +1,4 @@
-use core::net::IpAddr;
+use core::net::{IpAddr, Ipv4Addr};
 
 use std::collections::HashMap;
 
@@ -34,7 +34,7 @@ impl From<std::io::Error> for Error {
 
 pub(crate) fn run(
     service: ServiceBuilder,
-    http_addresses: &[IpAddr],
+    main_http_address: Ipv4Addr,
 ) -> std::result::Result<(), Error> {
     // Create a new mDNS service daemon
     let mdns = ServiceDaemon::new()?;
@@ -67,15 +67,11 @@ pub(crate) fn run(
     info!("Service instance name: {}", service.instance_name);
     info!("Service domain: {domain}");
     info!("Service port: {}", service.port);
-    info!("Service HTTP addresses : {:?}", http_addresses);
     info!(
-        "Service hostname: {}:{}",
+        "Device reachable at this hostname: {}:{}",
         &hostname[0..hostname.len() - 1],
         service.port
     );
-
-    // Retrieve first HTTP address
-    let http_address = http_addresses.first().unwrap();
 
     let service = ServiceInfo::new(
         // Domain label and service type
@@ -88,14 +84,17 @@ pub(crate) fn run(
         // in the same addresses. It is used for A (IPv4) and AAAA (IPv6)
         // records.
         &hostname,
-        // Considered IP addresses which allow to reach out the service
-        http_address,
+        // Considered IP addresses which allow to reach out the service.
+        //
+        // Only Ipv4 addresses are supported.
+        IpAddr::V4(main_http_address),
         // Port on which the service listens to. It has to be same of the
         // server.
         service.port,
         // Service properties
         properties,
-    )?;
+    )?
+    .enable_addr_auto();
 
     mdns.register(service)?;
 
