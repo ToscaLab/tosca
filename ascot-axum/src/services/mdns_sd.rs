@@ -2,7 +2,7 @@ use core::net::{IpAddr, Ipv4Addr};
 
 use std::collections::HashMap;
 
-use mdns_sd::{ServiceDaemon, ServiceInfo};
+use mdns_sd::{IfKind, ServiceDaemon, ServiceInfo};
 
 use tracing::info;
 
@@ -38,6 +38,16 @@ pub(crate) fn run(
 ) -> std::result::Result<(), Error> {
     // Create a new mDNS service daemon
     let mdns = ServiceDaemon::new()?;
+
+    // Disable every IpV6 interface.
+    if service.disable_ipv6 {
+        mdns.disable_interface(IfKind::IPv6)?;
+    }
+
+    // Disable docker0 bridge.
+    if service.disable_docker {
+        mdns.disable_interface("docker0")?;
+    }
 
     // Retrieve the hostname associated with the machine on which the firmware
     // is running on

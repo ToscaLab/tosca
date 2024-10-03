@@ -14,12 +14,16 @@ const MAXIMUM_ELEMENTS: usize = 16;
 /// A service builder.
 #[derive(Debug)]
 pub struct ServiceBuilder {
-    /// Instance name.
+    // Instance name.
     pub(crate) instance_name: &'static str,
-    /// Service port.
+    // Service port.
     pub(crate) port: u16,
-    /// Service properties.
+    // Service properties.
     pub(crate) properties: FnvIndexMap<String, String, MAXIMUM_ELEMENTS>,
+    // Disable Ipv6.
+    pub(crate) disable_ipv6: bool,
+    // Disable docker network.
+    pub(crate) disable_docker: bool,
 }
 
 impl ServiceBuilder {
@@ -29,6 +33,8 @@ impl ServiceBuilder {
             instance_name,
             port: DEFAULT_SERVER_PORT,
             properties: FnvIndexMap::new(),
+            disable_ipv6: false,
+            disable_docker: false,
         }
     }
 
@@ -39,6 +45,18 @@ impl ServiceBuilder {
         // Its corresponding value is updated with value and the older value
         // is returned inside.
         let _ = self.properties.insert(property.0.into(), property.1.into());
+        self
+    }
+
+    /// Disables IPv6 addresses.
+    pub fn ipv6(mut self) -> Self {
+        self.disable_ipv6 = true;
+        self
+    }
+
+    /// Disables docker bridge.
+    pub fn docker(mut self) -> Self {
+        self.disable_docker = true;
         self
     }
 
