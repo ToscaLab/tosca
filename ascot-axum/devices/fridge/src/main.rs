@@ -18,7 +18,7 @@ use ascot_axum::error::Error;
 use ascot_axum::service::ServiceBuilder;
 
 // Device.
-use ascot_axum::extract::{Extension, Json, Path};
+use ascot_axum::extract::{Extension, Json};
 
 use ascot_axum::device::{DeviceAction, DeviceError, DevicePayload};
 
@@ -51,31 +51,19 @@ impl core::ops::DerefMut for DeviceState {
     }
 }
 
+#[derive(Deserialize)]
+struct IncreaseTemperature {
+    increment: f64,
+}
+
 #[derive(Serialize)]
 struct ChangeTempResponse {
     temperature: f64,
 }
 
 async fn increase_temperature(
-    Path(increment): Path<f64>,
     Extension(state): Extension<DeviceState>,
-) -> Result<DevicePayload, DeviceError> {
-    let mut fridge = state.lock().await;
-    fridge.increase_temperature(increment);
-
-    DevicePayload::new(ChangeTempResponse {
-        temperature: fridge.temperature,
-    })
-}
-
-#[derive(Deserialize)]
-struct Inputs {
-    increment: f64,
-}
-
-async fn increase_temp_post(
-    Extension(state): Extension<DeviceState>,
-    Json(inputs): Json<Inputs>,
+    Json(inputs): Json<IncreaseTemperature>,
 ) -> Result<DevicePayload, DeviceError> {
     let mut fridge = state.lock().await;
     fridge.increase_temperature(inputs.increment);
@@ -85,12 +73,17 @@ async fn increase_temp_post(
     })
 }
 
+#[derive(Deserialize)]
+struct DecreaseTemperature {
+    decrement: f64,
+}
+
 async fn decrease_temperature(
-    Path(decrement): Path<f64>,
     Extension(state): Extension<DeviceState>,
+    Json(inputs): Json<DecreaseTemperature>,
 ) -> Result<DevicePayload, DeviceError> {
     let mut fridge = state.lock().await;
-    fridge.decrease_temperature(decrement);
+    fridge.decrease_temperature(inputs.decrement);
 
     DevicePayload::new(ChangeTempResponse {
         temperature: fridge.temperature,
@@ -128,7 +121,7 @@ async fn main() -> Result<(), Error> {
         ))?
         .add_action(DeviceAction::no_hazards(
             increase_temp_post_config,
-            increase_temp_post,
+            increase_temperature,
         ))?
         .state(DeviceState::new(FridgeMockup::default()))
         .build()?;

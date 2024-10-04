@@ -8,7 +8,6 @@ use async_lock::Mutex;
 use serde::{Deserialize, Serialize};
 
 // Library.
-use ascot_library::device::DeviceErrorKind;
 use ascot_library::hazards::Hazard;
 use ascot_library::input::Input;
 use ascot_library::route::Route;
@@ -18,7 +17,7 @@ use ascot_axum::error::Error;
 use ascot_axum::service::ServiceBuilder;
 
 // Device.
-use ascot_axum::extract::{Extension, Json, Path};
+use ascot_axum::extract::{Extension, Json};
 
 use ascot_axum::device::{DeviceAction, DeviceError, DevicePayload};
 use ascot_axum::devices::light::Light;
@@ -55,31 +54,18 @@ impl core::ops::DerefMut for DeviceState {
 #[derive(Serialize)]
 struct LightOnResponse {
     brightness: f64,
+    #[serde(rename = "save-energy")]
     save_energy: bool,
-}
-
-async fn turn_light_on(
-    Path((brightness, save_energy)): Path<(f64, bool)>,
-    Extension(state): Extension<DeviceState>,
-) -> Result<DevicePayload, DeviceError> {
-    let mut light = state.lock().await;
-    light.turn_light_on(brightness, save_energy);
-
-    DevicePayload::new(LightOnResponse {
-        brightness: light.brightness,
-        save_energy: light.save_energy,
-    })
 }
 
 #[derive(Deserialize)]
 struct Inputs {
     brightness: f64,
+    #[serde(alias = "save-energy")]
     save_energy: bool,
 }
 
-// The `Json` or the `Form` parameter must be the last argument
-// to the handler function, since it consumes the request body.
-async fn turn_light_on_post(
+async fn turn_light_on(
     Extension(state): Extension<DeviceState>,
     Json(inputs): Json<Inputs>,
 ) -> Result<DevicePayload, DeviceError> {
@@ -96,12 +82,13 @@ async fn turn_light_off(
     Extension(state): Extension<DeviceState>,
 ) -> Result<DevicePayload, DeviceError> {
     state.lock().await.turn_light_off();
-    Err(DeviceError::from_str(DeviceErrorKind::Wrong, "Get failed"))
+    Ok(DevicePayload::empty())
 }
 
 async fn toggle(Extension(state): Extension<DeviceState>) -> Result<DevicePayload, DeviceError> {
     state.lock().await.toggle();
     Ok(DevicePayload::empty())
+    // Err(DeviceError::from_str(ascot_library::device::DeviceErrorKind::Wrong, "Error in toggling the light"))
 }
 
 #[tokio::main]
@@ -132,14 +119,14 @@ async fn main() -> Result<(), Error> {
     .add_action(DeviceAction::no_hazards(toggle_config, toggle))?
     .add_action(DeviceAction::no_hazards(
         light_on_post_config,
-        turn_light_on_post,
+        turn_light_on,
     ))?
     .state(DeviceState::new(LightMockup::default()))
     .build();
 
     // Run a discovery service and the device on the server.
     AscotServer::new(device)
-        .service(ServiceBuilder::mdns_sd("light").host_name("ascot-light"))
+        .service(ServiceBuilder::mdns_sd("light").host_name("arco"))
         .run()
         .await
 }
