@@ -49,17 +49,15 @@ pub(crate) fn run(
         mdns.disable_interface("docker0")?;
     }
 
-    // Retrieve the hostname associated with the machine on which the firmware
-    // is running on
-    let mut hostname = gethostname::gethostname().to_string_lossy().to_string();
-
     // Add the .local domain as hostname suffix when not present.
     //
     // .local is a special domain name for hostnames in local area networks
     // which can be resolved via the Multicast DNS name resolution protocol.
-    if !hostname.ends_with(".local") {
-        hostname.push_str(".local.");
-    }
+    let hostname = if !service.hostname.ends_with(".local.") {
+        &format!("{}.local.", service.hostname)
+    } else {
+        service.hostname
+    };
 
     // Allocates properties on heap
     let mut properties = service
@@ -93,7 +91,7 @@ pub(crate) fn run(
         // For the same hostname in the same local network, the service resolves
         // in the same addresses. It is used for A (IPv4) and AAAA (IPv6)
         // records.
-        &hostname,
+        hostname,
         // Considered IP address which allow to reach out the service.
         IpAddr::V4(http_address),
         // Port on which the service listens to. It has to be same of the

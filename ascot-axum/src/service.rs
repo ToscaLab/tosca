@@ -20,6 +20,8 @@ pub struct ServiceBuilder {
     pub(crate) port: u16,
     // Service properties.
     pub(crate) properties: FnvIndexMap<String, String, MAXIMUM_ELEMENTS>,
+    // Add hostname
+    pub(crate) hostname: &'static str,
     // Disable Ipv6.
     pub(crate) disable_ipv6: bool,
     // Disable docker network.
@@ -33,6 +35,7 @@ impl ServiceBuilder {
             instance_name,
             port: DEFAULT_SERVER_PORT,
             properties: FnvIndexMap::new(),
+            hostname: instance_name,
             disable_ipv6: false,
             disable_docker: false,
         }
@@ -45,6 +48,12 @@ impl ServiceBuilder {
         // Its corresponding value is updated with value and the older value
         // is returned inside.
         let _ = self.properties.insert(property.0.into(), property.1.into());
+        self
+    }
+
+    /// Adds an host name to the service.
+    pub fn host_name(mut self, hostname: &'static str) -> Self {
+        self.hostname = hostname;
         self
     }
 
