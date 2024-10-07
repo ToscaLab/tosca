@@ -48,3 +48,19 @@ cross build [--release] --target=aarch64-unknown-linux-musl
 
 where `firmware_device` is the name of the example to build, while `--release`
 is an optional argument which enables all time and memory optimizations.
+
+# Copy the cross-compiled binary to a board
+
+To copy a cross-compiled binary to a board through `SSH`,
+use the following command:
+
+```console
+scp -O target/aarch64-unknown-linux-musl/release/binary-name root@IPV4:~
+```
+
+where `IPV$` represents the address of the LAN interface which allows to connect
+to board to a PC, while `~` represents the home directory on which the binary
+will be copied.
+
+Since `scp` is deprecated, and the version on a PC might use SFTP by default,
+the `-O` flag reverts to the deprecated protocol.
