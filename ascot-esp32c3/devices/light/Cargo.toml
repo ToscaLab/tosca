@@ -18,15 +18,16 @@ toml-cfg = "0.2.0"
 debug = true
 # Optimize memory
 opt-level = "z"
-# Use lto 
+# Use lto
 lto = true
 
 [profile.release]
 codegen-units = 1 # LLVM can perform better optimizations using a single thread
-debug = 2
+debug = false
 debug-assertions = false
 incremental = false
 lto = 'fat'
 # Optimize for binary size, but with loop vectorization.
 opt-level = 's'
 overflow-checks = false
+strip = true
