@@ -69,13 +69,13 @@ impl MdnsSdService {
     }
 
     /// Sets a service hostname.
-    pub const fn service_hostname(mut self, service_hostname: &'static str) -> Self {
+    pub const fn hostname(mut self, service_hostname: &'static str) -> Self {
         self.service_hostname = service_hostname;
         self
     }
 
     /// Sets a service name.
-    pub const fn service_name(mut self, service_name: &'static str) -> Self {
+    pub const fn name(mut self, service_name: &'static str) -> Self {
         self.service_name = service_name;
         self
     }
