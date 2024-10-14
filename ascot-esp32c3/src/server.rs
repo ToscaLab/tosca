@@ -15,53 +15,19 @@ const DEFAULT_SERVER_PORT: u16 = 3000;
 // Server stack size.
 const DEFAULT_STACK_SIZE: usize = 10240;
 
-/// The `Ascot` server.
-pub struct AscotServer<S: Service> {
-    // Server port.
-    port: u16,
-    // Stack size
-    stack_size: usize,
-    // Device.
-    device: Device,
-    // Service.
-    service: S,
-}
-
-impl<S: Service> AscotServer<S> {
-    /// Creates a new [`AscotServer`] instance.
-    pub fn new(device: Device, service: S) -> Self {
-        Self {
-            port: DEFAULT_SERVER_PORT,
-            stack_size: DEFAULT_STACK_SIZE,
-            device,
-            service,
-        }
-    }
-
-    /// Sets server port.
-    pub fn port(mut self, port: u16) -> Self {
-        self.port = port;
-        self
-    }
-
-    /// Sets server stack size.
-    pub fn stack_size(mut self, stack_size: usize) -> Self {
-        self.stack_size = stack_size;
-        self
-    }
-
-    /// Runs a smart home device on the server.
-    pub fn run(self) -> Result<()> {
+// Define a macro to reduce the binary size dimension and reuse the server code.
+macro_rules! server {
+    ($self: ident) => {
         let mut server = EspHttpServer::new(&Configuration {
-            stack_size: self.stack_size,
-            http_port: self.port,
+            stack_size: $self.stack_size,
+            http_port: $self.port,
             ..Default::default()
         })?;
 
         // Format the device description as a pretty string.
-        let device_description = serde_json::to_string_pretty(&self.device.serialize_data())?;
+        let device_description = serde_json::to_string_pretty(&$self.device.serialize_data())?;
 
-        for route in self.device.routes_data {
+        for route in $self.device.routes_data {
             let method = match route.route_hazards.route.kind() {
                 RestKind::Get => Method::Get,
                 RestKind::Post => Method::Post,
@@ -72,7 +38,7 @@ impl<S: Service> AscotServer<S> {
                 server.fn_handler(
                     &format!(
                         "{}{}",
-                        self.device.main_route,
+                        $self.device.main_route,
                         route.route_hazards.route.route()
                     ),
                     method,
@@ -93,12 +59,60 @@ impl<S: Service> AscotServer<S> {
         }
 
         // Add main route
-        server.fn_handler(self.device.main_route, Method::Get, move |req| {
+        server.fn_handler($self.device.main_route, Method::Get, move |req| {
             req.into_response(200, Some("OK"), &[("Content-Type", "application/json")])?
                 .write_all(device_description.as_bytes())
         })?;
+    };
+}
+
+/// The `Ascot` server.
+pub struct AscotServer {
+    // Server port.
+    port: u16,
+    // Stack size
+    stack_size: usize,
+    // Device.
+    device: Device,
+}
+
+impl AscotServer {
+    /// Creates a new [`AscotServer`] instance.
+    pub const fn new(device: Device) -> Self {
+        Self {
+            port: DEFAULT_SERVER_PORT,
+            stack_size: DEFAULT_STACK_SIZE,
+            device,
+        }
+    }
+
+    /// Sets server port.
+    pub const fn port(mut self, port: u16) -> Self {
+        self.port = port;
+        self
+    }
+
+    /// Sets server stack size.
+    pub const fn stack_size(mut self, stack_size: usize) -> Self {
+        self.stack_size = stack_size;
+        self
+    }
+
+    /// Runs a device on a server with a service.
+    pub fn run_with_service<S: Service>(self, service: S) -> Result<()> {
+        // Run server
+        server!(self);
 
         // Run service
-        self.service.run()
+        service.run()
+    }
+
+    /// Runs a device on a server.
+    pub fn run(self) -> Result<()> {
+        server!(self);
+
+        loop {
+            std::thread::sleep(std::time::Duration::from_secs(1))
+        }
     }
 }

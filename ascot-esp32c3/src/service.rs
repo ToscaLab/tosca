@@ -27,9 +27,8 @@ const SERVICE_HOSTNAME: &str = "ascot";
 const SERVICE_NAME: &str = "ascot";
 
 pub(crate) mod internal_service {
-    use super::Result;
-    pub trait Service {
-        fn run(self) -> Result<()>;
+    pub trait Service: Sized {
+        fn run(self) -> super::Result<()>;
     }
 }
 
@@ -44,6 +43,7 @@ pub struct MdnsSdService {
 }
 
 impl internal_service::Service for MdnsSdService {
+    #[inline(always)]
     fn run(self) -> Result<()> {
         block_on(self.mdns_sd_service())
     }
@@ -69,13 +69,13 @@ impl MdnsSdService {
     }
 
     /// Sets a service hostname.
-    pub fn service_hostname(mut self, service_hostname: &'static str) -> Self {
+    pub const fn service_hostname(mut self, service_hostname: &'static str) -> Self {
         self.service_hostname = service_hostname;
         self
     }
 
     /// Sets a service name.
-    pub fn service_name(mut self, service_name: &'static str) -> Self {
+    pub const fn service_name(mut self, service_name: &'static str) -> Self {
         self.service_name = service_name;
         self
     }
