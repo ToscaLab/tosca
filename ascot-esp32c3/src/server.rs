@@ -1,5 +1,3 @@
-use core::net::Ipv4Addr;
-
 use esp_idf_svc::http::server::{Configuration, EspHttpServer};
 use esp_idf_svc::http::Method;
 use esp_idf_svc::io::Write;
@@ -9,7 +7,7 @@ use ascot_library::route::RestKind;
 
 use crate::device::Device;
 use crate::error::Result;
-use crate::service::MdnsSdService;
+use crate::service::internal_service::Service;
 
 // Default port.
 const DEFAULT_SERVER_PORT: u16 = 3000;
@@ -18,25 +16,25 @@ const DEFAULT_SERVER_PORT: u16 = 3000;
 const DEFAULT_STACK_SIZE: usize = 10240;
 
 /// The `Ascot` server.
-pub struct AscotServer {
-    // HTTP address.
-    http_address: Ipv4Addr,
+pub struct AscotServer<S: Service> {
     // Server port.
     port: u16,
     // Stack size
     stack_size: usize,
     // Device.
     device: Device,
+    // Service.
+    service: S,
 }
 
-impl AscotServer {
+impl<S: Service> AscotServer<S> {
     /// Creates a new [`AscotServer`] instance.
-    pub fn new(device: Device, http_address: Ipv4Addr) -> Self {
+    pub fn new(device: Device, service: S) -> Self {
         Self {
-            http_address,
             port: DEFAULT_SERVER_PORT,
             stack_size: DEFAULT_STACK_SIZE,
             device,
+            service,
         }
     }
 
@@ -101,6 +99,6 @@ impl AscotServer {
         })?;
 
         // Run service
-        MdnsSdService::new().run(self.http_address)
+        self.service.run()
     }
 }
