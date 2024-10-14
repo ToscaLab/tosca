@@ -61,6 +61,7 @@ impl core::fmt::Display for Error {
 }
 
 impl Error {
+    #[inline]
     pub(crate) fn new(kind: ErrorKind, info: impl Into<Cow<'static, str>>) -> Self {
         Self {
             kind,
