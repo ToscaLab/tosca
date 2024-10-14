@@ -1,3 +1,5 @@
 [light]
 ssid = "your Wi-Fi SSID"
 password = "your Wi-Fi password"
+hostname = "your hostname"
+service = "your discovery service"

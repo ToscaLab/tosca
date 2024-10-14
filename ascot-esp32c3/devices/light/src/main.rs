@@ -22,11 +22,15 @@ use esp_idf_svc::hal::prelude::Peripherals;
 use esp_idf_svc::log::EspLogger;
 
 #[toml_cfg::toml_config]
-pub struct WifiConfig {
+pub struct DeviceConfig {
     #[default("")]
     ssid: &'static str,
     #[default("")]
     password: &'static str,
+    #[default("ascot")]
+    hostname: &'static str,
+    #[default("ascot")]
+    service: &'static str,
 }
 
 fn main() -> ascot_esp32c3::error::Result<()> {
@@ -44,11 +48,15 @@ fn main() -> ascot_esp32c3::error::Result<()> {
     // Retrieve all esp32c3 peripherals (singleton)
     let peripherals = Peripherals::take()?;
 
-    // Retrieve ssid e password
-    let wifi_config = WIFI_CONFIG;
+    // Retrieve device configuration
+    let device_config = DEVICE_CONFIG;
 
     // Connects to Wi-Fi.
-    let wifi = Wifi::connect_wifi(wifi_config.ssid, wifi_config.password, peripherals.modem)?;
+    let wifi = Wifi::connect_wifi(
+        device_config.ssid,
+        device_config.password,
+        peripherals.modem,
+    )?;
 
     // Create the driver for the built-in led in output mode
     let mut built_in_led_output = PinDriver::output(peripherals.pins.gpio8)?;
@@ -100,5 +108,9 @@ fn main() -> ascot_esp32c3::error::Result<()> {
 
     let light = Light::new(light_on_action, light_off_action)?.build();
 
-    AscotServer::new(light).run_with_service(MdnsSdService::new(wifi.ip))
+    AscotServer::new(light).run_with_service(
+        MdnsSdService::new(wifi.ip)
+            .hostname(device_config.hostname)
+            .name(device_config.service),
+    )
 }
