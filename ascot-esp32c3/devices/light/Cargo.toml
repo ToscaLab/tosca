@@ -17,7 +17,7 @@ toml-cfg = "0.2.0"
 # Enable debug symbols
 debug = true
 # Optimize memory
-opt-level = "z"
+opt-level = 'z'
 # Use lto
 lto = true
 
