@@ -100,5 +100,5 @@ fn main() -> ascot_esp32c3::error::Result<()> {
 
     let light = Light::new(light_on_action, light_off_action)?.build();
 
-    AscotServer::new(light, MdnsSdService::new(wifi.ip)).run()
+    AscotServer::new(light).run_with_service(MdnsSdService::new(wifi.ip))
 }
