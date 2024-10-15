@@ -17,26 +17,26 @@ const SERVICE_TYPE: &str = "Firmware";
 
 /// A service builder.
 #[derive(Debug)]
-pub struct ServiceBuilder {
+pub struct ServiceBuilder<'a> {
     // Instance name.
-    pub(crate) instance_name: &'static str,
+    pub(crate) instance_name: &'a str,
     // Service properties.
     pub(crate) properties: FnvIndexMap<String, String, MAXIMUM_ELEMENTS>,
     // Service host name
-    pub(crate) hostname: &'static str,
+    pub(crate) hostname: &'a str,
     // Service domain name.
-    pub(crate) domain_name: Option<&'static str>,
+    pub(crate) domain_name: Option<&'a str>,
     // Service type.
-    pub(crate) service_type: &'static str,
+    pub(crate) service_type: &'a str,
     // Disable Ipv6.
     pub(crate) disable_ipv6: bool,
     // Disable docker network.
     pub(crate) disable_docker: bool,
 }
 
-impl ServiceBuilder {
+impl<'a> ServiceBuilder<'a> {
     /// Creates a new [`ServiceBuilder`] for a `mDNS-SD` service.
-    pub const fn mdns_sd(instance_name: &'static str) -> Self {
+    pub const fn mdns_sd(instance_name: &'a str) -> Self {
         Self {
             instance_name,
             properties: FnvIndexMap::new(),
@@ -59,13 +59,13 @@ impl ServiceBuilder {
     }
 
     /// Sets the service host name.
-    pub const fn hostname(mut self, hostname: &'static str) -> Self {
+    pub const fn hostname(mut self, hostname: &'a str) -> Self {
         self.hostname = hostname;
         self
     }
 
     /// Sets the service domain name.
-    pub const fn domain_name(mut self, domain_name: &'static str) -> Self {
+    pub const fn domain_name(mut self, domain_name: &'a str) -> Self {
         self.domain_name = Some(domain_name);
         self
     }
@@ -73,7 +73,7 @@ impl ServiceBuilder {
     /// Sets the service type.
     ///
     /// This allows to detect the type of firmware associated with a service.
-    pub const fn service_type(mut self, service_type: &'static str) -> Self {
+    pub const fn service_type(mut self, service_type: &'a str) -> Self {
         self.service_type = service_type;
         self
     }

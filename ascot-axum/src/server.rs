@@ -31,7 +31,7 @@ const WELL_KNOWN_URI: &str = "/.well-known/ascot";
 
 /// The `Ascot` server.
 #[derive(Debug)]
-pub struct AscotServer<S>
+pub struct AscotServer<'a, S>
 where
     S: Clone + Send + Sync + 'static,
 {
@@ -40,16 +40,16 @@ where
     // Server port.
     port: u16,
     // Scheme.
-    scheme: &'static str,
+    scheme: &'a str,
     // Well-known URI.
-    well_known_uri: &'static str,
+    well_known_uri: &'a str,
     // Service
-    service: Option<ServiceBuilder>,
+    service: Option<ServiceBuilder<'a>>,
     // Device.
     device: Device<S>,
 }
 
-impl<S> AscotServer<S>
+impl<'a, S> AscotServer<'a, S>
 where
     S: Clone + Send + Sync + 'static,
 {
@@ -81,19 +81,19 @@ where
     }
 
     /// Sets server scheme.
-    pub const fn scheme(mut self, scheme: &'static str) -> Self {
+    pub const fn scheme(mut self, scheme: &'a str) -> Self {
         self.scheme = scheme;
         self
     }
 
     /// Sets well-known URI.
-    pub const fn well_known_uri(mut self, well_known_uri: &'static str) -> Self {
+    pub const fn well_known_uri(mut self, well_known_uri: &'a str) -> Self {
         self.well_known_uri = well_known_uri;
         self
     }
 
     /// Sets a service.
-    pub fn service(mut self, service: ServiceBuilder) -> Self {
+    pub fn service(mut self, service: ServiceBuilder<'a>) -> Self {
         self.service = Some(service);
         self
     }
