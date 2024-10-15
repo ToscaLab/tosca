@@ -12,8 +12,8 @@ const MAXIMUM_ELEMENTS: usize = 8;
 
 // Service type.
 //
-// It defines the type of a service. The default value is `Firmware`.
-const SERVICE_TYPE: &str = "Firmware";
+// It defines the type of a service. The default value is `General Device`.
+const SERVICE_TYPE: &str = "General Device";
 
 /// A service builder.
 #[derive(Debug)]
