@@ -2,28 +2,28 @@ extern crate alloc;
 
 mod light_mockup;
 
+use core::net::Ipv4Addr;
+
 use alloc::sync::Arc;
 
 use async_lock::Mutex;
 use serde::{Deserialize, Serialize};
 
-// Library.
+// Ascot library.
 use ascot_library::hazards::Hazard;
 use ascot_library::input::Input;
 use ascot_library::route::Route;
 
-// Miscellaneous.
-use ascot_axum::error::Error;
-use ascot_axum::service::ServiceBuilder;
-
-// Device.
-use ascot_axum::extract::{Extension, Json};
-
+// Ascot axum device.
 use ascot_axum::device::{DeviceAction, DeviceError, DevicePayload};
 use ascot_axum::devices::light::Light;
-
-// Server.
+use ascot_axum::error::Error;
+use ascot_axum::extract::{Extension, Json};
 use ascot_axum::server::AscotServer;
+use ascot_axum::service::ServiceBuilder;
+
+// Command line library
+use clap::Parser;
 
 // A light implementation mock-up
 use light_mockup::LightMockup;
@@ -91,8 +91,36 @@ async fn toggle(Extension(state): Extension<DeviceState>) -> Result<DevicePayloa
     // Err(DeviceError::from_str(ascot_library::device::DeviceErrorKind::Wrong, "Error in toggling the light"))
 }
 
+#[derive(Parser)]
+#[command(version, about, long_about = None)]
+struct Cli {
+    /// Server address.
+    ///
+    /// Only an `Ipv4` address is accepted.
+    #[arg(short, long, default_value_t = Ipv4Addr::UNSPECIFIED)]
+    address: Ipv4Addr,
+
+    /// Server host name.
+    #[arg(short = 'n', long)]
+    hostname: String,
+
+    /// Server port.
+    #[arg(short, long, default_value_t = 3000)]
+    port: u16,
+
+    /// Service domain.
+    #[arg(short, long, default_value = "device")]
+    domain: String,
+
+    /// Service type.
+    #[arg(short = 't', long = "type", default_value = "General Light")]
+    service_type: String,
+}
+
 #[tokio::main]
 async fn main() -> Result<(), Error> {
+    let cli = Cli::parse();
+
     // Configuration for the `PUT` turn light on route.
     let light_on_config = Route::put("/on").description("Turn light on.").inputs([
         Input::rangef64("brightness", (0., 20., 0.1, 0.)),
@@ -126,11 +154,13 @@ async fn main() -> Result<(), Error> {
 
     // Run a discovery service and the device on the server.
     AscotServer::new(device)
+        .address(cli.address)
+        .port(cli.port)
         .service(
             ServiceBuilder::mdns_sd("light")
-                .hostname("light")
-                .domain_name("ascot")
-                .service_type("Ascot Device"),
+                .hostname(&cli.hostname)
+                .domain_name(&cli.domain)
+                .service_type(&cli.service_type),
         )
         .run()
         .await

@@ -2,28 +2,28 @@ extern crate alloc;
 
 mod fridge_mockup;
 
+use core::net::Ipv4Addr;
+
 use alloc::sync::Arc;
 
-use ascot_axum::devices::fridge::Fridge;
 use async_lock::Mutex;
 use serde::{Deserialize, Serialize};
 
-// Library.
+// Ascot library.
 use ascot_library::hazards::Hazard;
 use ascot_library::input::Input;
 use ascot_library::route::Route;
 
-// Miscellaneous.
+// Ascot axum.
+use ascot_axum::device::{DeviceAction, DeviceError, DevicePayload};
+use ascot_axum::devices::fridge::Fridge;
 use ascot_axum::error::Error;
+use ascot_axum::extract::{Extension, Json};
+use ascot_axum::server::AscotServer;
 use ascot_axum::service::ServiceBuilder;
 
-// Device.
-use ascot_axum::extract::{Extension, Json};
-
-use ascot_axum::device::{DeviceAction, DeviceError, DevicePayload};
-
-// Server.
-use ascot_axum::server::AscotServer;
+// Command line library
+use clap::Parser;
 
 // A fridge implementation mock-up
 use fridge_mockup::FridgeMockup;
@@ -90,8 +90,36 @@ async fn decrease_temperature(
     })
 }
 
+#[derive(Parser)]
+#[command(version, about, long_about = None)]
+struct Cli {
+    /// Server address.
+    ///
+    /// Only an `Ipv4` address is accepted.
+    #[arg(short, long, default_value_t = Ipv4Addr::UNSPECIFIED)]
+    address: Ipv4Addr,
+
+    /// Server host name.
+    #[arg(short = 'n', long)]
+    hostname: String,
+
+    /// Server port.
+    #[arg(short, long, default_value_t = 3000)]
+    port: u16,
+
+    /// Service domain.
+    #[arg(short, long, default_value = "device")]
+    domain: String,
+
+    /// Service type.
+    #[arg(short = 't', long = "type", default_value = "General Fridge")]
+    service_type: String,
+}
+
 #[tokio::main]
 async fn main() -> Result<(), Error> {
+    let cli = Cli::parse();
+
     // Configuration for the `PUT` increase temperature route.
     let increase_temp_config = Route::put("/increase-temperature")
         .description("Increase temperature.")
@@ -128,11 +156,13 @@ async fn main() -> Result<(), Error> {
 
     // Run a discovery service and the device on the server.
     AscotServer::new(device)
+        .address(cli.address)
+        .port(cli.port)
         .service(
             ServiceBuilder::mdns_sd("fridge")
-                .hostname("fridge")
-                .domain_name("ascot")
-                .service_type("Ascot Device"),
+                .hostname(&cli.hostname)
+                .domain_name(&cli.domain)
+                .service_type(&cli.service_type),
         )
         .run()
         .await
