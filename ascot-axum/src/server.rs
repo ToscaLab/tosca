@@ -1,4 +1,4 @@
-use core::net::{IpAddr, Ipv4Addr};
+use core::net::Ipv4Addr;
 
 use ascot_library::device::DeviceSerializer;
 
@@ -58,30 +58,8 @@ where
         // Initialize tracing subscriber.
         tracing_subscriber::fmt::init();
 
-        let mut http_address = DEFAULT_HTTP_ADDRESS;
-
-        // Retrieve the network IPs associated to the wlo1 interface.
-        //
-        // Only IPv4 addresses are considered.
-        if let Ok(if_addresses) = if_addrs::get_if_addrs() {
-            for iface in if_addresses {
-                if iface.name == "wlo1" {
-                    if let IpAddr::V4(ip) = iface.ip() {
-                        http_address = ip;
-                        break;
-                    }
-                }
-            }
-        }
-
-        if http_address == DEFAULT_HTTP_ADDRESS {
-            info!(
-                "Cannot find any Ipv4 interface for the current device, use {DEFAULT_HTTP_ADDRESS}"
-            );
-        }
-
         Self {
-            http_address,
+            http_address: DEFAULT_HTTP_ADDRESS,
             port: DEFAULT_SERVER_PORT,
             scheme: DEFAULT_SCHEME,
             well_known_uri: WELL_KNOWN_URI,
@@ -90,20 +68,26 @@ where
         }
     }
 
+    /// Sets server Ipv4 address.
+    pub const fn address(mut self, http_address: Ipv4Addr) -> Self {
+        self.http_address = http_address;
+        self
+    }
+
     /// Sets server port.
-    pub fn port(mut self, port: u16) -> Self {
+    pub const fn port(mut self, port: u16) -> Self {
         self.port = port;
         self
     }
 
     /// Sets server scheme.
-    pub fn scheme(mut self, scheme: &'static str) -> Self {
+    pub const fn scheme(mut self, scheme: &'static str) -> Self {
         self.scheme = scheme;
         self
     }
 
     /// Sets well-known URI.
-    pub fn well_known_uri(mut self, well_known_uri: &'static str) -> Self {
+    pub const fn well_known_uri(mut self, well_known_uri: &'static str) -> Self {
         self.well_known_uri = well_known_uri;
         self
     }
@@ -119,11 +103,11 @@ where
         // Create listener bind.
         let listener_bind = format!("{}:{}", self.http_address, self.port);
 
-        // Print server Ip and port.
-        info!("Device reachable at this HTTP address: {listener_bind}");
-
         // Create application.
         let router = self.build_app()?;
+
+        // Print server Ip and port.
+        info!("Device reachable at this HTTP address: {listener_bind}");
 
         // Create a new TCP socket which responds to the specified HTTP address
         // and port.
@@ -150,12 +134,11 @@ where
         if let Some(service) = self.service {
             // Add server properties.
             let service = service
-                .port(self.port)
                 .property(("scheme", self.scheme))
                 .property(("path", self.well_known_uri));
 
             // Run service.
-            Service::run(service, self.http_address)?;
+            Service::run(service, self.http_address, self.port)?;
         }
 
         // Create the main router.

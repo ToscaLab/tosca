@@ -9,16 +9,11 @@ use tracing::info;
 use crate::error::{Error, ErrorKind};
 use crate::service::ServiceBuilder;
 
-// Service type
+// Service domain name.
 //
-// It constitutes part of the mDNS domain.
-// This also allows the firmware to be detected during the mDNS discovery phase.
-const SERVICE_TYPE: &str = "_ascot";
-
-// DNS type.
-//
-// It defines the mDNS type. In this case, the firmware is an `Ascot Device`.
-const DNS_TYPE: &str = "Ascot Device";
+// It constitutes part of the mDNS service.
+// This also allows to detect a firmware during the mDNS discovery phase.
+const DOMAIN_NAME: &str = "firmware";
 
 impl From<mdns_sd::Error> for Error {
     fn from(e: mdns_sd::Error) -> Self {
@@ -34,7 +29,8 @@ impl From<std::io::Error> for Error {
 
 pub(crate) fn run(
     service: ServiceBuilder,
-    http_address: Ipv4Addr,
+    server_address: Ipv4Addr,
+    server_port: u16,
 ) -> std::result::Result<(), Error> {
     // Create a new mDNS service daemon
     let mdns = ServiceDaemon::new()?;
@@ -66,19 +62,23 @@ pub(crate) fn run(
         .map(|(key, value)| (key.clone(), value.clone()))
         .collect::<HashMap<_, _>>();
 
-    // Firmware DNS type
-    properties.insert("type".into(), DNS_TYPE.into());
+    // Firmware type.
+    properties.insert("type".into(), service.service_type.into());
 
     // Define mDNS domain
-    let domain = format!("{SERVICE_TYPE}._tcp.local.");
+    let domain = format!(
+        "_{}._tcp.local.",
+        service.domain_name.unwrap_or(DOMAIN_NAME)
+    );
 
     info!("Service instance name: {}", service.instance_name);
     info!("Service domain: {domain}");
-    info!("Service port: {}", service.port);
+    info!("Service port: {}", server_port);
+    info!("Service type: {}", service.service_type);
     info!(
         "Device reachable at this hostname: {}:{}",
         &hostname[0..hostname.len() - 1],
-        service.port
+        server_port
     );
 
     let service = ServiceInfo::new(
@@ -93,13 +93,14 @@ pub(crate) fn run(
         // records.
         hostname,
         // Considered IP address which allow to reach out the service.
-        IpAddr::V4(http_address),
+        IpAddr::V4(server_address),
         // Port on which the service listens to. It has to be same of the
         // server.
-        service.port,
+        server_port,
         // Service properties
         properties,
-    )?;
+    )?
+    .enable_addr_auto();
 
     mdns.register(service)?;
 

@@ -6,22 +6,28 @@ use core::net::Ipv4Addr;
 use heapless::FnvIndexMap;
 
 use crate::error::Result;
-use crate::server::DEFAULT_SERVER_PORT;
 
 // Maximum stack elements.
-const MAXIMUM_ELEMENTS: usize = 16;
+const MAXIMUM_ELEMENTS: usize = 8;
+
+// Service type.
+//
+// It defines the type of a service. The default value is `Firmware`.
+const SERVICE_TYPE: &str = "Firmware";
 
 /// A service builder.
 #[derive(Debug)]
 pub struct ServiceBuilder {
     // Instance name.
     pub(crate) instance_name: &'static str,
-    // Service port.
-    pub(crate) port: u16,
     // Service properties.
     pub(crate) properties: FnvIndexMap<String, String, MAXIMUM_ELEMENTS>,
-    // Add hostname
+    // Service host name
     pub(crate) hostname: &'static str,
+    // Service domain name.
+    pub(crate) domain_name: Option<&'static str>,
+    // Service type.
+    pub(crate) service_type: &'static str,
     // Disable Ipv6.
     pub(crate) disable_ipv6: bool,
     // Disable docker network.
@@ -30,12 +36,13 @@ pub struct ServiceBuilder {
 
 impl ServiceBuilder {
     /// Creates a new [`ServiceBuilder`] for a `mDNS-SD` service.
-    pub fn mdns_sd(instance_name: &'static str) -> Self {
+    pub const fn mdns_sd(instance_name: &'static str) -> Self {
         Self {
             instance_name,
-            port: DEFAULT_SERVER_PORT,
             properties: FnvIndexMap::new(),
             hostname: instance_name,
+            domain_name: None,
+            service_type: SERVICE_TYPE,
             disable_ipv6: false,
             disable_docker: false,
         }
@@ -51,27 +58,35 @@ impl ServiceBuilder {
         self
     }
 
-    /// Adds an host name to the service.
-    pub fn host_name(mut self, hostname: &'static str) -> Self {
+    /// Sets the service host name.
+    pub const fn hostname(mut self, hostname: &'static str) -> Self {
         self.hostname = hostname;
         self
     }
 
+    /// Sets the service domain name.
+    pub const fn domain_name(mut self, domain_name: &'static str) -> Self {
+        self.domain_name = Some(domain_name);
+        self
+    }
+
+    /// Sets the service type.
+    ///
+    /// This allows to detect the type of firmware associated with a service.
+    pub const fn service_type(mut self, service_type: &'static str) -> Self {
+        self.service_type = service_type;
+        self
+    }
+
     /// Disables IPv6 addresses.
-    pub fn ipv6(mut self) -> Self {
+    pub const fn ipv6(mut self) -> Self {
         self.disable_ipv6 = true;
         self
     }
 
     /// Disables docker bridge.
-    pub fn docker(mut self) -> Self {
+    pub const fn docker(mut self) -> Self {
         self.disable_docker = true;
-        self
-    }
-
-    // Sets service port.
-    pub(crate) fn port(mut self, port: u16) -> Self {
-        self.port = port;
         self
     }
 }
@@ -82,8 +97,12 @@ pub(crate) struct Service;
 impl Service {
     // Runs a service.
     #[inline]
-    pub(crate) fn run(service_builder: ServiceBuilder, http_address: Ipv4Addr) -> Result<()> {
+    pub(crate) fn run(
+        service_builder: ServiceBuilder,
+        server_address: Ipv4Addr,
+        port: u16,
+    ) -> Result<()> {
         #[cfg(feature = "mdns-sd-service")]
-        crate::services::mdns_sd::run(service_builder, http_address)
+        crate::services::mdns_sd::run(service_builder, server_address, port)
     }
 }
