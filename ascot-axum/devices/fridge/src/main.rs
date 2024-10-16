@@ -25,6 +25,9 @@ use ascot_axum::service::ServiceConfig;
 // Command line library
 use clap::Parser;
 
+// Tracing library.
+use tracing_subscriber::filter::LevelFilter;
+
 // A fridge implementation mock-up
 use fridge_mockup::FridgeMockup;
 
@@ -118,6 +121,11 @@ struct Cli {
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
+    // Initialize tracing subscriber.
+    tracing_subscriber::fmt()
+        .with_max_level(LevelFilter::INFO)
+        .init();
+
     let cli = Cli::parse();
 
     // Configuration for the `PUT` increase temperature route.
