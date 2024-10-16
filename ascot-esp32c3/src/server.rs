@@ -7,7 +7,7 @@ use ascot_library::route::RestKind;
 
 use crate::device::Device;
 use crate::error::Result;
-use crate::service::{InternalService, ServiceBuilder};
+use crate::service::{InternalService, ServiceConfig};
 
 // Default port.
 const DEFAULT_SERVER_PORT: u16 = 3000;
@@ -15,7 +15,7 @@ const DEFAULT_SERVER_PORT: u16 = 3000;
 // Server stack size.
 const DEFAULT_STACK_SIZE: usize = 10240;
 
-// Define a macro to reduce the binary size dimension and reuse the server code.
+/*// Define a macro to reduce the binary size dimension and reuse the server code.
 macro_rules! server {
     ($self: ident) => {
         let mut server = EspHttpServer::new(&Configuration {
@@ -64,7 +64,7 @@ macro_rules! server {
                 .write_all(device_description.as_bytes())
         })?;
     };
-}
+}*/
 
 /// The `Ascot` server.
 pub struct AscotServer {
@@ -74,6 +74,8 @@ pub struct AscotServer {
     stack_size: usize,
     // Device.
     device: Device,
+    // Service configuration.
+    service_config: Option<ServiceConfig>,
 }
 
 impl AscotServer {
@@ -83,6 +85,7 @@ impl AscotServer {
             port: DEFAULT_SERVER_PORT,
             stack_size: DEFAULT_STACK_SIZE,
             device,
+            service_config: None,
         }
     }
 
@@ -98,21 +101,76 @@ impl AscotServer {
         self
     }
 
-    /// Runs a device on a server with a service.
+    /// Sets a server discovery service configuration.
+    pub const fn service(mut self, service_config: ServiceConfig) -> Self {
+        self.service_config = Some(service_config);
+        self
+    }
+
+    /*/// Runs a device on a server with a service.
     pub fn run_with_service(self, service_builder: ServiceBuilder) -> Result<()> {
         // Run server
         server!(self);
 
         // Run service
         InternalService::run(service_builder)
-    }
+    }*/
 
-    /// Runs a device on a server.
+    /// Runs the server.
     pub fn run(self) -> Result<()> {
-        server!(self);
+        let mut server = EspHttpServer::new(&Configuration {
+            stack_size: self.stack_size,
+            http_port: self.port,
+            ..Default::default()
+        })?;
 
-        loop {
-            std::thread::sleep(std::time::Duration::from_secs(1))
+        // Format the device description as a pretty string.
+        let device_description = serde_json::to_string_pretty(&self.device.serialize_data())?;
+
+        for route in self.device.routes_data {
+            let method = match route.route_hazards.route.kind() {
+                RestKind::Get => Method::Get,
+                RestKind::Post => Method::Post,
+                RestKind::Put => Method::Put,
+                RestKind::Delete => Method::Delete,
+            };
+            if let Some(body) = route.body {
+                server.fn_handler(
+                    &format!(
+                        "{}{}",
+                        self.device.main_route,
+                        route.route_hazards.route.route()
+                    ),
+                    method,
+                    move |req| {
+                        // Run body.
+                        body()?;
+
+                        // Write response.
+                        (route.response)(req)?.write_all(route.content.as_bytes())
+                    },
+                )?;
+            } else {
+                server.fn_handler(route.route_hazards.route.route(), method, move |req| {
+                    // Write only response.
+                    (route.response)(req)?.write_all(route.content.as_bytes())
+                })?;
+            }
+        }
+
+        // Add main route
+        server.fn_handler(self.device.main_route, Method::Get, move |req| {
+            req.into_response(200, Some("OK"), &[("Content-Type", "application/json")])?
+                .write_all(device_description.as_bytes())
+        })?;
+
+        if let Some(service_config) = self.service_config {
+            // Run service
+            InternalService::run(service_config)
+        } else {
+            loop {
+                std::thread::sleep(std::time::Duration::from_secs(1))
+            }
         }
     }
 }
