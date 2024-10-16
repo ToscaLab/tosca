@@ -104,6 +104,8 @@ pub enum DeviceKind {
     Light,
     /// Fridge.
     Fridge,
+    /// Camera.
+    Camera,
 }
 
 /// A trait to serialize device data.
