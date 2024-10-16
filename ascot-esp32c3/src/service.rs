@@ -31,16 +31,16 @@ enum Algorithm {
     MdnsSd,
 }
 
-/// A mDNS-SD service.
-pub struct ServiceBuilder {
+/// A mDNS-SD service configurator.
+pub struct ServiceConfig {
     algorithm: Algorithm,
     http_address: Ipv4Addr,
     hostname: &'static str,
     domain_name: &'static str,
 }
 
-impl ServiceBuilder {
-    /// Creates a new [`ServiceBuilder`] instance for `mDNS-SD`.
+impl ServiceConfig {
+    /// Creates a new [`ServiceConfig`] instance for `mDNS-SD`.
     pub const fn mdns_sd(http_address: Ipv4Addr) -> Self {
         Self {
             algorithm: Algorithm::MdnsSd,
@@ -146,13 +146,13 @@ pub(crate) struct InternalService;
 
 impl InternalService {
     #[inline(always)]
-    pub(crate) fn run(service_builder: ServiceBuilder) -> Result<()> {
-        let ServiceBuilder {
+    pub(crate) fn run(service_config: ServiceConfig) -> Result<()> {
+        let ServiceConfig {
             algorithm,
             http_address,
             hostname,
             domain_name,
-        } = service_builder;
+        } = service_config;
 
         block_on(match algorithm {
             Algorithm::MdnsSd => mdns_sd_service(hostname, domain_name, http_address),
