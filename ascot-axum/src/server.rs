@@ -55,9 +55,6 @@ where
 {
     /// Creates a new [`AscotServer`] instance.
     pub fn new(device: Device<S>) -> Self {
-        // Initialize tracing subscriber.
-        tracing_subscriber::fmt::init();
-
         Self {
             http_address: DEFAULT_HTTP_ADDRESS,
             port: DEFAULT_SERVER_PORT,
