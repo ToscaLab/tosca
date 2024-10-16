@@ -7,7 +7,7 @@ use ascot_library::route::RestKind;
 
 use crate::device::Device;
 use crate::error::Result;
-use crate::service::internal_service::Service;
+use crate::service::{InternalService, ServiceBuilder};
 
 // Default port.
 const DEFAULT_SERVER_PORT: u16 = 3000;
@@ -99,12 +99,12 @@ impl AscotServer {
     }
 
     /// Runs a device on a server with a service.
-    pub fn run_with_service<S: Service>(self, service: S) -> Result<()> {
+    pub fn run_with_service(self, service_builder: ServiceBuilder) -> Result<()> {
         // Run server
         server!(self);
 
         // Run service
-        service.run()
+        InternalService::run(service_builder)
     }
 
     /// Runs a device on a server.
