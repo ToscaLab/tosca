@@ -12,7 +12,7 @@ use ascot_library::route::Route;
 use ascot_esp32c3::device::{DeviceAction, ResponseBuilder};
 use ascot_esp32c3::devices::light::Light;
 use ascot_esp32c3::server::AscotServer;
-use ascot_esp32c3::service::ServiceBuilder;
+use ascot_esp32c3::service::ServiceConfig;
 use ascot_esp32c3::wifi::Wifi;
 
 // Esp idf
@@ -108,9 +108,11 @@ fn main() -> ascot_esp32c3::error::Result<()> {
 
     let light = Light::new(light_on_action, light_off_action)?.build();
 
-    AscotServer::new(light).run_with_service(
-        ServiceBuilder::mdns_sd(wifi.ip)
-            .hostname(device_config.hostname)
-            .domain_name(device_config.service),
-    )
+    AscotServer::new(light)
+        .service(
+            ServiceConfig::mdns_sd(wifi.ip)
+                .hostname(device_config.hostname)
+                .domain_name(device_config.service),
+        )
+        .run()
 }
