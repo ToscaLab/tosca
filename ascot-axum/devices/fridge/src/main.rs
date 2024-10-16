@@ -20,7 +20,7 @@ use ascot_axum::devices::fridge::Fridge;
 use ascot_axum::error::Error;
 use ascot_axum::extract::{Extension, Json};
 use ascot_axum::server::AscotServer;
-use ascot_axum::service::ServiceBuilder;
+use ascot_axum::service::ServiceConfig;
 
 // Command line library
 use clap::Parser;
@@ -159,7 +159,7 @@ async fn main() -> Result<(), Error> {
         .address(cli.address)
         .port(cli.port)
         .service(
-            ServiceBuilder::mdns_sd("fridge")
+            ServiceConfig::mdns_sd("fridge")
                 .hostname(&cli.hostname)
                 .domain_name(&cli.domain)
                 .service_type(&cli.service_type),
