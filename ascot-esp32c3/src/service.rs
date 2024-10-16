@@ -37,6 +37,7 @@ pub struct ServiceConfig {
     http_address: Ipv4Addr,
     hostname: &'static str,
     domain_name: &'static str,
+    properties: &'static [(&'static str, &'static str)],
 }
 
 impl ServiceConfig {
@@ -47,6 +48,7 @@ impl ServiceConfig {
             http_address,
             hostname: SERVICE_HOSTNAME,
             domain_name: SERVICE_NAME,
+            properties: &[],
         }
     }
 
@@ -61,13 +63,23 @@ impl ServiceConfig {
         self.domain_name = domain_name;
         self
     }
+
+    /// Sets service properties.
+    pub const fn properties(mut self, properties: &'static [(&'static str, &'static str)]) -> Self {
+        self.properties = properties;
+        self
+    }
 }
 
-async fn mdns_sd_service(
-    hostname: &'static str,
-    domain_name: &'static str,
-    http_address: Ipv4Addr,
-) -> Result<()> {
+async fn mdns_sd_service(service_config: ServiceConfig) -> Result<()> {
+    let ServiceConfig {
+        algorithm: _,
+        http_address,
+        hostname,
+        domain_name,
+        properties,
+    } = service_config;
+
     // Create stack
     let stack = Stack::new();
 
@@ -116,7 +128,7 @@ async fn mdns_sd_service(
         protocol: "_tcp",
         port: 443,
         service_subtypes: &[],
-        txt_kvs: &[],
+        txt_kvs: properties,
     };
 
     // A way to notify the mDNS responder that the data in `Host` had changed
@@ -147,15 +159,8 @@ pub(crate) struct InternalService;
 impl InternalService {
     #[inline(always)]
     pub(crate) fn run(service_config: ServiceConfig) -> Result<()> {
-        let ServiceConfig {
-            algorithm,
-            http_address,
-            hostname,
-            domain_name,
-        } = service_config;
-
-        block_on(match algorithm {
-            Algorithm::MdnsSd => mdns_sd_service(hostname, domain_name, http_address),
+        block_on(match service_config.algorithm {
+            Algorithm::MdnsSd => mdns_sd_service(service_config),
         })
     }
 }
