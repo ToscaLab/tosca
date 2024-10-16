@@ -15,9 +15,9 @@ const MAXIMUM_ELEMENTS: usize = 8;
 // It defines the type of a service. The default value is `General Device`.
 const SERVICE_TYPE: &str = "General Device";
 
-/// A service builder.
+/// A service configurator.
 #[derive(Debug)]
-pub struct ServiceBuilder<'a> {
+pub struct ServiceConfig<'a> {
     // Instance name.
     pub(crate) instance_name: &'a str,
     // Service properties.
@@ -34,8 +34,8 @@ pub struct ServiceBuilder<'a> {
     pub(crate) disable_docker: bool,
 }
 
-impl<'a> ServiceBuilder<'a> {
-    /// Creates a new [`ServiceBuilder`] for a `mDNS-SD` service.
+impl<'a> ServiceConfig<'a> {
+    /// Creates a new [`ServiceConfig`] for a `mDNS-SD` service.
     pub const fn mdns_sd(instance_name: &'a str) -> Self {
         Self {
             instance_name,
@@ -98,11 +98,11 @@ impl Service {
     // Runs a service.
     #[inline]
     pub(crate) fn run(
-        service_builder: ServiceBuilder,
+        service_config: ServiceConfig,
         server_address: Ipv4Addr,
         port: u16,
     ) -> Result<()> {
         #[cfg(feature = "mdns-sd-service")]
-        crate::services::mdns_sd::run(service_builder, server_address, port)
+        crate::services::mdns_sd::run(service_config, server_address, port)
     }
 }

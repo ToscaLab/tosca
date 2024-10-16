@@ -8,7 +8,7 @@ use tracing::info;
 
 use crate::device::Device;
 use crate::error::Result;
-use crate::service::{Service, ServiceBuilder};
+use crate::service::{Service, ServiceConfig};
 
 // Default HTTP address.
 //
@@ -43,8 +43,8 @@ where
     scheme: &'a str,
     // Well-known URI.
     well_known_uri: &'a str,
-    // Service
-    service: Option<ServiceBuilder<'a>>,
+    // Service configurator.
+    service_config: Option<ServiceConfig<'a>>,
     // Device.
     device: Device<S>,
 }
@@ -63,7 +63,7 @@ where
             port: DEFAULT_SERVER_PORT,
             scheme: DEFAULT_SCHEME,
             well_known_uri: WELL_KNOWN_URI,
-            service: None,
+            service_config: None,
             device,
         }
     }
@@ -93,8 +93,8 @@ where
     }
 
     /// Sets a service.
-    pub fn service(mut self, service: ServiceBuilder<'a>) -> Self {
-        self.service = Some(service);
+    pub fn service(mut self, service_config: ServiceConfig<'a>) -> Self {
+        self.service_config = Some(service_config);
         self
     }
 
@@ -131,14 +131,14 @@ where
         let device = self.device.finalize();
 
         // Run a service if present.
-        if let Some(service) = self.service {
+        if let Some(service_config) = self.service_config {
             // Add server properties.
-            let service = service
+            let service_config = service_config
                 .property(("scheme", self.scheme))
                 .property(("path", self.well_known_uri));
 
             // Run service.
-            Service::run(service, self.http_address, self.port)?;
+            Service::run(service_config, self.http_address, self.port)?;
         }
 
         // Create the main router.

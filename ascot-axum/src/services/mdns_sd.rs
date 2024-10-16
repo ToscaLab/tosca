@@ -7,7 +7,7 @@ use mdns_sd::{IfKind, ServiceDaemon, ServiceInfo};
 use tracing::info;
 
 use crate::error::{Error, ErrorKind};
-use crate::service::ServiceBuilder;
+use crate::service::ServiceConfig;
 
 // Service domain name.
 //
@@ -28,7 +28,7 @@ impl From<std::io::Error> for Error {
 }
 
 pub(crate) fn run(
-    service: ServiceBuilder,
+    service_config: ServiceConfig,
     server_address: Ipv4Addr,
     server_port: u16,
 ) -> std::result::Result<(), Error> {
@@ -36,12 +36,12 @@ pub(crate) fn run(
     let mdns = ServiceDaemon::new()?;
 
     // Disable every IpV6 interface.
-    if service.disable_ipv6 {
+    if service_config.disable_ipv6 {
         mdns.disable_interface(IfKind::IPv6)?;
     }
 
     // Disable docker0 bridge.
-    if service.disable_docker {
+    if service_config.disable_docker {
         mdns.disable_interface("docker0")?;
     }
 
@@ -49,32 +49,32 @@ pub(crate) fn run(
     //
     // .local is a special domain name for hostnames in local area networks
     // which can be resolved via the Multicast DNS name resolution protocol.
-    let hostname = if !service.hostname.ends_with(".local.") {
-        &format!("{}.local.", service.hostname)
+    let hostname = if !service_config.hostname.ends_with(".local.") {
+        &format!("{}.local.", service_config.hostname)
     } else {
-        service.hostname
+        service_config.hostname
     };
 
     // Allocates properties on heap
-    let mut properties = service
+    let mut properties = service_config
         .properties
         .iter()
         .map(|(key, value)| (key.clone(), value.clone()))
         .collect::<HashMap<_, _>>();
 
     // Firmware type.
-    properties.insert("type".into(), service.service_type.into());
+    properties.insert("type".into(), service_config.service_type.into());
 
     // Define mDNS domain
     let domain = format!(
         "_{}._tcp.local.",
-        service.domain_name.unwrap_or(DOMAIN_NAME)
+        service_config.domain_name.unwrap_or(DOMAIN_NAME)
     );
 
-    info!("Service instance name: {}", service.instance_name);
+    info!("Service instance name: {}", service_config.instance_name);
     info!("Service domain: {domain}");
     info!("Service port: {}", server_port);
-    info!("Service type: {}", service.service_type);
+    info!("Service type: {}", service_config.service_type);
     info!(
         "Device reachable at this hostname: {}:{}",
         &hostname[0..hostname.len() - 1],
@@ -85,7 +85,7 @@ pub(crate) fn run(
         // Domain label and service type
         &domain,
         // Service instance name
-        service.instance_name,
+        service_config.instance_name,
         // DNS hostname.
         //
         // For the same hostname in the same local network, the service resolves
