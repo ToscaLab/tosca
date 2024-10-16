@@ -69,12 +69,10 @@ fn main() -> ascot_esp32c3::error::Result<()> {
     // server route.
     let temp_led_main = Arc::new(Mutex::new(built_in_led_output));
 
-    // Configuration for the `PUT` turn light on route.
-    let light_on_config = Route::put("/on").description("Turn light on.");
-
     let temp_led_on = temp_led_main.clone();
     let light_on_action = DeviceAction::with_hazard(
-        light_on_config,
+        // Configuration for the `PUT` turn light on route.
+        Route::put("/on").description("Turn light on."),
         ResponseBuilder(|req| req.into_ok_response(), "Turning led on went well!"),
         Hazard::FireHazard,
     )
@@ -88,12 +86,10 @@ fn main() -> ascot_esp32c3::error::Result<()> {
         Ok(())
     });
 
-    // Configuration for the `PUT` turn light off route.
-    let light_off_config = Route::put("/off").description("Turn light off.");
-
     let temp_led_off = temp_led_main.clone();
     let light_off_action = DeviceAction::no_hazards(
-        light_off_config,
+        // Configuration for the `PUT` turn light off route.
+        Route::put("/off").description("Turn light off."),
         ResponseBuilder(|req| req.into_ok_response(), "Turning led off went well!"),
     )
     .body(move || {
