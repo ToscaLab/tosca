@@ -91,7 +91,6 @@ async fn turn_light_off(
 async fn toggle(Extension(state): Extension<DeviceState>) -> Result<DevicePayload, DeviceError> {
     state.lock().await.toggle();
     Ok(DevicePayload::empty())
-    // Err(DeviceError::from_str(ascot_library::device::DeviceErrorKind::Wrong, "Error in toggling the light"))
 }
 
 #[derive(Parser)]
