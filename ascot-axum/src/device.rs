@@ -192,15 +192,9 @@ impl<S> Device<S>
 where
     S: Clone + Send + Sync + 'static,
 {
-    /// Creates a new [`Device`] instance.
-    pub fn new(kind: DeviceKind) -> Self {
-        Self {
-            kind,
-            main_route: DEFAULT_MAIN_ROUTE,
-            routes_hazards: RoutesHazards::init(),
-            router: Router::new(),
-            state: None,
-        }
+    /// Creates an unknown [`Device`].
+    pub fn unknown() -> Self {
+        Self::new(DeviceKind::Unknown)
     }
 
     /// Sets a new main route.
@@ -222,6 +216,17 @@ where
     /// Sets a device state.
     pub fn state(self, state: S) -> Self {
         self.internal_state(Some(state))
+    }
+
+    // Creates a new instance defining the DeviceKind.
+    pub(crate) fn new(kind: DeviceKind) -> Self {
+        Self {
+            kind,
+            main_route: DEFAULT_MAIN_ROUTE,
+            routes_hazards: RoutesHazards::init(),
+            router: Router::new(),
+            state: None,
+        }
     }
 
     // Sets internal state.
