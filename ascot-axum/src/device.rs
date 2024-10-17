@@ -161,10 +161,7 @@ where
 
 /// A general smart home device.
 #[derive(Debug)]
-pub struct Device<S>
-where
-    S: Clone + Send + Sync + 'static,
-{
+pub struct Device<S> {
     // Kind.
     kind: DeviceKind,
     // Main device route.
