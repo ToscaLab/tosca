@@ -6,6 +6,7 @@ use crate::device::{DeviceError, DevicePayload};
 #[rustfmt::skip]
 macro_rules! all_the_tuples {
     ($name:ident) => {
+        $name!([], );
         $name!([], T1);
         $name!([T1], T2);
         $name!([T1, T2], T3);
@@ -43,11 +44,11 @@ where
 
 macro_rules! impl_output_type_name {
     (
-        [$($ty:ident),*], $last:ident
+        [$($ty:ident),*], $($last:ident)?
     ) => {
-        impl<F, Fut, M, $($ty,)* $last> private::OutputTypeName<(M, $($ty,)* $last,)> for F
+        impl<F, Fut, M, $($ty,)* $($last)?> private::OutputTypeName<(M, $($ty,)* $($last)?)> for F
         where
-            F: FnOnce($($ty,)* $last,) -> Fut,
+            F: FnOnce($($ty,)* $($last)?) -> Fut,
             Fut: Future<Output = Result<DevicePayload, DeviceError>> + Send,
             {
                 fn output_type_name(&self) -> &'static str {
