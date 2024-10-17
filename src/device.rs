@@ -100,6 +100,8 @@ pub struct DeviceData<'a> {
 /// A device kind.
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum DeviceKind {
+    /// Unknown.
+    Unknown,
     /// Light.
     Light,
     /// Fridge.
