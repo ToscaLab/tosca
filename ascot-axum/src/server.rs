@@ -54,7 +54,7 @@ where
     S: Clone + Send + Sync + 'static,
 {
     /// Creates a new [`AscotServer`] instance.
-    pub fn new(device: Device<S>) -> Self {
+    pub const fn new(device: Device<S>) -> Self {
         Self {
             http_address: DEFAULT_HTTP_ADDRESS,
             port: DEFAULT_SERVER_PORT,
@@ -90,6 +90,7 @@ where
     }
 
     /// Sets a service.
+    #[inline]
     pub fn service(mut self, service_config: ServiceConfig<'a>) -> Self {
         self.service_config = Some(service_config);
         self

@@ -22,11 +22,13 @@ pub struct DevicePayload(ascot_library::device::DevicePayload);
 
 impl DevicePayload {
     /// Creates an empty [`DevicePayload`].
+    #[inline]
     pub fn empty() -> Self {
         Self(ascot_library::device::DevicePayload::empty())
     }
 
     /// Creates a [`DevicePayload`].
+    #[inline]
     pub fn new(value: impl Serialize) -> core::result::Result<Self, DeviceError> {
         ascot_library::device::DevicePayload::new(value)
             .map(Self)
@@ -77,6 +79,7 @@ pub struct DeviceAction {
 
 impl DeviceAction {
     /// Creates a new [`DeviceAction`].
+    #[inline]
     pub fn no_hazards<H, T>(route: Route, handler: H) -> Self
     where
         H: Handler<T, ()> + OutputTypeName<T>,
@@ -86,6 +89,7 @@ impl DeviceAction {
     }
 
     /// Creates a new [`DeviceAction`] with a single [`Hazard`].
+    #[inline]
     pub fn with_hazard<H, T>(route: Route, handler: H, hazard: Hazard) -> Self
     where
         H: Handler<T, ()> + OutputTypeName<T>,
@@ -98,6 +102,7 @@ impl DeviceAction {
     }
 
     /// Creates a new [`DeviceAction`] with [`Hazard`]s.
+    #[inline]
     pub fn with_hazards<H, T>(route: Route, handler: H, input_hazards: &'static [Hazard]) -> Self
     where
         H: Handler<T, ()> + OutputTypeName<T>,
@@ -112,11 +117,13 @@ impl DeviceAction {
     }
 
     /// Checks whether a [`DeviceAction`] misses a specific [`Hazard`].
+    #[inline]
     pub fn miss_hazard(&self, hazard: Hazard) -> bool {
         !self.hazards.contains(hazard)
     }
 
     /// Checks whether a [`DeviceAction`] misses the given [`Hazard`]s.
+    #[inline]
     pub fn miss_hazards(&self, hazards: &'static [Hazard]) -> bool {
         !hazards.iter().all(|hazard| self.hazards.contains(*hazard))
     }
@@ -193,17 +200,19 @@ where
     S: Clone + Send + Sync + 'static,
 {
     /// Creates an unknown [`Device`].
+    #[inline]
     pub fn unknown() -> Self {
         Self::new(DeviceKind::Unknown)
     }
 
     /// Sets a new main route.
-    pub fn main_route(mut self, main_route: &'static str) -> Self {
+    pub const fn main_route(mut self, main_route: &'static str) -> Self {
         self.main_route = main_route;
         self
     }
 
     /// Adds a [`DeviceAction`].
+    #[inline]
     pub fn add_action(mut self, device_chainer: DeviceAction) -> Self {
         self.router = self.router.merge(device_chainer.router);
         self.routes_hazards.add(RouteHazards::new(
@@ -214,11 +223,13 @@ where
     }
 
     /// Sets a device state.
+    #[inline]
     pub fn state(self, state: S) -> Self {
         self.internal_state(Some(state))
     }
 
     // Creates a new instance defining the DeviceKind.
+    #[inline]
     pub(crate) fn new(kind: DeviceKind) -> Self {
         Self {
             kind,
@@ -230,6 +241,7 @@ where
     }
 
     // Sets internal state.
+    #[inline]
     pub(crate) fn internal_state(mut self, state: Option<S>) -> Self {
         self.state = state;
         self
