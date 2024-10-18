@@ -1,86 +1,104 @@
-use core::fmt::Write;
-
 use serde::{Deserialize, Serialize};
-use serde_json::error::Category;
-use serde_json::value::Value;
 
 use crate::route::RouteConfigs;
 use crate::ShortString;
 
-/// A device response payload for a determined action.
+/// Payload kinds.
 #[derive(Serialize, Deserialize)]
-pub struct DevicePayload(Value);
+pub enum PayloadKind {
+    /// No data.
+    Empty,
+    /// Serial data (i.e JSON).
+    Serial,
+    /// Stream of data (bytes).
+    Stream,
+}
 
-impl DevicePayload {
-    /// Creates an empty [`DevicePayload`].
-    pub fn empty() -> Self {
-        Self(serde_json::json!({"payload": null}))
-    }
+/// Empty payload structure.
+#[derive(Serialize, Deserialize)]
+pub struct EmptyPayload {
+    // Empty payload description.
+    description: &'static str,
+}
 
-    /// Creates a new [`DevicePayload`].
-    pub fn new(value: impl Serialize) -> core::result::Result<Self, DeviceError> {
-        serde_json::to_value(value)
-            .map(Self)
-            .map_err(DeviceError::from_serialize)
+impl EmptyPayload {
+    /// Creates a new [`EmptyPayload`].
+    pub fn new(description: &'static str) -> Self {
+        Self { description }
     }
 }
 
-/// Kinds of erroneous device responses.
+/// A payload associated with a device response.
+#[derive(Serialize, Deserialize)]
+pub struct DevicePayload(PayloadKind);
+
+impl DevicePayload {
+    /// Creates an empty [`DevicePayload`].
+    pub const fn empty() -> Self {
+        Self(PayloadKind::Empty)
+    }
+
+    /// Creates a serial [`DevicePayload`].
+    pub const fn serial() -> Self {
+        Self(PayloadKind::Serial)
+    }
+
+    /// Creates a stream [`DevicePayload`].
+    pub const fn stream() -> Self {
+        Self(PayloadKind::Stream)
+    }
+}
+
+/// Kinds of errors for a device response.
 #[derive(Serialize, Deserialize)]
 pub enum DeviceErrorKind {
-    /// The device response for a determined action is not valid because
-    /// retrieved data is not correct.
-    Invalid,
-    /// A device response for a determined action is wrong because an internal
-    /// device error occurred.
-    Wrong,
+    /// Data needed to build a response are not correct because invalid or
+    /// malformed.
+    InvalidData,
+    /// An internal error occurred on the device.
+    Internal,
 }
 
 /// A device error response.
 #[derive(Serialize, Deserialize)]
-pub struct DeviceError {
-    /// Kind of erroneous device response.
+pub struct DeviceError<'a> {
+    /// Device response error kind.
     pub kind: DeviceErrorKind,
+    /// Error description.
+    pub description: &'a str,
     /// Information about the error.
-    pub info: ShortString,
+    pub info: Option<ShortString>,
 }
 
-impl DeviceError {
-    /// Creates a new [`DeviceError`] where the error is given as
-    /// a string slice.
-    pub fn from_str(kind: DeviceErrorKind, info: &str) -> Self {
+impl<'a> DeviceError<'a> {
+    /// Creates a new [`DeviceError`] where the description of the error is
+    /// passed as a string slice.
+    #[inline(always)]
+    pub fn from_str(kind: DeviceErrorKind, description: &'a str) -> Self {
         Self {
             kind,
-            info: ShortString::new(info).unwrap_or(ShortString::empty()),
+            description,
+            info: None,
         }
     }
 
-    // Creates a new [`DeviceError`] from a serialization error.
-    fn from_serialize(error: serde_json::Error) -> Self {
-        let category = match error.classify() {
-            Category::Io => "IO",
-            Category::Syntax => "Syntax",
-            Category::Data => "Data",
-            Category::Eof => "Eof",
-        };
+    /// Creates a new [`DeviceError`] of kind [`DeviceErrorKind::InvalidData`].
+    #[inline(always)]
+    pub fn invalid_data(info: &'a str) -> Self {
+        Self::from_str(DeviceErrorKind::InvalidData, info)
+    }
 
-        let mut info = ShortString::empty();
-        Self {
-            kind: DeviceErrorKind::Wrong,
-            info: if write!(
-                info,
-                "Error `{}` (line {}, column {})",
-                category,
-                error.line() as u16,
-                error.column() as u16,
-            )
-            .is_ok()
-            {
-                info
-            } else {
-                ShortString::empty()
-            },
-        }
+    /// Creates a new [`DeviceError`] of kind [`DeviceErrorKind::Internal`].
+    #[inline(always)]
+    pub fn internal(info: &'a str) -> Self {
+        Self::from_str(DeviceErrorKind::Internal, info)
+    }
+
+    /// Adds information about the error.
+    #[inline(always)]
+    pub fn info(mut self, info: &str) -> Self {
+        self.info = Some(ShortString::new(info).unwrap_or(ShortString::empty()));
+        self
     }
 }
 
