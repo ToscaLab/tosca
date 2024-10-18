@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::MiniString;
+use crate::strings::MiniString;
 
 /// Payload kinds.
 #[derive(Serialize, Deserialize)]

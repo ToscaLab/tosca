@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::route::RouteConfigs;
-use crate::{MiniString, ShortString};
+use crate::strings::{MiniString, ShortString};
 
 // REMINDER:
 // 1. Parse a server response to verify whether it is a device error response

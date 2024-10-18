@@ -4,7 +4,8 @@ use serde::{Deserialize, Serialize};
 use crate::error::Result;
 use crate::hazards::{Hazards, HazardsData};
 use crate::input::{Input, Inputs, InputsData};
-use crate::{MiniString, MAXIMUM_ELEMENTS};
+use crate::strings::MiniString;
+use crate::MAXIMUM_ELEMENTS;
 
 /// Route inputs writing modes.
 ///
