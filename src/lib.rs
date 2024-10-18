@@ -15,3 +15,5 @@ pub mod input;
 pub mod payloads;
 pub mod route;
 pub mod strings;
+
+pub use error::{Error, ErrorKind};
