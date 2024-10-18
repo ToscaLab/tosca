@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::route::RouteConfigs;
-use crate::ShortString;
+use crate::{MiniString, ShortString};
 
 /// Payload kinds.
 #[derive(Serialize, Deserialize)]
@@ -61,37 +61,37 @@ pub enum DeviceErrorKind {
 
 /// A device error response.
 #[derive(Serialize, Deserialize)]
-pub struct DeviceError<'a> {
+pub struct DeviceError {
     /// Device response error kind.
     pub kind: DeviceErrorKind,
     /// Error description.
-    pub description: &'a str,
+    pub description: MiniString,
     /// Information about the error.
     pub info: Option<ShortString>,
 }
 
-impl<'a> DeviceError<'a> {
+impl DeviceError {
     /// Creates a new [`DeviceError`] where the description of the error is
     /// passed as a string slice.
     #[inline(always)]
-    pub fn from_str(kind: DeviceErrorKind, description: &'a str) -> Self {
+    pub fn from_str(kind: DeviceErrorKind, description: &str) -> Self {
         Self {
             kind,
-            description,
+            description: MiniString::new(description).unwrap_or(MiniString::empty()),
             info: None,
         }
     }
 
     /// Creates a new [`DeviceError`] of kind [`DeviceErrorKind::InvalidData`].
     #[inline(always)]
-    pub fn invalid_data(info: &'a str) -> Self {
-        Self::from_str(DeviceErrorKind::InvalidData, info)
+    pub fn invalid_data(description: &str) -> Self {
+        Self::from_str(DeviceErrorKind::InvalidData, description)
     }
 
     /// Creates a new [`DeviceError`] of kind [`DeviceErrorKind::Internal`].
     #[inline(always)]
-    pub fn internal(info: &'a str) -> Self {
-        Self::from_str(DeviceErrorKind::Internal, info)
+    pub fn internal(description: &str) -> Self {
+        Self::from_str(DeviceErrorKind::Internal, description)
     }
 
     /// Adds information about the error.
