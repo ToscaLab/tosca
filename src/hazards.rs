@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use crate::MAXIMUM_ELEMENTS;
 
 /// Hazard data.
-#[derive(Debug, Clone, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, Serialize, Deserialize)]
 pub struct HazardData<'a> {
     /// Identifier.
     pub id: u16,
@@ -31,6 +31,15 @@ impl<'a> HazardData<'a> {
 impl<'a> core::cmp::PartialEq for HazardData<'a> {
     fn eq(&self, other: &Self) -> bool {
         self.id == other.id
+    }
+}
+
+impl<'a> core::hash::Hash for HazardData<'a> {
+    fn hash<H>(&self, state: &mut H)
+    where
+        H: core::hash::Hasher,
+    {
+        self.id.hash(state)
     }
 }
 
@@ -322,7 +331,7 @@ impl Hazards {
 }
 
 /// Hazard category data.
-#[derive(Debug, Clone, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, Serialize, Deserialize)]
 pub struct CategoryData<'a> {
     /// Name.
     pub name: &'a str,
@@ -342,6 +351,15 @@ impl<'a> CategoryData<'a> {
 impl<'a> core::cmp::PartialEq for CategoryData<'a> {
     fn eq(&self, other: &Self) -> bool {
         self.name == other.name
+    }
+}
+
+impl<'a> core::hash::Hash for CategoryData<'a> {
+    fn hash<H>(&self, state: &mut H)
+    where
+        H: core::hash::Hasher,
+    {
+        self.name.hash(state)
     }
 }
 
