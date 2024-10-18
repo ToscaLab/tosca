@@ -87,7 +87,7 @@ impl_write_trait!(MiniString);
 
 impl MiniString {
     /// Creates an empty [`MiniString`].
-    pub fn empty() -> Self {
+    pub const fn empty() -> Self {
         Self(String::<MINI_STRING_LENGHT>::new())
     }
 
@@ -127,7 +127,7 @@ impl_write_trait!(ShortString);
 
 impl ShortString {
     /// Creates an empty [`ShortString`].
-    pub fn empty() -> Self {
+    pub const fn empty() -> Self {
         Self(String::<SHORT_STRING_LENGHT>::new())
     }
 
@@ -167,7 +167,7 @@ impl_write_trait!(LongString);
 
 impl LongString {
     /// Creates an empty [`LongString`].
-    pub fn empty() -> Self {
+    pub const fn empty() -> Self {
         Self(String::<LONG_STRING_LENGHT>::new())
     }
 
