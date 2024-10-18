@@ -9,6 +9,7 @@ pub mod device;
 pub mod error;
 pub mod hazards;
 pub mod input;
+pub mod payloads;
 pub mod route;
 
 pub use error::{Error, ErrorKind};
