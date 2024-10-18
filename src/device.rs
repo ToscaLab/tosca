@@ -3,51 +3,10 @@ use serde::{Deserialize, Serialize};
 use crate::route::RouteConfigs;
 use crate::{MiniString, ShortString};
 
-/// Payload kinds.
-#[derive(Serialize, Deserialize)]
-pub enum PayloadKind {
-    /// No data.
-    Empty,
-    /// Serial data (i.e JSON).
-    Serial,
-    /// Stream of data (bytes).
-    Stream,
-}
-
-/// Empty payload structure.
-#[derive(Serialize, Deserialize)]
-pub struct EmptyPayload {
-    // Empty payload description.
-    description: &'static str,
-}
-
-impl EmptyPayload {
-    /// Creates a new [`EmptyPayload`].
-    pub fn new(description: &'static str) -> Self {
-        Self { description }
-    }
-}
-
-/// A payload associated with a device response.
-#[derive(Serialize, Deserialize)]
-pub struct DevicePayload(PayloadKind);
-
-impl DevicePayload {
-    /// Creates an empty [`DevicePayload`].
-    pub const fn empty() -> Self {
-        Self(PayloadKind::Empty)
-    }
-
-    /// Creates a serial [`DevicePayload`].
-    pub const fn serial() -> Self {
-        Self(PayloadKind::Serial)
-    }
-
-    /// Creates a stream [`DevicePayload`].
-    pub const fn stream() -> Self {
-        Self(PayloadKind::Stream)
-    }
-}
+// REMINDER:
+// 1. Parse a server response to verify whether it is a device error response
+// 2. Parse the server response according to the description contained in its
+// route definition. If there is an error parsing the response, raise an error.
 
 /// Kinds of errors for a device response.
 #[derive(Serialize, Deserialize)]
