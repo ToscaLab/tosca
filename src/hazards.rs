@@ -18,7 +18,7 @@ pub struct HazardData<'a> {
 }
 
 impl<'a> HazardData<'a> {
-    fn new(id: u16, name: &'a str, description: &'a str, category: CategoryData<'a>) -> Self {
+    const fn new(id: u16, name: &'a str, description: &'a str, category: CategoryData<'a>) -> Self {
         Self {
             id,
             name,
@@ -49,7 +49,7 @@ pub struct HazardsData<'a>(#[serde(borrow)] FnvIndexSet<HazardData<'a>, MAXIMUM_
 
 impl<'a> HazardsData<'a> {
     /// Initializes a new [`HazardsData`] collection.
-    pub fn init() -> Self {
+    pub const fn init() -> Self {
         Self(FnvIndexSet::new())
     }
 
@@ -70,26 +70,31 @@ impl<'a> HazardsData<'a> {
     }
 
     /// Adds a new [`HazardData`] to the [`HazardsData`] collection.
+    #[inline(always)]
     pub fn add(&mut self, hazard_data: HazardData<'a>) {
         let _ = self.0.insert(hazard_data);
     }
 
     /// Whether the [`HazardsData`] collection is empty.
+    #[inline(always)]
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
     }
 
     /// Checks whether a [`HazardData`] is contained into [`HazardsData`].
+    #[inline(always)]
     pub fn contains(&self, hazard_data: &HazardData) -> bool {
         self.0.contains(hazard_data)
     }
 
     /// Returns an iterator over [`HazardData`]s.
+    #[inline]
     pub fn iter(&self) -> IndexSetIter<'_, HazardData> {
         self.0.iter()
     }
 
     /// Merges the collection with another [`HazardsData`].
+    #[inline]
     pub fn merge(&mut self, hazards_data: &Self) {
         self.0 = self.0.union(&hazards_data.0).cloned().collect();
     }
@@ -304,11 +309,12 @@ pub struct Hazards(FnvIndexSet<Hazard, MAXIMUM_ELEMENTS>);
 
 impl Hazards {
     /// Creates an empty [`Hazards`] collection.
-    pub fn empty() -> Self {
+    pub const fn empty() -> Self {
         Self(FnvIndexSet::new())
     }
 
     /// Initializes a [`Hazards`] collection given a single [`Hazard`].
+    #[inline]
     pub fn init(hazard: Hazard) -> Self {
         let mut hazards = Self::empty();
         hazards.add(hazard);
@@ -316,6 +322,7 @@ impl Hazards {
     }
 
     /// Initializes a [`Hazards`] collection given a list of [`Hazard`]s.
+    #[inline]
     pub fn init_with_hazards(input_hazards: &[Hazard]) -> Self {
         let mut hazards = Hazards::empty();
         input_hazards.iter().for_each(|hazard| {
@@ -325,22 +332,26 @@ impl Hazards {
     }
 
     /// Adds a new [`Hazard`] to the [`Hazards`] collection.
+    #[inline(always)]
     pub fn add(&mut self, hazard: Hazard) {
         let _ = self.0.insert(hazard);
     }
 
     /// Whether the [`Hazards`] collection is empty.
+    #[inline(always)]
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
     }
 
     /// Checks whether an [`Hazard`] is contained into
     /// the [`Hazards`] collection.
+    #[inline(always)]
     pub fn contains(&self, hazard: Hazard) -> bool {
         self.0.contains(&hazard)
     }
 
     /// Returns an iterator over [`Hazard`]s.
+    #[inline]
     pub fn iter(&self) -> IndexSetIter<'_, Hazard> {
         self.0.iter()
     }
@@ -356,7 +367,7 @@ pub struct CategoryData<'a> {
 }
 
 impl<'a> CategoryData<'a> {
-    fn new(hazard: Hazard) -> Self {
+    const fn new(hazard: Hazard) -> Self {
         Self {
             name: hazard.category().name(),
             description: hazard.category().description(),
