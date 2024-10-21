@@ -1,7 +1,7 @@
 mod empty;
 mod serial;
 
-use ascot_library::device::{DeviceError as AscotActionError, DeviceErrorKind};
+use ascot_library::actions::{ActionError as AscotActionError, ActionErrorKind};
 use ascot_library::hazards::{Hazard, Hazards};
 
 use ascot_library::route::{RestKind, Route, RouteHazards, RouteMode};
@@ -39,29 +39,30 @@ macro_rules! all_the_tuples {
 
 pub(super) use all_the_tuples;
 
+/// An error which might arise during the execution of an action on a device.
 pub struct ActionError(AscotActionError);
 
 impl ActionError {
-    /// Creates a new [`ActionError`] where the description of the error is
-    /// passed as a string slice.
+    /// Creates a new [`ActionError`] with a specific [`ActionErrorKind`]
+    /// and a string slice as description for the error.
     #[inline(always)]
-    pub fn from_str(kind: DeviceErrorKind, description: &str) -> Self {
+    pub fn from_str(kind: ActionErrorKind, description: &str) -> Self {
         Self(AscotActionError::from_str(kind, description))
     }
 
-    /// Creates an invalid data [`ActionError`].
+    /// Creates an [`ActionError`] when invalid data is met.
     #[inline(always)]
     pub fn invalid_data(description: &str) -> Self {
         Self(AscotActionError::invalid_data(description))
     }
 
-    /// Creates an internal error [`ActionError`].
+    /// Creates an [`ActionError`] when an internal error occurs.
     #[inline(always)]
     pub fn internal(description: &str) -> Self {
         Self(AscotActionError::internal(description))
     }
 
-    /// Adds information about the error.
+    /// Adds more information about an error.
     #[inline(always)]
     pub fn info(self, info: &str) -> Self {
         Self(self.0.info(info))
@@ -81,14 +82,18 @@ mod private {
     }
 }
 
+/// A trait which offers a series of methods to interact with an action.
+///
+/// An action is a specific operation executed on a device when a determined
+/// server route is being invoked.
 pub trait Action: private::Internal {
-    /// Checks whether an [`Action`] misses a specific [`Hazard`].
+    /// Checks whether an action does not define the given [`Hazard`].
     #[inline]
     fn miss_hazard(&self, hazard: Hazard) -> bool {
         !self.internal_hazards().contains(hazard)
     }
 
-    /// Checks whether an [`Action`] misses the given [`Hazard`]s.
+    /// Checks whether an action does not define the given [`Hazard`]s.
     #[inline]
     fn miss_hazards(&self, hazards: &'static [Hazard]) -> bool {
         !hazards
@@ -96,7 +101,7 @@ pub trait Action: private::Internal {
             .all(|hazard| self.internal_hazards().contains(*hazard))
     }
 
-    /// Returns the [`Hazard`]s of an [`Action`].
+    /// Returns the [`Hazards`] collection associated with an action.
     #[inline]
     fn hazards(&self) -> &Hazards {
         self.internal_hazards()
