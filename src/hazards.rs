@@ -303,9 +303,25 @@ impl Hazard {
 pub struct Hazards(FnvIndexSet<Hazard, MAXIMUM_ELEMENTS>);
 
 impl Hazards {
-    /// Initializes a new [`Hazards`] collection.
-    pub fn init() -> Self {
+    /// Creates an empty [`Hazards`] collection.
+    pub fn empty() -> Self {
         Self(FnvIndexSet::new())
+    }
+
+    /// Initializes a [`Hazards`] collection given a single [`Hazard`].
+    pub fn init(hazard: Hazard) -> Self {
+        let mut hazards = Self::empty();
+        hazards.add(hazard);
+        hazards
+    }
+
+    /// Initializes a [`Hazards`] collection given a list of [`Hazard`]s.
+    pub fn init_with_hazards(input_hazards: &[Hazard]) -> Self {
+        let mut hazards = Hazards::empty();
+        input_hazards.iter().for_each(|hazard| {
+            hazards.add(*hazard);
+        });
+        hazards
     }
 
     /// Adds a new [`Hazard`] to the [`Hazards`] collection.
