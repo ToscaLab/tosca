@@ -64,7 +64,7 @@ impl DeviceAction {
         route: Route,
         response: ResponseBuilder<R>,
     ) -> Self {
-        Self::init(route, response, Hazards::init())
+        Self::init(route, response, Hazards::empty())
     }
 
     /// Creates a new [`DeviceAction`] with a single [`Hazard`].
@@ -74,10 +74,7 @@ impl DeviceAction {
         response: ResponseBuilder<R>,
         hazard: Hazard,
     ) -> Self {
-        let mut hazards = Hazards::init();
-        hazards.add(hazard);
-
-        Self::init(route, response, hazards)
+        Self::init(route, response, Hazards::init(hazard))
     }
 
     /// Creates a new [`DeviceAction`] with [`Hazard`]s.
@@ -85,14 +82,9 @@ impl DeviceAction {
     pub fn with_hazards<R: internal::ResponseTrait>(
         route: Route,
         response: ResponseBuilder<R>,
-        input_hazards: &'static [Hazard],
+        hazards: &'static [Hazard],
     ) -> Self {
-        let mut hazards = Hazards::init();
-        input_hazards.iter().for_each(|hazard| {
-            hazards.add(*hazard);
-        });
-
-        Self::init(route, response, hazards)
+        Self::init(route, response, Hazards::init_with_hazards(hazards))
     }
 
     /// Checks whether a [`DeviceAction`] misses a specific [`Hazard`].
