@@ -3,7 +3,8 @@ use ascot_library::hazards::Hazard;
 
 use heapless::FnvIndexSet;
 
-use crate::device::{Device, DeviceAction, DeviceBuilder};
+use crate::actions::Action;
+use crate::device::{Device, DeviceBuilder};
 use crate::error::{Error, ErrorKind, Result};
 
 // The default main route for a fridge.
@@ -89,13 +90,13 @@ where
     }
 
     /// Sets a new main route.
-    pub fn main_route(mut self, main_route: &'static str) -> Self {
+    pub const fn main_route(mut self, main_route: &'static str) -> Self {
         self.main_route = main_route;
         self
     }
 
     /// Adds increase temperature action for a [`Fridge`].
-    pub fn increase_temperature(mut self, increase_temperature: DeviceAction) -> Result<Self> {
+    pub fn increase_temperature(mut self, increase_temperature: impl Action) -> Result<Self> {
         // Raise an error whether increase_temperature does not contain
         // electric energy consumption or spoiled food hazards.
         if increase_temperature.miss_hazards(INCREASE_TEMPERATURE) {
@@ -114,7 +115,7 @@ where
     }
 
     /// Adds decrease temperature action for a [`Fridge`].
-    pub fn decrease_temperature(mut self, decrease_temperature: DeviceAction) -> Result<Self> {
+    pub fn decrease_temperature(mut self, decrease_temperature: impl Action) -> Result<Self> {
         // Raise an error whether decrease_temperature does not contain
         // electric energy consumption hazard.
         if decrease_temperature.miss_hazard(DECREASE_TEMPERATURE) {
@@ -133,9 +134,9 @@ where
     }
 
     /// Adds an additional action for a [`Fridge`].
-    pub fn add_action(mut self, fridge_action: DeviceAction) -> Result<Self> {
+    pub fn add_action(mut self, fridge_action: impl Action) -> Result<Self> {
         // Return an error if action hazards are not a subset of allowed hazards.
-        for hazard in fridge_action.hazards.iter() {
+        for hazard in fridge_action.hazards().iter() {
             if !self.allowed_hazards.contains(hazard) {
                 return Err(Error::new(
                     ErrorKind::Fridge,
@@ -150,6 +151,7 @@ where
     }
 
     /// Sets a state for a [`Fridge`].
+    #[inline(always)]
     pub fn state(mut self, state: S) -> Self {
         self.state = Some(state);
         self
