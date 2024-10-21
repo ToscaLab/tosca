@@ -128,37 +128,37 @@ async fn main() -> Result<(), Error> {
 
     let cli = Cli::parse();
 
-    // Configuration for the `PUT` increase temperature route.
-    let increase_temp_config = Route::put("/increase-temperature")
-        .description("Increase temperature.")
-        .input(Input::rangef64("increment", (1., 4., 0.1, 2.)));
+    // Increase temperature action invoked by a `PUT` route.
+    let increase_temp_action = SerialAction::with_hazards(
+        Route::put("/increase-temperature")
+            .description("Increase temperature.")
+            .input(Input::rangef64("increment", (1., 4., 0.1, 2.))),
+        increase_temperature,
+        &[Hazard::ElectricEnergyConsumption, Hazard::SpoiledFood],
+    );
 
-    // Configuration for the `POST` increase temperature route.
-    let increase_temp_post_config = Route::post("/increase-temperature")
-        .description("Increase temperature.")
-        .input(Input::rangef64("increment", (1., 4., 0.1, 2.)));
+    // Decrease temperature action invoked by a `PUT` route.
+    let decrease_temp_action = SerialAction::with_hazards(
+        Route::put("/decrease-temperature")
+            .description("Decrease temperature.")
+            .input(Input::rangef64("decrement", (1., 4., 0.1, 2.))),
+        decrease_temperature,
+        &[Hazard::ElectricEnergyConsumption],
+    );
 
-    // Configuration for the `PUT` decrease temperature route.
-    let decrease_temp_config = Route::put("/decrease-temperature")
-        .description("Decrease temperature.")
-        .input(Input::rangef64("decrement", (1., 4., 0.1, 2.)));
+    // Increase temperature action invoked by a `POST` route.
+    let increase_temp_post_action = SerialAction::no_hazards(
+        Route::post("/increase-temperature")
+            .description("Increase temperature.")
+            .input(Input::rangef64("increment", (1., 4., 0.1, 2.))),
+        increase_temperature,
+    );
 
     // A fridge device which is going to be run on the server.
     let device = Fridge::new()
-        .increase_temperature(SerialAction::with_hazards(
-            increase_temp_config,
-            increase_temperature,
-            &[Hazard::ElectricEnergyConsumption, Hazard::SpoiledFood],
-        ))?
-        .decrease_temperature(SerialAction::with_hazards(
-            decrease_temp_config,
-            decrease_temperature,
-            &[Hazard::ElectricEnergyConsumption],
-        ))?
-        .add_action(SerialAction::no_hazards(
-            increase_temp_post_config,
-            increase_temperature,
-        ))?
+        .increase_temperature(increase_temp_action)?
+        .decrease_temperature(decrease_temp_action)?
+        .add_action(increase_temp_post_action)?
         .state(DeviceState::new(FridgeMockup::default()))
         .build()?;
 

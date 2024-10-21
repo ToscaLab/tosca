@@ -128,36 +128,41 @@ async fn main() -> Result<(), Error> {
 
     let cli = Cli::parse();
 
-    // Configuration for the `PUT` turn light on route.
-    let light_on_config = Route::put("/on").description("Turn light on.").inputs([
-        Input::rangef64("brightness", (0., 20., 0.1, 0.)),
-        Input::boolean("save-energy", false),
-    ]);
+    // Turn light on action invoked by a `PUT` route.
+    let light_on_action = SerialAction::with_hazard(
+        Route::put("/on").description("Turn light on.").inputs([
+            Input::rangef64("brightness", (0., 20., 0.1, 0.)),
+            Input::boolean("save-energy", false),
+        ]),
+        turn_light_on,
+        Hazard::FireHazard,
+    );
 
-    // Configuration for the `POST` turn light on route.
-    let light_on_post_config = Route::post("/on").description("Turn light on.").inputs([
-        Input::rangef64("brightness", (0., 20., 0.1, 0.)),
-        Input::boolean("save-energy", false),
-    ]);
+    // Turn light on action invoked by a `POST` route.
+    let light_on_post_action = SerialAction::no_hazards(
+        Route::post("/on").description("Turn light on.").inputs([
+            Input::rangef64("brightness", (0., 20., 0.1, 0.)),
+            Input::boolean("save-energy", false),
+        ]),
+        turn_light_on,
+    );
 
-    // Configuration for the turn light off route.
-    let light_off_config = Route::put("/off").description("Turn light off.");
+    // Turn light off action invoked by a `PUT` route.
+    let light_off_action = EmptyAction::no_hazards(
+        Route::put("/off").description("Turn light off."),
+        turn_light_off,
+    );
 
-    // Configuration for the toggle route.
-    let toggle_config = Route::put("/toggle").description("Toggle a light.");
+    // Toggle action invoked by a `PUT` route.
+    let toggle_action =
+        EmptyAction::no_hazards(Route::put("/toggle").description("Toggle a light."), toggle);
 
     // A light device which is going to be run on the server.
-    let device = Light::new(
-        SerialAction::with_hazard(light_on_config, turn_light_on, Hazard::FireHazard),
-        EmptyAction::no_hazards(light_off_config, turn_light_off),
-    )?
-    .add_action(EmptyAction::no_hazards(toggle_config, toggle))?
-    .add_action(SerialAction::no_hazards(
-        light_on_post_config,
-        turn_light_on,
-    ))?
-    .state(DeviceState::new(LightMockup::default()))
-    .build();
+    let device = Light::new(light_on_action, light_off_action)?
+        .add_action(toggle_action)?
+        .add_action(light_on_post_action)?
+        .state(DeviceState::new(LightMockup::default()))
+        .build();
 
     // Run a discovery service and the device on the server.
     AscotServer::new(device)
