@@ -8,6 +8,7 @@
 // Maximum number of elements on stack for a data structure.
 const MAXIMUM_ELEMENTS: usize = 8;
 
+pub mod actions;
 pub mod device;
 pub mod error;
 pub mod hazards;
