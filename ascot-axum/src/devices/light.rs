@@ -1,7 +1,8 @@
 use ascot_library::device::DeviceKind;
 use ascot_library::hazards::Hazard;
 
-use crate::device::{Device, DeviceAction, DeviceBuilder};
+use crate::actions::Action;
+use crate::device::{Device, DeviceBuilder};
 use crate::error::{Error, ErrorKind, Result};
 
 // The default main route for a light.
@@ -49,7 +50,7 @@ where
     S: Clone + Send + Sync + 'static,
 {
     /// Creates a new [`Light`] instance.
-    pub fn new(turn_light_on: DeviceAction, turn_light_off: DeviceAction) -> Result<Self> {
+    pub fn new(turn_light_on: impl Action, turn_light_off: impl Action) -> Result<Self> {
         // Raise an error whether turn light_on does not contain a
         // fire hazard.
         if turn_light_on.miss_hazard(TURN_LIGHT_ON) {
@@ -73,15 +74,15 @@ where
     }
 
     /// Sets a new main route.
-    pub fn main_route(mut self, main_route: &'static str) -> Self {
+    pub const fn main_route(mut self, main_route: &'static str) -> Self {
         self.main_route = main_route;
         self
     }
 
     /// Adds an additional action for a [`Light`].
-    pub fn add_action(mut self, light_action: DeviceAction) -> Result<Self> {
+    pub fn add_action(mut self, light_action: impl Action) -> Result<Self> {
         // Return an error if action hazards are not a subset of allowed hazards.
-        for hazard in light_action.hazards.iter() {
+        for hazard in light_action.hazards().iter() {
             if !self.allowed_hazards.contains(hazard) {
                 return Err(Error::new(
                     ErrorKind::Light,
@@ -96,12 +97,14 @@ where
     }
 
     /// Sets a state for a [`Light`].
+    #[inline(always)]
     pub fn state(mut self, state: S) -> Self {
         self.state = Some(state);
         self
     }
 
     /// Builds a new [`Device`].
+    #[inline(always)]
     pub fn build(self) -> Device<S> {
         self.into_device()
     }
