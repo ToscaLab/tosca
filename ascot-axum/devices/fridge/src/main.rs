@@ -15,7 +15,7 @@ use ascot_library::input::Input;
 use ascot_library::route::Route;
 
 // Ascot axum.
-use ascot_axum::device::{DeviceAction, DeviceError, DevicePayload};
+use ascot_axum::actions::{ActionError, SerialAction, SerialPayload};
 use ascot_axum::devices::fridge::Fridge;
 use ascot_axum::error::Error;
 use ascot_axum::extract::{Extension, Json};
@@ -67,13 +67,13 @@ struct ChangeTempResponse {
 async fn increase_temperature(
     Extension(state): Extension<DeviceState>,
     Json(inputs): Json<IncreaseTemperature>,
-) -> Result<DevicePayload, DeviceError> {
+) -> Result<SerialPayload<ChangeTempResponse>, ActionError> {
     let mut fridge = state.lock().await;
     fridge.increase_temperature(inputs.increment);
 
-    DevicePayload::new(ChangeTempResponse {
+    Ok(SerialPayload::new(ChangeTempResponse {
         temperature: fridge.temperature,
-    })
+    }))
 }
 
 #[derive(Deserialize)]
@@ -84,13 +84,13 @@ struct DecreaseTemperature {
 async fn decrease_temperature(
     Extension(state): Extension<DeviceState>,
     Json(inputs): Json<DecreaseTemperature>,
-) -> Result<DevicePayload, DeviceError> {
+) -> Result<SerialPayload<ChangeTempResponse>, ActionError> {
     let mut fridge = state.lock().await;
     fridge.decrease_temperature(inputs.decrement);
 
-    DevicePayload::new(ChangeTempResponse {
+    Ok(SerialPayload::new(ChangeTempResponse {
         temperature: fridge.temperature,
-    })
+    }))
 }
 
 #[derive(Parser)]
@@ -145,17 +145,17 @@ async fn main() -> Result<(), Error> {
 
     // A fridge device which is going to be run on the server.
     let device = Fridge::new()
-        .increase_temperature(DeviceAction::with_hazards(
+        .increase_temperature(SerialAction::with_hazards(
             increase_temp_config,
             increase_temperature,
             &[Hazard::ElectricEnergyConsumption, Hazard::SpoiledFood],
         ))?
-        .decrease_temperature(DeviceAction::with_hazards(
+        .decrease_temperature(SerialAction::with_hazards(
             decrease_temp_config,
             decrease_temperature,
             &[Hazard::ElectricEnergyConsumption],
         ))?
-        .add_action(DeviceAction::no_hazards(
+        .add_action(SerialAction::no_hazards(
             increase_temp_post_config,
             increase_temperature,
         ))?
