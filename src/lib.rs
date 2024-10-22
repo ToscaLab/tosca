@@ -15,6 +15,8 @@ pub mod hazards;
 pub mod input;
 pub mod payloads;
 pub mod route;
-pub mod strings;
+
+mod utils;
 
 pub use error::{Error, ErrorKind};
+pub use utils::strings;
