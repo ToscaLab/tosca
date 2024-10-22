@@ -288,7 +288,7 @@ impl RouteHazards {
     pub fn serialize_data(&self) -> RouteConfig {
         RouteConfig {
             rest_kind: self.route.rest_kind,
-            hazards: HazardsData::from_hazards(&self.hazards),
+            hazards: HazardsData::from(&self.hazards),
             data: RouteData {
                 name: self.route.route(),
                 description: self.route.description,
