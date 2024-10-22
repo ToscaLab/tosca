@@ -100,7 +100,7 @@ impl<'a> RouteConfigs<'a> {
         let _ = self.0.push(route_config);
     }
 
-    /// Whether the [`RouteConfigs`] collection is empty.
+    /// Checks whether a [`RouteConfigs`] collection is empty.
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
     }
@@ -111,10 +111,10 @@ impl<'a> RouteConfigs<'a> {
     }
 }
 
-/// A route to execute a precise smart home device task.
+/// A server route.
 ///
-/// It represents a specific `REST` API which invokes an external
-/// process to be run on a device.
+/// It represents a specific `REST` API which, when invoked, runs a task on
+/// a remote device.
 #[derive(Debug)]
 pub struct Route {
     // Route.
@@ -162,7 +162,7 @@ impl Route {
         Self::init(RestKind::Post, route)
     }
 
-    /// Sets the action description.
+    /// Sets the route description.
     pub fn description(mut self, description: &'static str) -> Self {
         self.description = Some(description);
         self
