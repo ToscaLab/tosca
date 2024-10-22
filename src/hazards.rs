@@ -60,7 +60,7 @@ pub struct HazardsData<'a>(#[serde(borrow)] FnvIndexSet<HazardData<'a>, MAXIMUM_
 
 impl<'a> From<&Hazards> for HazardsData<'a> {
     fn from(hazards: &Hazards) -> Self {
-        let mut hazards_data = Self::init();
+        let mut hazards_data = Self::empty();
         for hazard in hazards.iter() {
             let _ = hazards_data.0.insert(HazardData::from(*hazard));
         }
@@ -69,8 +69,8 @@ impl<'a> From<&Hazards> for HazardsData<'a> {
 }
 
 impl<'a> HazardsData<'a> {
-    /// Initializes a new [`HazardsData`] collection.
-    pub const fn init() -> Self {
+    /// Creates an empty [`HazardsData`] collection.
+    pub const fn empty() -> Self {
         Self(FnvIndexSet::new())
     }
 
