@@ -43,30 +43,35 @@ impl<'a> core::hash::Hash for HazardData<'a> {
     }
 }
 
+impl<'a> From<Hazard> for HazardData<'a> {
+    fn from(hazard: Hazard) -> Self {
+        Self::new(
+            hazard.id(),
+            hazard.name(),
+            hazard.description(),
+            CategoryData::new(hazard),
+        )
+    }
+}
+
 /// A collection of [`HazardData`]s.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HazardsData<'a>(#[serde(borrow)] FnvIndexSet<HazardData<'a>, MAXIMUM_ELEMENTS>);
+
+impl<'a> From<&Hazards> for HazardsData<'a> {
+    fn from(hazards: &Hazards) -> Self {
+        let mut hazards_data = Self::init();
+        for hazard in hazards.iter() {
+            let _ = hazards_data.0.insert(HazardData::from(*hazard));
+        }
+        hazards_data
+    }
+}
 
 impl<'a> HazardsData<'a> {
     /// Initializes a new [`HazardsData`] collection.
     pub const fn init() -> Self {
         Self(FnvIndexSet::new())
-    }
-
-    /// Initializes a new [`HazardsData`] collection from [`Hazards`].
-    pub fn from_hazards(hazards: &Hazards) -> Self {
-        let mut hazards_data = Self::init();
-        for hazard in hazards.iter() {
-            let hazard_data = HazardData::new(
-                hazard.id(),
-                hazard.name(),
-                hazard.description(),
-                CategoryData::new(*hazard),
-            );
-
-            let _ = hazards_data.0.insert(hazard_data);
-        }
-        hazards_data
     }
 
     /// Adds a new [`HazardData`] to the [`HazardsData`] collection.
