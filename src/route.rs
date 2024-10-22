@@ -91,21 +91,24 @@ pub struct RouteConfigs<'a>(#[serde(borrow)] Vec<RouteConfig<'a>, MAXIMUM_ELEMEN
 
 impl<'a> RouteConfigs<'a> {
     /// Initializes a new [`RouteConfigs`] collection.
-    pub fn init() -> Self {
+    pub const fn init() -> Self {
         Self(Vec::new())
     }
 
     /// Adds a new [`RouteConfig`] to the [`RouteConfigs`] collection.
+    #[inline(always)]
     pub fn add(&mut self, route_config: RouteConfig<'a>) {
         let _ = self.0.push(route_config);
     }
 
     /// Checks whether a [`RouteConfigs`] collection is empty.
+    #[inline(always)]
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
     }
 
     /// Returns an iterator over [`RouteConfig`]s.
+    #[inline(always)]
     pub fn iter(&self) -> core::slice::Iter<'_, RouteConfig<'a>> {
         self.0.iter()
     }
@@ -148,39 +151,41 @@ impl core::hash::Hash for Route {
 
 impl Route {
     /// Creates a new [`Route`] through a REST `GET` API.
-    pub fn get(route: &'static str) -> Self {
+    pub const fn get(route: &'static str) -> Self {
         Self::init(RestKind::Get, route)
     }
 
     /// Creates a new [`Route`] through a REST `PUT` API.
-    pub fn put(route: &'static str) -> Self {
+    pub const fn put(route: &'static str) -> Self {
         Self::init(RestKind::Put, route)
     }
 
     /// Creates a new [`Route`] through a REST `POST` API.
-    pub fn post(route: &'static str) -> Self {
+    pub const fn post(route: &'static str) -> Self {
         Self::init(RestKind::Post, route)
     }
 
     /// Sets the route description.
-    pub fn description(mut self, description: &'static str) -> Self {
+    pub const fn description(mut self, description: &'static str) -> Self {
         self.description = Some(description);
         self
     }
 
     /// Sets the route as stateless.
-    pub fn stateless(mut self) -> Self {
+    pub const fn stateless(mut self) -> Self {
         self.stateless = true;
         self
     }
 
     /// Sets a single [`Input`].
+    #[inline(always)]
     pub fn input(mut self, input: Input) -> Self {
         self.inputs.add(input);
         self
     }
 
     /// Sets more [`Input`]s.
+    #[inline]
     pub fn inputs<const N: usize>(mut self, inputs: [Input; N]) -> Self {
         inputs.into_iter().take(MAXIMUM_ELEMENTS).for_each(|input| {
             self.inputs.add(input);
@@ -223,6 +228,7 @@ impl Route {
     }
 
     /// Returns route.
+    #[inline(always)]
     pub fn route(&self) -> &str {
         if self.inputs_route.is_empty() {
             self.route
@@ -232,11 +238,11 @@ impl Route {
     }
 
     /// Returns [`RestKind`].
-    pub fn kind(&self) -> RestKind {
+    pub const fn kind(&self) -> RestKind {
         self.rest_kind
     }
 
-    fn init(rest_kind: RestKind, route: &'static str) -> Self {
+    const fn init(rest_kind: RestKind, route: &'static str) -> Self {
         Self {
             route,
             rest_kind,
@@ -273,11 +279,12 @@ impl core::hash::Hash for RouteHazards {
 
 impl RouteHazards {
     /// Creates a new [`RouteHazards`].
-    pub fn new(route: Route, hazards: Hazards) -> Self {
+    pub const fn new(route: Route, hazards: Hazards) -> Self {
         Self { route, hazards }
     }
 
     /// Serializes [`RouteHazards`] data.
+    #[inline]
     pub fn serialize_data(&self) -> RouteConfig {
         RouteConfig {
             rest_kind: self.route.rest_kind,
@@ -298,26 +305,30 @@ pub struct RoutesHazards(FnvIndexSet<RouteHazards, MAXIMUM_ELEMENTS>);
 
 impl RoutesHazards {
     /// Initializes a new [`RoutesHazards`] collection.
-    pub fn init() -> Self {
+    pub const fn init() -> Self {
         Self(FnvIndexSet::new())
     }
 
     /// Adds a new [`RouteHazards`] to the [`RoutesHazards`] collection.
+    #[inline(always)]
     pub fn add(&mut self, route_hazards: RouteHazards) {
         let _ = self.0.insert(route_hazards);
     }
 
     /// Whether the [`RoutesHazards`] collection is empty.
+    #[inline(always)]
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
     }
 
     /// Checks whether a [`RouteHazards`] is contained into [`RoutesHazards`].
+    #[inline(always)]
     pub fn contains(&self, route_hazards: &RouteHazards) -> bool {
         self.0.contains(route_hazards)
     }
 
     /// Returns an iterator over [`RouteHazards`]s.
+    #[inline(always)]
     pub fn iter(&self) -> IndexSetIter<'_, RouteHazards> {
         self.0.iter()
     }
