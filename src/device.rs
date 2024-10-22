@@ -2,19 +2,6 @@ use serde::{Deserialize, Serialize};
 
 use crate::route::RouteConfigs;
 
-/// Device data.
-#[derive(Debug, Serialize, Deserialize)]
-pub struct DeviceData<'a> {
-    /// Device kind.
-    pub kind: DeviceKind,
-    /// Device main route.
-    #[serde(rename = "main route")]
-    pub main_route: &'a str,
-    #[serde(borrow)]
-    /// All device route configurations.
-    pub route_configs: RouteConfigs<'a>,
-}
-
 /// A device kind.
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum DeviceKind {
@@ -26,6 +13,19 @@ pub enum DeviceKind {
     Fridge,
     /// Camera.
     Camera,
+}
+
+/// Device data.
+#[derive(Debug, Serialize, Deserialize)]
+pub struct DeviceData<'a> {
+    /// Device kind.
+    pub kind: DeviceKind,
+    /// Device main route.
+    #[serde(rename = "main route")]
+    pub main_route: &'a str,
+    #[serde(borrow)]
+    /// All device route configurations.
+    pub route_configs: RouteConfigs<'a>,
 }
 
 /// A trait to serialize device data.
