@@ -64,20 +64,20 @@ impl<'a> core::hash::Hash for InputData<'a> {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct InputsData<'a>(#[serde(borrow)] FnvIndexSet<InputData<'a>, MAXIMUM_ELEMENTS>);
 
-impl<'a> InputsData<'a> {
-    /// Initializes a new [`InputsData`] collection.
-    pub const fn init() -> Self {
-        Self(FnvIndexSet::new())
-    }
-
-    /// Initializes a new [`InputsData`] collection from [`Inputs`].
-    #[inline]
-    pub fn from_inputs(inputs: &Inputs) -> Self {
+impl<'a> From<&Inputs> for InputsData<'a> {
+    fn from(inputs: &Inputs) -> Self {
         let mut inputs_data = Self::init();
         for input in inputs.iter() {
             let _ = inputs_data.0.insert(InputData::new(*input));
         }
         inputs_data
+    }
+}
+
+impl<'a> InputsData<'a> {
+    /// Initializes a new [`InputsData`] collection.
+    pub const fn init() -> Self {
+        Self(FnvIndexSet::new())
     }
 
     /// Adds a new [`InputData`] to the [`InputsData`] collection.

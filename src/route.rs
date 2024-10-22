@@ -293,7 +293,7 @@ impl RouteHazards {
                 name: self.route.route(),
                 description: self.route.description,
                 stateless: self.route.stateless,
-                inputs: InputsData::from_inputs(&self.route.inputs),
+                inputs: InputsData::from(&self.route.inputs),
             },
         }
     }
