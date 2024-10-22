@@ -38,7 +38,7 @@ pub struct InputData<'a> {
 }
 
 impl<'a> InputData<'a> {
-    fn new(input: Input) -> Self {
+    const fn new(input: Input) -> Self {
         Self {
             name: input.name,
             datatype: input.datatype,
@@ -66,11 +66,12 @@ pub struct InputsData<'a>(#[serde(borrow)] FnvIndexSet<InputData<'a>, MAXIMUM_EL
 
 impl<'a> InputsData<'a> {
     /// Initializes a new [`InputsData`] collection.
-    pub fn init() -> Self {
+    pub const fn init() -> Self {
         Self(FnvIndexSet::new())
     }
 
     /// Initializes a new [`InputsData`] collection from [`Inputs`].
+    #[inline]
     pub fn from_inputs(inputs: &Inputs) -> Self {
         let mut inputs_data = Self::init();
         for input in inputs.iter() {
@@ -80,16 +81,19 @@ impl<'a> InputsData<'a> {
     }
 
     /// Adds a new [`InputData`] to the [`InputsData`] collection.
+    #[inline(always)]
     pub fn add(&mut self, input_data: InputData<'a>) {
         let _ = self.0.insert(input_data);
     }
 
     /// Whether the [`InputsData`] collection is empty.
+    #[inline(always)]
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
     }
 
     /// Returns an iterator over [`InputData`]s.
+    #[inline(always)]
     pub fn iter(&self) -> IndexSetIter<'_, InputData> {
         self.0.iter()
     }
@@ -162,27 +166,31 @@ pub struct Inputs(FnvIndexSet<Input, MAXIMUM_ELEMENTS>);
 
 impl Inputs {
     /// Initializes a new [`Inputs`] collection.
-    pub fn init() -> Self {
+    pub const fn init() -> Self {
         Self(FnvIndexSet::new())
     }
 
     /// Adds a new [`Input`] to the [`Inputs`] collection.
+    #[inline(always)]
     pub fn add(&mut self, input: Input) {
         let _ = self.0.insert(input);
     }
 
     /// Whether the [`Inputs`] collection is empty.
+    #[inline(always)]
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
     }
 
     /// Checks whether an [`Input`] is contained into
     /// the [`Inputs`] collection.
+    #[inline(always)]
     pub fn contains(&self, input: &Input) -> bool {
         self.0.contains(input)
     }
 
     /// Returns an iterator over [`Input`]s.
+    #[inline(always)]
     pub fn iter(&self) -> IndexSetIter<'_, Input> {
         self.0.iter()
     }
