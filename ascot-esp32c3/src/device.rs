@@ -84,7 +84,7 @@ impl DeviceAction {
         response: ResponseBuilder<R>,
         hazards: &'static [Hazard],
     ) -> Self {
-        Self::init(route, response, Hazards::init_with_hazards(hazards))
+        Self::init(route, response, Hazards::init_with_elements(hazards))
     }
 
     /// Checks whether a [`DeviceAction`] misses a specific [`Hazard`].
@@ -143,7 +143,7 @@ pub struct Device {
 
 impl DeviceSerializer for Device {
     fn serialize_data(&self) -> DeviceData {
-        let mut route_configs = RouteConfigs::init();
+        let mut route_configs = RouteConfigs::empty();
         for route_data in self.routes_data.iter() {
             route_configs.add(route_data.route_hazards.serialize_data());
         }
