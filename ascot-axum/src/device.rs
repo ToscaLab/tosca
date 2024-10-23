@@ -57,7 +57,7 @@ where
         self
     }
 
-    /// Adds a [`DeviceAction`].
+    /// Adds an [`Action`] to the device.
     #[inline]
     pub fn add_action(mut self, device_chainer: impl Action) -> Self {
         let (router, route_hazards) = device_chainer.data();
