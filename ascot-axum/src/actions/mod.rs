@@ -134,7 +134,7 @@ impl DeviceAction {
         H: Handler<T, ()>,
         T: 'static,
     {
-        DeviceAction::init(route, handler, Hazards::init_with_hazards(hazards))
+        DeviceAction::init(route, handler, Hazards::init_with_elements(hazards))
     }
 
     #[inline(always)]

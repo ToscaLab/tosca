@@ -36,7 +36,7 @@ where
     S: Clone + Send + Sync + 'static,
 {
     fn serialize_data(&self) -> DeviceData {
-        let mut route_configs = RouteConfigs::init();
+        let mut route_configs = RouteConfigs::empty();
         for route_hazards in self.routes_hazards.iter() {
             route_configs.add(route_hazards.serialize_data());
         }
@@ -86,7 +86,7 @@ where
         Self {
             kind,
             main_route: DEFAULT_MAIN_ROUTE,
-            routes_hazards: RoutesHazards::init(),
+            routes_hazards: RoutesHazards::empty(),
             router: Router::new(),
             state: None,
         }
