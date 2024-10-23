@@ -1,8 +1,6 @@
-use heapless::{FnvIndexSet, IndexSetIter};
-
 use serde::{Deserialize, Serialize};
 
-use crate::MAXIMUM_ELEMENTS;
+use crate::collections::{Collection, OutputCollection};
 
 /// Hazard data.
 #[derive(Debug, Clone, Eq, Serialize, Deserialize)]
@@ -55,55 +53,7 @@ impl<'a> From<Hazard> for HazardData<'a> {
 }
 
 /// A collection of [`HazardData`]s.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HazardsData<'a>(#[serde(borrow)] FnvIndexSet<HazardData<'a>, MAXIMUM_ELEMENTS>);
-
-impl<'a> From<&Hazards> for HazardsData<'a> {
-    fn from(hazards: &Hazards) -> Self {
-        let mut hazards_data = Self::empty();
-        for hazard in hazards.iter() {
-            let _ = hazards_data.0.insert(HazardData::from(*hazard));
-        }
-        hazards_data
-    }
-}
-
-impl<'a> HazardsData<'a> {
-    /// Creates an empty [`HazardsData`] collection.
-    pub const fn empty() -> Self {
-        Self(FnvIndexSet::new())
-    }
-
-    /// Adds a new [`HazardData`] to the [`HazardsData`] collection.
-    #[inline(always)]
-    pub fn add(&mut self, hazard_data: HazardData<'a>) {
-        let _ = self.0.insert(hazard_data);
-    }
-
-    /// Whether the [`HazardsData`] collection is empty.
-    #[inline(always)]
-    pub fn is_empty(&self) -> bool {
-        self.0.is_empty()
-    }
-
-    /// Checks whether a [`HazardData`] is contained into [`HazardsData`].
-    #[inline(always)]
-    pub fn contains(&self, hazard_data: &HazardData) -> bool {
-        self.0.contains(hazard_data)
-    }
-
-    /// Returns an iterator over [`HazardData`]s.
-    #[inline]
-    pub fn iter(&self) -> IndexSetIter<'_, HazardData> {
-        self.0.iter()
-    }
-
-    /// Merges the collection with another [`HazardsData`].
-    #[inline]
-    pub fn merge(&mut self, hazards_data: &Self) {
-        self.0 = self.0.union(&hazards_data.0).cloned().collect();
-    }
-}
+pub type HazardsData<'a> = OutputCollection<HazardData<'a>>;
 
 /// All possible hazards for a device task.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -309,58 +259,7 @@ impl Hazard {
 }
 
 /// A collection of [`Hazard`]s.
-#[derive(Debug, Clone)]
-pub struct Hazards(FnvIndexSet<Hazard, MAXIMUM_ELEMENTS>);
-
-impl Hazards {
-    /// Creates an empty [`Hazards`] collection.
-    pub const fn empty() -> Self {
-        Self(FnvIndexSet::new())
-    }
-
-    /// Initializes a [`Hazards`] collection given a single [`Hazard`].
-    #[inline]
-    pub fn init(hazard: Hazard) -> Self {
-        let mut hazards = Self::empty();
-        hazards.add(hazard);
-        hazards
-    }
-
-    /// Initializes a [`Hazards`] collection given a list of [`Hazard`]s.
-    #[inline]
-    pub fn init_with_hazards(input_hazards: &[Hazard]) -> Self {
-        let mut hazards = Hazards::empty();
-        input_hazards.iter().for_each(|hazard| {
-            hazards.add(*hazard);
-        });
-        hazards
-    }
-
-    /// Adds a new [`Hazard`] to the [`Hazards`] collection.
-    #[inline(always)]
-    pub fn add(&mut self, hazard: Hazard) {
-        let _ = self.0.insert(hazard);
-    }
-
-    /// Whether the [`Hazards`] collection is empty.
-    #[inline(always)]
-    pub fn is_empty(&self) -> bool {
-        self.0.is_empty()
-    }
-
-    /// Checks whether an [`Hazard`] is contained into
-    /// the [`Hazards`] collection.
-    #[inline(always)]
-    pub fn contains(&self, hazard: Hazard) -> bool {
-        self.0.contains(&hazard)
-    }
-
-    /// Returns an iterator over [`Hazard`]s.
-    #[inline]
-    pub fn iter(&self) -> IndexSetIter<'_, Hazard> {
-        self.0.iter()
-    }
-}
+pub type Hazards = Collection<Hazard>;
 
 /// Hazard category data.
 #[derive(Debug, Clone, Eq, Serialize, Deserialize)]
