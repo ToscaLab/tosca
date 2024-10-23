@@ -65,12 +65,50 @@ macro_rules! implementation {
     };
 }
 
-// From traits.
+macro_rules! init_elements {
+    ($impl:ident) => {
+        impl<T> $impl<T>
+        where
+            T: Clone + Copy + PartialEq + Eq + Hash,
+        {
+            #[inline]
+            pub fn init_with_elements(input_elements: &[T]) -> Self {
+                let mut elements = Self::empty();
+                input_elements.iter().for_each(|element| {
+                    elements.add(*element);
+                });
+                elements
+            }
+        }
+    };
+}
+
+macro_rules! merge_implementation {
+    ($impl:ident) => {
+        impl<T> $impl<T>
+        where
+            T: Clone + PartialEq + Eq + Hash,
+        {
+            #[inline]
+            pub fn merge(&mut self, element: &Self) {
+                self.0 = self.0.union(&element.0).cloned().collect();
+            }
+        }
+    };
+}
+
+// From macro traits.
 from!(Collection, OutputCollection);
 from!(OutputCollection, OutputCollection);
 
-// Implementation trait.
+// Implementation macro.
 implementation!(OutputCollection);
+
+// Init elements macro.
+init_elements!(OutputCollection);
+
+// Merge macro.
+merge_implementation!(OutputCollection);
 
 impl<T> OutputCollection<T>
 where
@@ -82,26 +120,19 @@ where
     }
 }
 
+// Implementation macro.
 implementation!(Collection);
+
+// Init elements macro.
+init_elements!(Collection);
+
+// Merge macro.
+merge_implementation!(Collection);
 
 impl<T> Collection<T>
 where
     T: Clone + Copy + PartialEq + Eq + Hash,
 {
-    #[inline]
-    pub fn init_with_elements(input_elements: &[T]) -> Self {
-        let mut elements = Self::empty();
-        input_elements.iter().for_each(|element| {
-            elements.add(*element);
-        });
-        elements
-    }
-
-    #[inline]
-    pub fn merge(&mut self, element: &Self) {
-        self.0 = self.0.union(&element.0).cloned().collect();
-    }
-
     #[inline(always)]
     pub fn contains(&self, element: T) -> bool {
         self.0.contains(&element)
