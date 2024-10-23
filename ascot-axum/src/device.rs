@@ -8,14 +8,6 @@ use crate::actions::Action;
 // Default main route for a device.
 const DEFAULT_MAIN_ROUTE: &str = "/device";
 
-// Build a device from a precise device.
-pub(crate) trait DeviceBuilder<S>
-where
-    S: Clone + Send + Sync + 'static,
-{
-    fn into_device(self) -> Device<S>;
-}
-
 /// A general smart home device.
 #[derive(Debug)]
 pub struct Device<S> {
@@ -76,8 +68,9 @@ where
 
     /// Sets a device state.
     #[inline]
-    pub fn state(self, state: S) -> Self {
-        self.internal_state(Some(state))
+    pub fn state(mut self, state: S) -> Self {
+        self.state = Some(state);
+        self
     }
 
     // Creates a new instance defining the DeviceKind.
@@ -90,13 +83,6 @@ where
             router: Router::new(),
             state: None,
         }
-    }
-
-    // Sets internal state.
-    #[inline]
-    pub(crate) fn internal_state(mut self, state: Option<S>) -> Self {
-        self.state = state;
-        self
     }
 
     // Finalizes a device composing all correct routes.
