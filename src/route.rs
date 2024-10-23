@@ -134,13 +134,13 @@ pub struct Route {
     inputs_route: MiniString,
 }
 
-impl Eq for Route {}
-
 impl PartialEq for Route {
     fn eq(&self, other: &Self) -> bool {
         self.route == other.route && self.rest_kind == other.rest_kind
     }
 }
+
+impl Eq for Route {}
 
 impl core::hash::Hash for Route {
     fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
