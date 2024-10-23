@@ -64,17 +64,19 @@ macro_rules! implementation {
                 self.0.is_empty()
             }
 
+            #[doc = concat!("Checks whether the [`", stringify!($impl), "`] contains the given element.")]
+            #[inline(always)]
+            pub fn contains(&self, element: impl AsRef<T>) -> bool {
+                self.0.contains(element.as_ref())
+            }
+
             #[doc = concat!("Returns an iterator over the [`", stringify!($impl), "`].")]
             #[inline]
             pub fn iter(&self) -> IndexSetIter<'_, T> {
                 self.0.iter()
             }
         }
-    };
-}
 
-macro_rules! init_elements {
-    ($impl:ident) => {
         impl<T> $impl<T>
         where
             T: Clone + Copy + PartialEq + Eq + Hash,
@@ -89,11 +91,7 @@ macro_rules! init_elements {
                 elements
             }
         }
-    };
-}
 
-macro_rules! merge_implementation {
-    ($impl:ident) => {
         impl<T> $impl<T>
         where
             T: Clone + PartialEq + Eq + Hash,
@@ -114,39 +112,5 @@ from!(OutputCollection, OutputCollection);
 // Implementation macro.
 implementation!(OutputCollection);
 
-// Init elements macro.
-init_elements!(OutputCollection);
-
-// Merge macro.
-merge_implementation!(OutputCollection);
-
-impl<T> OutputCollection<T>
-where
-    T: Clone + PartialEq + Eq + Hash,
-{
-    /// Checks whether an [`OutputCollection`] contains the given element.
-    #[inline(always)]
-    pub fn contains(&self, element: &T) -> bool {
-        self.0.contains(element)
-    }
-}
-
 // Implementation macro.
 implementation!(Collection);
-
-// Init elements macro.
-init_elements!(Collection);
-
-// Merge macro.
-merge_implementation!(Collection);
-
-impl<T> Collection<T>
-where
-    T: Clone + Copy + PartialEq + Eq + Hash,
-{
-    /// Checks whether a [`Collection`] contains the given element.
-    #[inline(always)]
-    pub fn contains(&self, element: T) -> bool {
-        self.0.contains(&element)
-    }
-}
