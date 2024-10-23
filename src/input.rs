@@ -1,7 +1,6 @@
-use heapless::{FnvIndexSet, IndexSetIter};
 use serde::{Deserialize, Serialize};
 
-use crate::MAXIMUM_ELEMENTS;
+use crate::collections::{Collection, OutputCollection};
 
 /// An [`InputType`] range defined as an interval.
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
@@ -60,44 +59,14 @@ impl<'a> core::hash::Hash for InputData<'a> {
     }
 }
 
+impl<'a> From<Input> for InputData<'a> {
+    fn from(input: Input) -> Self {
+        Self::new(input)
+    }
+}
+
 /// A collection of [`InputData`]s.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InputsData<'a>(#[serde(borrow)] FnvIndexSet<InputData<'a>, MAXIMUM_ELEMENTS>);
-
-impl<'a> From<&Inputs> for InputsData<'a> {
-    fn from(inputs: &Inputs) -> Self {
-        let mut inputs_data = Self::init();
-        for input in inputs.iter() {
-            let _ = inputs_data.0.insert(InputData::new(*input));
-        }
-        inputs_data
-    }
-}
-
-impl<'a> InputsData<'a> {
-    /// Initializes a new [`InputsData`] collection.
-    pub const fn init() -> Self {
-        Self(FnvIndexSet::new())
-    }
-
-    /// Adds a new [`InputData`] to the [`InputsData`] collection.
-    #[inline(always)]
-    pub fn add(&mut self, input_data: InputData<'a>) {
-        let _ = self.0.insert(input_data);
-    }
-
-    /// Whether the [`InputsData`] collection is empty.
-    #[inline(always)]
-    pub fn is_empty(&self) -> bool {
-        self.0.is_empty()
-    }
-
-    /// Returns an iterator over [`InputData`]s.
-    #[inline(always)]
-    pub fn iter(&self) -> IndexSetIter<'_, InputData> {
-        self.0.iter()
-    }
-}
+pub type InputsData<'a> = OutputCollection<InputData<'a>>;
 
 /// All supported inputs.
 #[derive(Debug, Clone, Copy)]
@@ -161,37 +130,4 @@ impl Input {
 }
 
 /// A collection of [`Input`]s.
-#[derive(Debug)]
-pub struct Inputs(FnvIndexSet<Input, MAXIMUM_ELEMENTS>);
-
-impl Inputs {
-    /// Initializes a new [`Inputs`] collection.
-    pub const fn init() -> Self {
-        Self(FnvIndexSet::new())
-    }
-
-    /// Adds a new [`Input`] to the [`Inputs`] collection.
-    #[inline(always)]
-    pub fn add(&mut self, input: Input) {
-        let _ = self.0.insert(input);
-    }
-
-    /// Whether the [`Inputs`] collection is empty.
-    #[inline(always)]
-    pub fn is_empty(&self) -> bool {
-        self.0.is_empty()
-    }
-
-    /// Checks whether an [`Input`] is contained into
-    /// the [`Inputs`] collection.
-    #[inline(always)]
-    pub fn contains(&self, input: &Input) -> bool {
-        self.0.contains(input)
-    }
-
-    /// Returns an iterator over [`Input`]s.
-    #[inline(always)]
-    pub fn iter(&self) -> IndexSetIter<'_, Input> {
-        self.0.iter()
-    }
-}
+pub type Inputs = Collection<Input>;

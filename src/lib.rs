@@ -19,4 +19,5 @@ pub mod route;
 mod utils;
 
 pub use error::{Error, ErrorKind};
+pub use utils::collections;
 pub use utils::strings;

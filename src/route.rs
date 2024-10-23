@@ -1,10 +1,11 @@
-use heapless::{FnvIndexSet, IndexSetIter, Vec};
 use serde::{Deserialize, Serialize};
 
+use crate::collections::{Collection, OutputCollection};
 use crate::error::Result;
 use crate::hazards::{Hazards, HazardsData};
 use crate::input::{Input, Inputs, InputsData};
 use crate::strings::MiniString;
+
 use crate::MAXIMUM_ELEMENTS;
 
 /// Route inputs writing modes.
@@ -85,34 +86,23 @@ pub struct RouteConfig<'a> {
     pub hazards: HazardsData<'a>,
 }
 
-/// A collection of [`RouteConfig`]s.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RouteConfigs<'a>(#[serde(borrow)] Vec<RouteConfig<'a>, MAXIMUM_ELEMENTS>);
-
-impl<'a> RouteConfigs<'a> {
-    /// Initializes a new [`RouteConfigs`] collection.
-    pub const fn init() -> Self {
-        Self(Vec::new())
-    }
-
-    /// Adds a new [`RouteConfig`] to the [`RouteConfigs`] collection.
-    #[inline(always)]
-    pub fn add(&mut self, route_config: RouteConfig<'a>) {
-        let _ = self.0.push(route_config);
-    }
-
-    /// Checks whether a [`RouteConfigs`] collection is empty.
-    #[inline(always)]
-    pub fn is_empty(&self) -> bool {
-        self.0.is_empty()
-    }
-
-    /// Returns an iterator over [`RouteConfig`]s.
-    #[inline(always)]
-    pub fn iter(&self) -> core::slice::Iter<'_, RouteConfig<'a>> {
-        self.0.iter()
+impl<'a> PartialEq for RouteConfig<'a> {
+    fn eq(&self, other: &Self) -> bool {
+        self.data.name.eq(other.data.name) && self.rest_kind == other.rest_kind
     }
 }
+
+impl<'a> Eq for RouteConfig<'a> {}
+
+impl<'a> core::hash::Hash for RouteConfig<'a> {
+    fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
+        self.data.name.hash(state);
+        self.rest_kind.hash(state);
+    }
+}
+
+/// A collection of [`RouteConfig`]s.
+pub type RouteConfigs<'a> = OutputCollection<RouteConfig<'a>>;
 
 /// A server route.
 ///
@@ -248,7 +238,7 @@ impl Route {
             rest_kind,
             description: None,
             stateless: false,
-            inputs: Inputs::init(),
+            inputs: Inputs::empty(),
             inputs_route: MiniString::empty(),
         }
     }
@@ -300,36 +290,4 @@ impl RouteHazards {
 }
 
 /// A collection of [`RouteHazards`]s.
-#[derive(Debug)]
-pub struct RoutesHazards(FnvIndexSet<RouteHazards, MAXIMUM_ELEMENTS>);
-
-impl RoutesHazards {
-    /// Initializes a new [`RoutesHazards`] collection.
-    pub const fn init() -> Self {
-        Self(FnvIndexSet::new())
-    }
-
-    /// Adds a new [`RouteHazards`] to the [`RoutesHazards`] collection.
-    #[inline(always)]
-    pub fn add(&mut self, route_hazards: RouteHazards) {
-        let _ = self.0.insert(route_hazards);
-    }
-
-    /// Whether the [`RoutesHazards`] collection is empty.
-    #[inline(always)]
-    pub fn is_empty(&self) -> bool {
-        self.0.is_empty()
-    }
-
-    /// Checks whether a [`RouteHazards`] is contained into [`RoutesHazards`].
-    #[inline(always)]
-    pub fn contains(&self, route_hazards: &RouteHazards) -> bool {
-        self.0.contains(route_hazards)
-    }
-
-    /// Returns an iterator over [`RouteHazards`]s.
-    #[inline(always)]
-    pub fn iter(&self) -> IndexSetIter<'_, RouteHazards> {
-        self.0.iter()
-    }
-}
+pub type RoutesHazards = Collection<RouteHazards>;
