@@ -104,6 +104,12 @@ pub enum Hazard {
     WaterFlooding,
 }
 
+impl core::convert::AsRef<Self> for Hazard {
+    fn as_ref(&self) -> &Self {
+        self
+    }
+}
+
 impl core::fmt::Display for Hazard {
     fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
         self.name().fmt(f)
