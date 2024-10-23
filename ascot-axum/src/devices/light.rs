@@ -2,7 +2,7 @@ use ascot_library::device::DeviceKind;
 use ascot_library::hazards::Hazard;
 
 use crate::actions::Action;
-use crate::device::{Device, DeviceBuilder};
+use crate::device::Device;
 use crate::error::{Error, ErrorKind, Result};
 
 // The default main route for a light.
@@ -24,25 +24,10 @@ pub struct Light<S>
 where
     S: Clone + Send + Sync + 'static,
 {
-    // Main server route for light routes.
-    main_route: &'static str,
-    // Light state.
-    state: Option<S>,
     // Device.
     device: Device<S>,
     // Allowed light hazards.
     allowed_hazards: &'static [Hazard],
-}
-
-impl<S> DeviceBuilder<S> for Light<S>
-where
-    S: Clone + Send + Sync + 'static,
-{
-    fn into_device(self) -> Device<S> {
-        self.device
-            .main_route(self.main_route)
-            .internal_state(self.state)
-    }
 }
 
 impl<S> Light<S>
@@ -62,20 +47,20 @@ where
 
         // Create a new device.
         let device = Device::new(DeviceKind::Light)
+            .main_route(LIGHT_MAIN_ROUTE)
             .add_action(turn_light_on)
             .add_action(turn_light_off);
 
         Ok(Self {
-            main_route: LIGHT_MAIN_ROUTE,
             device,
-            state: None,
             allowed_hazards: ALLOWED_HAZARDS,
         })
     }
 
     /// Sets a new main route.
-    pub const fn main_route(mut self, main_route: &'static str) -> Self {
-        self.main_route = main_route;
+    #[inline]
+    pub fn main_route(mut self, main_route: &'static str) -> Self {
+        self.device = self.device.main_route(main_route);
         self
     }
 
@@ -99,13 +84,13 @@ where
     /// Sets a state for a [`Light`].
     #[inline(always)]
     pub fn state(mut self, state: S) -> Self {
-        self.state = Some(state);
+        self.device = self.device.state(state);
         self
     }
 
     /// Builds a new [`Device`].
     #[inline(always)]
     pub fn build(self) -> Device<S> {
-        self.into_device()
+        self.device
     }
 }

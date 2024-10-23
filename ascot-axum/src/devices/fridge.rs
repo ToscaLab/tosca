@@ -4,7 +4,7 @@ use ascot_library::hazards::Hazard;
 use heapless::FnvIndexSet;
 
 use crate::actions::Action;
-use crate::device::{Device, DeviceBuilder};
+use crate::device::Device;
 use crate::error::{Error, ErrorKind, Result};
 
 // The default main route for a fridge.
@@ -34,10 +34,6 @@ pub struct Fridge<S>
 where
     S: Clone + Send + Sync + 'static,
 {
-    // Main server route for fridge routes.
-    main_route: &'static str,
-    // Fridge state.
-    state: Option<S>,
     // Device.
     device: Device<S>,
     // Mandatory fridge actions.
@@ -55,17 +51,6 @@ where
     }
 }
 
-impl<S> DeviceBuilder<S> for Fridge<S>
-where
-    S: Clone + Send + Sync + 'static,
-{
-    fn into_device(self) -> Device<S> {
-        self.device
-            .main_route(self.main_route)
-            .internal_state(self.state)
-    }
-}
-
 impl<S> Fridge<S>
 where
     S: Clone + Send + Sync + 'static,
@@ -73,7 +58,7 @@ where
     /// Creates a new [`Fridge`] instance.
     pub fn new() -> Self {
         // Create a new device.
-        let device = Device::new(DeviceKind::Fridge);
+        let device = Device::new(DeviceKind::Fridge).main_route(FRIDGE_MAIN_ROUTE);
 
         // Define mandatory actions.
         let mut mandatory_actions = FnvIndexSet::new();
@@ -81,17 +66,16 @@ where
         let _ = mandatory_actions.insert(Actions::DecreaseTemperature);
 
         Self {
-            main_route: FRIDGE_MAIN_ROUTE,
             device,
-            state: None,
             mandatory_actions,
             allowed_hazards: ALLOWED_HAZARDS,
         }
     }
 
     /// Sets a new main route.
-    pub const fn main_route(mut self, main_route: &'static str) -> Self {
-        self.main_route = main_route;
+    #[inline]
+    pub fn main_route(mut self, main_route: &'static str) -> Self {
+        self.device = self.device.main_route(main_route);
         self
     }
 
@@ -153,7 +137,7 @@ where
     /// Sets a state for a [`Fridge`].
     #[inline(always)]
     pub fn state(mut self, state: S) -> Self {
-        self.state = Some(state);
+        self.device = self.device.state(state);
         self
     }
 
@@ -170,6 +154,6 @@ where
             ));
         };
 
-        Ok(self.into_device())
+        Ok(self.device)
     }
 }
