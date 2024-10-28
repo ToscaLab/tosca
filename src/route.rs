@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::collections::{Collection, OutputCollection};
 use crate::error::Result;
-use crate::hazards::{Hazards, HazardsData};
+use crate::hazards::{Hazard, Hazards, HazardsData};
 use crate::input::{Input, Inputs, InputsData};
 use crate::strings::MiniString;
 
@@ -268,9 +268,35 @@ impl core::hash::Hash for RouteHazards {
 }
 
 impl RouteHazards {
-    /// Creates a new [`RouteHazards`].
+    /// Creates a [`RouteHazards`] instance.
     pub const fn new(route: Route, hazards: Hazards) -> Self {
         Self { route, hazards }
+    }
+
+    /// Creates a [`RouteHazards`] without any hazard.
+    pub const fn no_hazards(route: Route) -> Self {
+        Self {
+            route,
+            hazards: Hazards::empty(),
+        }
+    }
+
+    /// Initializes a [`RouteHazards`] with a single [`Hazard`].
+    #[inline]
+    pub fn single_hazard(route: Route, hazard: Hazard) -> Self {
+        Self {
+            route,
+            hazards: Hazards::init(hazard),
+        }
+    }
+
+    /// Initializes a [`RouteHazards`] with some [`Hazard`]s.
+    #[inline]
+    pub fn with_hazards(route: Route, hazards: &'static [Hazard]) -> Self {
+        Self {
+            route,
+            hazards: Hazards::init_with_elements(hazards),
+        }
     }
 
     /// Serializes [`RouteHazards`] data.
