@@ -1,8 +1,8 @@
 use core::future::Future;
 
-use ascot_library::hazards::{Hazard, Hazards};
+use ascot_library::hazards::Hazards;
 use ascot_library::payloads::EmptyPayload as AscotEmptyPayload;
-use ascot_library::route::{Route, RouteHazards};
+use ascot_library::route::RouteHazards;
 
 use axum::{
     extract::Json,
@@ -65,7 +65,7 @@ pub struct EmptyAction(DeviceAction);
 impl Internal for EmptyAction {
     #[inline(always)]
     fn internal_hazards(&self) -> &Hazards {
-        &self.0.hazards
+        &self.0.route_hazards.hazards
     }
     #[inline(always)]
     fn data(self) -> (Router, RouteHazards) {
@@ -78,31 +78,11 @@ impl Action for EmptyAction {}
 impl EmptyAction {
     /// Creates a new [`EmptyAction`].
     #[inline]
-    pub fn no_hazards<H, T>(route: Route, handler: H) -> Self
+    pub fn new<H, T>(route_hazards: RouteHazards, handler: H) -> Self
     where
         H: Handler<T, ()> + private::EmptyTypeName<T>,
         T: 'static,
     {
-        Self(DeviceAction::init(route, handler, Hazards::empty()))
-    }
-
-    /// Creates a new [`EmptyAction`] with a single [`Hazard`].
-    #[inline]
-    pub fn with_hazard<H, T>(route: Route, handler: H, hazard: Hazard) -> Self
-    where
-        H: Handler<T, ()> + private::EmptyTypeName<T>,
-        T: 'static,
-    {
-        Self(DeviceAction::hazard(route, handler, hazard))
-    }
-
-    /// Creates a new [`EmptyAction`] with [`Hazard`]s.
-    #[inline]
-    pub fn with_hazards<H, T>(route: Route, handler: H, hazards: &'static [Hazard]) -> Self
-    where
-        H: Handler<T, ()> + private::EmptyTypeName<T>,
-        T: 'static,
-    {
-        Self(DeviceAction::hazards(route, handler, hazards))
+        Self(DeviceAction::init(route_hazards, handler))
     }
 }
