@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 // Ascot library.
 use ascot_library::hazards::Hazard;
 use ascot_library::input::Input;
-use ascot_library::route::Route;
+use ascot_library::route::{Route, RouteHazards};
 
 // Ascot axum.
 use ascot_axum::actions::{ActionError, SerialAction, SerialPayload};
@@ -129,28 +129,34 @@ async fn main() -> Result<(), Error> {
     let cli = Cli::parse();
 
     // Increase temperature action invoked by a `PUT` route.
-    let increase_temp_action = SerialAction::with_hazards(
-        Route::put("/increase-temperature")
-            .description("Increase temperature.")
-            .input(Input::rangef64("increment", (1., 4., 0.1, 2.))),
+    let increase_temp_action = SerialAction::new(
+        RouteHazards::with_hazards(
+            Route::put("/increase-temperature")
+                .description("Increase temperature.")
+                .input(Input::rangef64("increment", (1., 4., 0.1, 2.))),
+            &[Hazard::ElectricEnergyConsumption, Hazard::SpoiledFood],
+        ),
         increase_temperature,
-        &[Hazard::ElectricEnergyConsumption, Hazard::SpoiledFood],
     );
 
     // Decrease temperature action invoked by a `PUT` route.
-    let decrease_temp_action = SerialAction::with_hazards(
-        Route::put("/decrease-temperature")
-            .description("Decrease temperature.")
-            .input(Input::rangef64("decrement", (1., 4., 0.1, 2.))),
+    let decrease_temp_action = SerialAction::new(
+        RouteHazards::single_hazard(
+            Route::put("/decrease-temperature")
+                .description("Decrease temperature.")
+                .input(Input::rangef64("decrement", (1., 4., 0.1, 2.))),
+            Hazard::ElectricEnergyConsumption,
+        ),
         decrease_temperature,
-        &[Hazard::ElectricEnergyConsumption],
     );
 
     // Increase temperature action invoked by a `POST` route.
-    let increase_temp_post_action = SerialAction::no_hazards(
-        Route::post("/increase-temperature")
-            .description("Increase temperature.")
-            .input(Input::rangef64("increment", (1., 4., 0.1, 2.))),
+    let increase_temp_post_action = SerialAction::new(
+        RouteHazards::no_hazards(
+            Route::post("/increase-temperature")
+                .description("Increase temperature.")
+                .input(Input::rangef64("increment", (1., 4., 0.1, 2.))),
+        ),
         increase_temperature,
     );
 
