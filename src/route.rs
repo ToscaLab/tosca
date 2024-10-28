@@ -72,6 +72,18 @@ pub enum RestKind {
     Delete,
 }
 
+impl core::fmt::Display for RestKind {
+    fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+        match self {
+            Self::Get => "GET",
+            Self::Put => "PUT",
+            Self::Post => "POST",
+            Self::Delete => "DELETE",
+        }
+        .fmt(f)
+    }
+}
+
 /// A server route configuration.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RouteConfig<'a> {
