@@ -3,6 +3,8 @@ use ascot_library::route::{RouteConfigs, RoutesHazards};
 
 use axum::Router;
 
+use tracing::info;
+
 use crate::actions::Action;
 
 // Default main route for a device.
@@ -53,6 +55,14 @@ impl Device {
     #[inline]
     pub fn add_action(mut self, device_chainer: impl Action) -> Self {
         let (router, route_hazards) = device_chainer.data();
+
+        info!(
+            "Device route: [{}, {}{}]",
+            route_hazards.route.kind(),
+            self.main_route,
+            route_hazards.route.route()
+        );
+
         self.router = self.router.merge(router);
         self.routes_hazards.add(route_hazards);
         self
