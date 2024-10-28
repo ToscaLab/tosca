@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 // Ascot library.
 use ascot_library::hazards::Hazard;
 use ascot_library::input::Input;
-use ascot_library::route::Route;
+use ascot_library::route::{Route, RouteHazards};
 
 // Ascot axum device.
 use ascot_axum::actions::{ActionError, EmptyAction, EmptyPayload, SerialAction, SerialPayload};
@@ -129,33 +129,37 @@ async fn main() -> Result<(), Error> {
     let cli = Cli::parse();
 
     // Turn light on action invoked by a `PUT` route.
-    let light_on_action = SerialAction::with_hazard(
-        Route::put("/on").description("Turn light on.").inputs([
-            Input::rangef64("brightness", (0., 20., 0.1, 0.)),
-            Input::boolean("save-energy", false),
-        ]),
+    let light_on_action = SerialAction::new(
+        RouteHazards::single_hazard(
+            Route::put("/on").description("Turn light on.").inputs([
+                Input::rangef64("brightness", (0., 20., 0.1, 0.)),
+                Input::boolean("save-energy", false),
+            ]),
+            Hazard::FireHazard,
+        ),
         turn_light_on,
-        Hazard::FireHazard,
     );
 
     // Turn light on action invoked by a `POST` route.
-    let light_on_post_action = SerialAction::no_hazards(
-        Route::post("/on").description("Turn light on.").inputs([
+    let light_on_post_action = SerialAction::new(
+        RouteHazards::no_hazards(Route::post("/on").description("Turn light on.").inputs([
             Input::rangef64("brightness", (0., 20., 0.1, 0.)),
             Input::boolean("save-energy", false),
-        ]),
+        ])),
         turn_light_on,
     );
 
     // Turn light off action invoked by a `PUT` route.
-    let light_off_action = EmptyAction::no_hazards(
-        Route::put("/off").description("Turn light off."),
+    let light_off_action = EmptyAction::new(
+        RouteHazards::no_hazards(Route::put("/off").description("Turn light off.")),
         turn_light_off,
     );
 
     // Toggle action invoked by a `PUT` route.
-    let toggle_action =
-        EmptyAction::no_hazards(Route::put("/toggle").description("Toggle a light."), toggle);
+    let toggle_action = EmptyAction::new(
+        RouteHazards::no_hazards(Route::put("/toggle").description("Toggle a light.")),
+        toggle,
+    );
 
     // A light device which is going to be run on the server.
     let device = Light::new(light_on_action, light_off_action)?
