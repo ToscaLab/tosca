@@ -4,7 +4,7 @@ mod serial;
 use ascot_library::actions::{ActionError as AscotActionError, ActionErrorKind};
 use ascot_library::hazards::{Hazard, Hazards};
 
-use ascot_library::route::{RestKind, Route, RouteHazards, RouteMode};
+use ascot_library::route::{RestKind, RouteHazards, RouteMode};
 
 use axum::{
     extract::Json,
@@ -110,58 +110,40 @@ pub trait Action: private::Internal {
 
 #[derive(Debug)]
 pub(crate) struct DeviceAction {
-    // Route.
-    pub(crate) route: Route,
-    // Hazards.
-    pub(crate) hazards: Hazards,
     // Router.
     pub(crate) router: Router,
+    // Route - Hazards
+    pub(crate) route_hazards: RouteHazards,
 }
 
 impl DeviceAction {
     #[inline]
-    pub(crate) fn hazard<H, T>(route: Route, handler: H, hazard: Hazard) -> Self
+    pub(crate) fn init<H, T>(mut route_hazards: RouteHazards, handler: H) -> Self
     where
         H: Handler<T, ()>,
         T: 'static,
     {
-        DeviceAction::init(route, handler, Hazards::init(hazard))
-    }
-
-    #[inline]
-    pub(crate) fn hazards<H, T>(route: Route, handler: H, hazards: &'static [Hazard]) -> Self
-    where
-        H: Handler<T, ()>,
-        T: 'static,
-    {
-        DeviceAction::init(route, handler, Hazards::init_with_elements(hazards))
-    }
-
-    #[inline(always)]
-    pub(crate) fn data(self) -> (Router, RouteHazards) {
-        (self.router, RouteHazards::new(self.route, self.hazards))
-    }
-
-    fn init<H, T>(mut route: Route, handler: H, hazards: Hazards) -> Self
-    where
-        H: Handler<T, ()>,
-        T: 'static,
-    {
-        route.join_inputs(RouteMode::Linear, Some(":"));
+        route_hazards
+            .route
+            .join_inputs(RouteMode::Linear, Some(":"));
 
         Self {
-            hazards,
             router: Router::new().route(
-                route.route(),
-                match route.kind() {
+                route_hazards.route.route(),
+                match route_hazards.route.kind() {
                     RestKind::Get => axum::routing::get(handler),
                     RestKind::Put => axum::routing::put(handler),
                     RestKind::Post => axum::routing::post(handler),
                     RestKind::Delete => axum::routing::delete(handler),
                 },
             ),
-            route,
+            route_hazards,
         }
+    }
+
+    #[inline(always)]
+    pub(crate) fn data(self) -> (Router, RouteHazards) {
+        (self.router, self.route_hazards)
     }
 }
 

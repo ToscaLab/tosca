@@ -1,8 +1,8 @@
 use core::future::Future;
 
-use ascot_library::hazards::{Hazard, Hazards};
+use ascot_library::hazards::Hazards;
 use ascot_library::payloads::SerialPayload as AscotSerialPayload;
-use ascot_library::route::{Route, RouteHazards};
+use ascot_library::route::RouteHazards;
 
 use axum::{
     extract::Json,
@@ -67,7 +67,7 @@ pub struct SerialAction(DeviceAction);
 impl Internal for SerialAction {
     #[inline(always)]
     fn internal_hazards(&self) -> &Hazards {
-        &self.0.hazards
+        &self.0.route_hazards.hazards
     }
 
     #[inline(always)]
@@ -81,31 +81,11 @@ impl Action for SerialAction {}
 impl SerialAction {
     /// Creates a new [`SerialAction`].
     #[inline]
-    pub fn no_hazards<H, T>(route: Route, handler: H) -> Self
+    pub fn new<H, T>(route_hazards: RouteHazards, handler: H) -> Self
     where
         H: Handler<T, ()> + private::SerialTypeName<T>,
         T: 'static,
     {
-        Self(DeviceAction::init(route, handler, Hazards::empty()))
-    }
-
-    /// Creates a new [`SerialAction`] with a single [`Hazard`].
-    #[inline]
-    pub fn with_hazard<H, T>(route: Route, handler: H, hazard: Hazard) -> Self
-    where
-        H: Handler<T, ()> + private::SerialTypeName<T>,
-        T: 'static,
-    {
-        Self(DeviceAction::hazard(route, handler, hazard))
-    }
-
-    /// Creates a new [`SerialAction`] with [`Hazard`]s.
-    #[inline]
-    pub fn with_hazards<H, T>(route: Route, handler: H, hazards: &'static [Hazard]) -> Self
-    where
-        H: Handler<T, ()> + private::SerialTypeName<T>,
-        T: 'static,
-    {
-        Self(DeviceAction::hazards(route, handler, hazards))
+        Self(DeviceAction::init(route_hazards, handler))
     }
 }
