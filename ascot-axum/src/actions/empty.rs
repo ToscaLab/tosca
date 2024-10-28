@@ -1,4 +1,3 @@
-use core::any::type_name;
 use core::future::Future;
 
 use ascot_library::hazards::{Hazard, Hazards};
@@ -36,9 +35,7 @@ impl IntoResponse for EmptyPayload {
 }
 
 mod private {
-    pub trait EmptyTypeName<Args> {
-        fn empty_type_name(&self) -> &'static str;
-    }
+    pub trait EmptyTypeName<Args> {}
 }
 
 impl<F, Fut> private::EmptyTypeName<()> for F
@@ -46,9 +43,6 @@ where
     F: FnOnce() -> Fut,
     Fut: Future<Output = Result<EmptyPayload, ActionError>> + Send,
 {
-    fn empty_type_name(&self) -> &'static str {
-        type_name::<Fut::Output>()
-    }
 }
 
 macro_rules! impl_empty_type_name {
@@ -60,9 +54,6 @@ macro_rules! impl_empty_type_name {
             F: FnOnce($($ty,)* $($last)?) -> Fut,
             Fut: Future<Output = Result<EmptyPayload, ActionError>> + Send,
             {
-                fn empty_type_name(&self) -> &'static str {
-                    type_name::<Fut::Output>()
-                }
             }
     };
 }

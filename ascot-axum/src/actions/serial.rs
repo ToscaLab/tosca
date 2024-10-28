@@ -1,4 +1,3 @@
-use core::any::type_name;
 use core::future::Future;
 
 use ascot_library::hazards::{Hazard, Hazards};
@@ -35,9 +34,7 @@ impl<S: Serialize> IntoResponse for SerialPayload<S> {
 }
 
 mod private {
-    pub trait SerialTypeName<Args> {
-        fn serial_type_name(&self) -> &'static str;
-    }
+    pub trait SerialTypeName<Args> {}
 }
 
 impl<S, F, Fut> private::SerialTypeName<()> for F
@@ -46,9 +43,6 @@ where
     F: FnOnce() -> Fut,
     Fut: Future<Output = Result<SerialPayload<S>, ActionError>> + Send,
 {
-    fn serial_type_name(&self) -> &'static str {
-        type_name::<Fut::Output>()
-    }
 }
 
 macro_rules! impl_serial_type_name {
@@ -61,9 +55,6 @@ macro_rules! impl_serial_type_name {
             F: FnOnce($($ty,)* $($last)?) -> Fut,
             Fut: Future<Output = Result<SerialPayload<S>, ActionError>> + Send,
             {
-                fn serial_type_name(&self) -> &'static str {
-                    type_name::<Fut::Output>()
-                }
             }
     };
 }
