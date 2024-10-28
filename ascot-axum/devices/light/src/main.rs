@@ -18,7 +18,7 @@ use ascot_library::route::{Route, RouteHazards};
 use ascot_axum::actions::{ActionError, EmptyAction, EmptyPayload, SerialAction, SerialPayload};
 use ascot_axum::devices::light::Light;
 use ascot_axum::error::Error;
-use ascot_axum::extract::{Extension, Json};
+use ascot_axum::extract::{Json, State};
 use ascot_axum::server::AscotServer;
 use ascot_axum::service::ServiceConfig;
 
@@ -69,7 +69,7 @@ struct Inputs {
 }
 
 async fn turn_light_on(
-    Extension(state): Extension<DeviceState>,
+    State(state): State<DeviceState>,
     Json(inputs): Json<Inputs>,
 ) -> Result<SerialPayload<LightOnResponse>, ActionError> {
     let mut light = state.lock().await;
@@ -81,14 +81,12 @@ async fn turn_light_on(
     }))
 }
 
-async fn turn_light_off(
-    Extension(state): Extension<DeviceState>,
-) -> Result<EmptyPayload, ActionError> {
+async fn turn_light_off(State(state): State<DeviceState>) -> Result<EmptyPayload, ActionError> {
     state.lock().await.turn_light_off();
     Ok(EmptyPayload::new("Turn light off worked perfectly"))
 }
 
-async fn toggle(Extension(state): Extension<DeviceState>) -> Result<EmptyPayload, ActionError> {
+async fn toggle(State(state): State<DeviceState>) -> Result<EmptyPayload, ActionError> {
     state.lock().await.toggle();
     Ok(EmptyPayload::new("Toggle worked perfectly"))
 }
@@ -128,8 +126,10 @@ async fn main() -> Result<(), Error> {
 
     let cli = Cli::parse();
 
+    let state = DeviceState::new(LightMockup::default());
+
     // Turn light on action invoked by a `PUT` route.
-    let light_on_action = SerialAction::new(
+    let light_on_action = SerialAction::stateful(
         RouteHazards::single_hazard(
             Route::put("/on").description("Turn light on.").inputs([
                 Input::rangef64("brightness", (0., 20., 0.1, 0.)),
@@ -138,34 +138,37 @@ async fn main() -> Result<(), Error> {
             Hazard::FireHazard,
         ),
         turn_light_on,
+        state.clone(),
     );
 
     // Turn light on action invoked by a `POST` route.
-    let light_on_post_action = SerialAction::new(
+    let light_on_post_action = SerialAction::stateful(
         RouteHazards::no_hazards(Route::post("/on").description("Turn light on.").inputs([
             Input::rangef64("brightness", (0., 20., 0.1, 0.)),
             Input::boolean("save-energy", false),
         ])),
         turn_light_on,
+        state.clone(),
     );
 
     // Turn light off action invoked by a `PUT` route.
-    let light_off_action = EmptyAction::new(
+    let light_off_action = EmptyAction::stateful(
         RouteHazards::no_hazards(Route::put("/off").description("Turn light off.")),
         turn_light_off,
+        state.clone(),
     );
 
     // Toggle action invoked by a `PUT` route.
-    let toggle_action = EmptyAction::new(
+    let toggle_action = EmptyAction::stateful(
         RouteHazards::no_hazards(Route::put("/toggle").description("Toggle a light.")),
         toggle,
+        state,
     );
 
     // A light device which is going to be run on the server.
     let device = Light::new(light_on_action, light_off_action)?
         .add_action(toggle_action)?
         .add_action(light_on_post_action)?
-        .state(DeviceState::new(LightMockup::default()))
         .build();
 
     // Run a discovery service and the device on the server.
