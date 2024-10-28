@@ -10,23 +10,18 @@ const DEFAULT_MAIN_ROUTE: &str = "/device";
 
 /// A general smart home device.
 #[derive(Debug)]
-pub struct Device<S> {
-    // Kind.
-    kind: DeviceKind,
+pub struct Device {
     // Main device route.
-    main_route: &'static str,
-    // All device routes and their hazards.
-    routes_hazards: RoutesHazards,
+    pub(crate) main_route: &'static str,
     // Router.
     pub(crate) router: Router,
-    // Device state.
-    pub(crate) state: Option<S>,
+    // Kind.
+    kind: DeviceKind,
+    // All device routes and their hazards.
+    routes_hazards: RoutesHazards,
 }
 
-impl<S> DeviceSerializer for Device<S>
-where
-    S: Clone + Send + Sync + 'static,
-{
+impl DeviceSerializer for Device {
     fn serialize_data(&self) -> DeviceData {
         let mut route_configs = RouteConfigs::empty();
         for route_hazards in self.routes_hazards.iter() {
@@ -41,10 +36,7 @@ where
     }
 }
 
-impl<S> Device<S>
-where
-    S: Clone + Send + Sync + 'static,
-{
+impl Device {
     /// Creates an unknown [`Device`].
     #[inline]
     pub fn unknown() -> Self {
@@ -66,29 +58,14 @@ where
         self
     }
 
-    /// Sets a device state.
-    #[inline]
-    pub fn state(mut self, state: S) -> Self {
-        self.state = Some(state);
-        self
-    }
-
     // Creates a new instance defining the DeviceKind.
     #[inline]
     pub(crate) fn new(kind: DeviceKind) -> Self {
         Self {
-            kind,
             main_route: DEFAULT_MAIN_ROUTE,
-            routes_hazards: RoutesHazards::empty(),
             router: Router::new(),
-            state: None,
+            kind,
+            routes_hazards: RoutesHazards::empty(),
         }
-    }
-
-    // Finalizes a device composing all correct routes.
-    #[inline]
-    pub(crate) fn finalize(mut self) -> Self {
-        self.router = Router::new().nest(self.main_route, self.router);
-        self
     }
 }

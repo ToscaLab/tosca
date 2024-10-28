@@ -20,20 +20,14 @@ const ALLOWED_HAZARDS: &[Hazard] = &[Hazard::FireHazard, Hazard::ElectricEnergyC
 ///
 /// If a smart home needs more lights, each light **MUST** provide a
 /// **different** main route in order to be registered.
-pub struct Light<S>
-where
-    S: Clone + Send + Sync + 'static,
-{
+pub struct Light {
     // Device.
-    device: Device<S>,
+    device: Device,
     // Allowed light hazards.
     allowed_hazards: &'static [Hazard],
 }
 
-impl<S> Light<S>
-where
-    S: Clone + Send + Sync + 'static,
-{
+impl Light {
     /// Creates a new [`Light`] instance.
     pub fn new(turn_light_on: impl Action, turn_light_off: impl Action) -> Result<Self> {
         // Raise an error whether turn light_on does not contain a
@@ -81,16 +75,9 @@ where
         Ok(self)
     }
 
-    /// Sets a state for a [`Light`].
-    #[inline(always)]
-    pub fn state(mut self, state: S) -> Self {
-        self.device = self.device.state(state);
-        self
-    }
-
     /// Builds a new [`Device`].
     #[inline(always)]
-    pub fn build(self) -> Device<S> {
+    pub fn build(self) -> Device {
         self.device
     }
 }

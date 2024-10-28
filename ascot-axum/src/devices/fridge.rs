@@ -30,31 +30,22 @@ enum Actions {
 ///
 /// If a smart home needs more fridges, each fridge **MUST** provide a
 /// **different** main route in order to be registered.
-pub struct Fridge<S>
-where
-    S: Clone + Send + Sync + 'static,
-{
+pub struct Fridge {
     // Device.
-    device: Device<S>,
+    device: Device,
     // Mandatory fridge actions.
     mandatory_actions: FnvIndexSet<Actions, 2>,
     // Allowed fridge hazards.
     allowed_hazards: &'static [Hazard],
 }
 
-impl<S> Default for Fridge<S>
-where
-    S: Clone + Send + Sync + 'static,
-{
+impl Default for Fridge {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<S> Fridge<S>
-where
-    S: Clone + Send + Sync + 'static,
-{
+impl Fridge {
     /// Creates a new [`Fridge`] instance.
     pub fn new() -> Self {
         // Create a new device.
@@ -134,15 +125,8 @@ where
         Ok(self)
     }
 
-    /// Sets a state for a [`Fridge`].
-    #[inline(always)]
-    pub fn state(mut self, state: S) -> Self {
-        self.device = self.device.state(state);
-        self
-    }
-
     /// Builds a new [`Device`].
-    pub fn build(self) -> Result<Device<S>> {
+    pub fn build(self) -> Result<Device> {
         // Return an error if not all mandatory actions are set.
         if !self.mandatory_actions.is_empty() {
             return Err(Error::new(

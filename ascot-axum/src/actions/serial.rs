@@ -79,13 +79,24 @@ impl Internal for SerialAction {
 impl Action for SerialAction {}
 
 impl SerialAction {
-    /// Creates a new [`SerialAction`].
+    /// Creates a new [`SerialAction`] without a state.
     #[inline]
-    pub fn new<H, T>(route_hazards: RouteHazards, handler: H) -> Self
+    pub fn stateless<H, T>(route_hazards: RouteHazards, handler: H) -> Self
     where
         H: Handler<T, ()> + private::SerialTypeName<T>,
         T: 'static,
     {
-        Self(DeviceAction::init(route_hazards, handler))
+        Self(DeviceAction::stateless(route_hazards, handler))
+    }
+
+    /// Creates a new [`SerialAction`] with a state.
+    #[inline]
+    pub fn stateful<H, T, S>(route_hazards: RouteHazards, handler: H, state: S) -> Self
+    where
+        H: Handler<T, S> + private::SerialTypeName<T>,
+        T: 'static,
+        S: Clone + Send + Sync + 'static,
+    {
+        Self(DeviceAction::stateful(route_hazards, handler, state))
     }
 }
