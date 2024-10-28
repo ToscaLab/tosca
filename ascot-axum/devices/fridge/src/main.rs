@@ -32,15 +32,15 @@ use tracing_subscriber::filter::LevelFilter;
 use fridge_mockup::FridgeMockup;
 
 #[derive(Clone, Default)]
-struct DeviceState(Arc<Mutex<FridgeMockup>>);
+struct FridgeState(Arc<Mutex<FridgeMockup>>);
 
-impl DeviceState {
+impl FridgeState {
     fn new(fridge: FridgeMockup) -> Self {
         Self(Arc::new(Mutex::new(fridge)))
     }
 }
 
-impl core::ops::Deref for DeviceState {
+impl core::ops::Deref for FridgeState {
     type Target = Arc<Mutex<FridgeMockup>>;
 
     fn deref(&self) -> &Self::Target {
@@ -48,7 +48,7 @@ impl core::ops::Deref for DeviceState {
     }
 }
 
-impl core::ops::DerefMut for DeviceState {
+impl core::ops::DerefMut for FridgeState {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
     }
@@ -65,7 +65,7 @@ struct ChangeTempResponse {
 }
 
 async fn increase_temperature(
-    State(state): State<DeviceState>,
+    State(state): State<FridgeState>,
     Json(inputs): Json<IncreaseTemperature>,
 ) -> Result<SerialPayload<ChangeTempResponse>, ActionError> {
     let mut fridge = state.lock().await;
@@ -82,7 +82,7 @@ struct DecreaseTemperature {
 }
 
 async fn decrease_temperature(
-    State(state): State<DeviceState>,
+    State(state): State<FridgeState>,
     Json(inputs): Json<DecreaseTemperature>,
 ) -> Result<SerialPayload<ChangeTempResponse>, ActionError> {
     let mut fridge = state.lock().await;
@@ -128,7 +128,7 @@ async fn main() -> Result<(), Error> {
 
     let cli = Cli::parse();
 
-    let state = DeviceState::new(FridgeMockup::default());
+    let state = FridgeState::new(FridgeMockup::default());
 
     // Increase temperature action invoked by a `PUT` route.
     let increase_temp_action = SerialAction::stateful(
