@@ -118,7 +118,7 @@ pub(crate) struct DeviceAction {
 
 impl DeviceAction {
     #[inline]
-    pub(crate) fn init<H, T>(mut route_hazards: RouteHazards, handler: H) -> Self
+    pub(crate) fn stateless<H, T>(mut route_hazards: RouteHazards, handler: H) -> Self
     where
         H: Handler<T, ()>,
         T: 'static,
@@ -128,14 +128,33 @@ impl DeviceAction {
             .join_inputs(RouteMode::Linear, Some(":"));
 
         Self {
-            router: Router::new().route(
+            router: Self::create_router(
                 route_hazards.route.route(),
-                match route_hazards.route.kind() {
-                    RestKind::Get => axum::routing::get(handler),
-                    RestKind::Put => axum::routing::put(handler),
-                    RestKind::Post => axum::routing::post(handler),
-                    RestKind::Delete => axum::routing::delete(handler),
-                },
+                route_hazards.route.kind(),
+                handler,
+                (),
+            ),
+            route_hazards,
+        }
+    }
+
+    #[inline]
+    pub(crate) fn stateful<H, T, S>(mut route_hazards: RouteHazards, handler: H, state: S) -> Self
+    where
+        H: Handler<T, S>,
+        T: 'static,
+        S: Clone + Send + Sync + 'static,
+    {
+        route_hazards
+            .route
+            .join_inputs(RouteMode::Linear, Some(":"));
+
+        Self {
+            router: Self::create_router(
+                route_hazards.route.route(),
+                route_hazards.route.kind(),
+                handler,
+                state,
             ),
             route_hazards,
         }
@@ -144,6 +163,26 @@ impl DeviceAction {
     #[inline(always)]
     pub(crate) fn data(self) -> (Router, RouteHazards) {
         (self.router, self.route_hazards)
+    }
+
+    #[inline]
+    fn create_router<H, T, S>(route: &str, route_kind: RestKind, handler: H, state: S) -> Router
+    where
+        H: Handler<T, S>,
+        T: 'static,
+        S: Clone + Send + Sync + 'static,
+    {
+        Router::new()
+            .route(
+                route,
+                match route_kind {
+                    RestKind::Get => axum::routing::get(handler),
+                    RestKind::Put => axum::routing::put(handler),
+                    RestKind::Post => axum::routing::post(handler),
+                    RestKind::Delete => axum::routing::delete(handler),
+                },
+            )
+            .with_state(state)
     }
 }
 

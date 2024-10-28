@@ -2,7 +2,7 @@ use core::net::Ipv4Addr;
 
 use ascot_library::device::DeviceSerializer;
 
-use axum::{response::Redirect, Extension, Router};
+use axum::{response::Redirect, Router};
 
 use tracing::info;
 
@@ -31,10 +31,7 @@ const WELL_KNOWN_URI: &str = "/.well-known/ascot";
 
 /// The `Ascot` server.
 #[derive(Debug)]
-pub struct AscotServer<'a, S>
-where
-    S: Clone + Send + Sync + 'static,
-{
+pub struct AscotServer<'a> {
     // HTTP address.
     http_address: Ipv4Addr,
     // Server port.
@@ -46,15 +43,12 @@ where
     // Service configurator.
     service_config: Option<ServiceConfig<'a>>,
     // Device.
-    device: Device<S>,
+    device: Device,
 }
 
-impl<'a, S> AscotServer<'a, S>
-where
-    S: Clone + Send + Sync + 'static,
-{
+impl<'a> AscotServer<'a> {
     /// Creates a new [`AscotServer`] instance.
-    pub const fn new(device: Device<S>) -> Self {
+    pub const fn new(device: Device) -> Self {
         Self {
             http_address: DEFAULT_HTTP_ADDRESS,
             port: DEFAULT_SERVER_PORT,
@@ -125,9 +119,6 @@ where
         // Serialize device information returning a json format.
         let device_info = serde_json::to_value(self.device.serialize_data())?;
 
-        // Finalize a device composing all correct routes.
-        let device = self.device.finalize();
-
         // Run a service if present.
         if let Some(service_config) = self.service_config {
             // Add server properties.
@@ -144,8 +135,7 @@ where
         //- Save device info as a json format which is returned when a query to
         //  the server root is requested.
         //- Redirect well-known URI to server root.
-        let router = Router::new()
-            .merge(device.router)
+        Ok(Router::new()
             .route(
                 "/",
                 axum::routing::get(move || async { axum::Json(device_info) }),
@@ -153,12 +143,7 @@ where
             .route(
                 self.well_known_uri,
                 axum::routing::get(move || async { Redirect::to("/") }),
-            );
-
-        Ok(if let Some(state) = device.state {
-            router.layer(Extension(state))
-        } else {
-            router
-        })
+            )
+            .nest(self.device.main_route, self.device.router))
     }
 }
