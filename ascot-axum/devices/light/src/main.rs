@@ -32,15 +32,15 @@ use tracing_subscriber::filter::LevelFilter;
 use light_mockup::LightMockup;
 
 #[derive(Clone, Default)]
-struct DeviceState(Arc<Mutex<LightMockup>>);
+struct LightState(Arc<Mutex<LightMockup>>);
 
-impl DeviceState {
+impl LightState {
     fn new(light: LightMockup) -> Self {
         Self(Arc::new(Mutex::new(light)))
     }
 }
 
-impl core::ops::Deref for DeviceState {
+impl core::ops::Deref for LightState {
     type Target = Arc<Mutex<LightMockup>>;
 
     fn deref(&self) -> &Self::Target {
@@ -48,7 +48,7 @@ impl core::ops::Deref for DeviceState {
     }
 }
 
-impl core::ops::DerefMut for DeviceState {
+impl core::ops::DerefMut for LightState {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
     }
@@ -69,7 +69,7 @@ struct Inputs {
 }
 
 async fn turn_light_on(
-    State(state): State<DeviceState>,
+    State(state): State<LightState>,
     Json(inputs): Json<Inputs>,
 ) -> Result<SerialPayload<LightOnResponse>, ActionError> {
     let mut light = state.lock().await;
@@ -81,12 +81,12 @@ async fn turn_light_on(
     }))
 }
 
-async fn turn_light_off(State(state): State<DeviceState>) -> Result<EmptyPayload, ActionError> {
+async fn turn_light_off(State(state): State<LightState>) -> Result<EmptyPayload, ActionError> {
     state.lock().await.turn_light_off();
     Ok(EmptyPayload::new("Turn light off worked perfectly"))
 }
 
-async fn toggle(State(state): State<DeviceState>) -> Result<EmptyPayload, ActionError> {
+async fn toggle(State(state): State<LightState>) -> Result<EmptyPayload, ActionError> {
     state.lock().await.toggle();
     Ok(EmptyPayload::new("Toggle worked perfectly"))
 }
@@ -126,7 +126,7 @@ async fn main() -> Result<(), Error> {
 
     let cli = Cli::parse();
 
-    let state = DeviceState::new(LightMockup::default());
+    let state = LightState::new(LightMockup::default());
 
     // Turn light on action invoked by a `PUT` route.
     let light_on_action = SerialAction::stateful(
