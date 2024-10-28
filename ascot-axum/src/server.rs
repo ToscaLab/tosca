@@ -119,6 +119,9 @@ impl<'a> AscotServer<'a> {
         // Serialize device information returning a json format.
         let device_info = serde_json::to_value(self.device.serialize_data())?;
 
+        info!("Server route: [GET, /]");
+        info!("Server route: [GET, {}]", self.well_known_uri);
+
         // Run a service if present.
         if let Some(service_config) = self.service_config {
             // Add server properties.
