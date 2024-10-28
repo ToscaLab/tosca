@@ -1,8 +1,8 @@
 use core::result::Result;
 
 use ascot_library::device::{DeviceData, DeviceKind, DeviceSerializer};
-use ascot_library::hazards::{Hazard, Hazards};
-use ascot_library::route::{Route, RouteConfigs, RouteHazards};
+use ascot_library::hazards::Hazard;
+use ascot_library::route::{RouteConfigs, RouteHazards};
 
 use esp_idf_svc::http::server::{EspHttpConnection, Request, Response};
 use esp_idf_svc::io::EspIOError;
@@ -59,32 +59,17 @@ pub struct DeviceAction {
 
 impl DeviceAction {
     /// Creates a new [`DeviceAction`].
-    #[inline]
-    pub fn no_hazards<R: internal::ResponseTrait>(
-        route: Route,
+    #[inline(always)]
+    pub fn new<R: internal::ResponseTrait>(
+        route_hazards: RouteHazards,
         response: ResponseBuilder<R>,
     ) -> Self {
-        Self::init(route, response, Hazards::empty())
-    }
-
-    /// Creates a new [`DeviceAction`] with a single [`Hazard`].
-    #[inline]
-    pub fn with_hazard<R: internal::ResponseTrait>(
-        route: Route,
-        response: ResponseBuilder<R>,
-        hazard: Hazard,
-    ) -> Self {
-        Self::init(route, response, Hazards::init(hazard))
-    }
-
-    /// Creates a new [`DeviceAction`] with [`Hazard`]s.
-    #[inline]
-    pub fn with_hazards<R: internal::ResponseTrait>(
-        route: Route,
-        response: ResponseBuilder<R>,
-        hazards: &'static [Hazard],
-    ) -> Self {
-        Self::init(route, response, Hazards::init_with_elements(hazards))
+        Self {
+            route_hazards,
+            body: None,
+            response: Box::new(response.0),
+            content: response.1,
+        }
     }
 
     /// Checks whether a [`DeviceAction`] misses a specific [`Hazard`].
@@ -109,20 +94,6 @@ impl DeviceAction {
     {
         self.body = Some(Box::new(body));
         self
-    }
-
-    #[inline(always)]
-    fn init<R: internal::ResponseTrait>(
-        route: Route,
-        response: ResponseBuilder<R>,
-        hazards: Hazards,
-    ) -> Self {
-        Self {
-            route_hazards: RouteHazards::new(route, hazards),
-            body: None,
-            response: Box::new(response.0),
-            content: response.1,
-        }
     }
 }
 
