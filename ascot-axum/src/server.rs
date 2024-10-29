@@ -27,7 +27,7 @@ const DEFAULT_SCHEME: &str = "http";
 //
 // Request to the server for well-known services or information are available
 // at URLs consistent well-known locations across servers.
-const WELL_KNOWN_URI: &str = "/.well-known/ascot";
+const WELL_KNOWN_URI: &str = "/.well-known/server";
 
 /// The `Ascot` server.
 #[derive(Debug)]
@@ -106,7 +106,7 @@ impl<'a> AscotServer<'a> {
         let listener = tokio::net::TcpListener::bind(listener_bind).await?;
 
         // Print server start message
-        info!("Starting Ascot server...");
+        info!("Starting server...");
 
         // Start the server
         axum::serve(listener, router).await?;
