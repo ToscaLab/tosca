@@ -171,5 +171,220 @@ where
     }
 }
 
+#[cfg(test)]
+mod tests {
+
+    use ascot_library::hazards::Hazard;
+    use ascot_library::input::Input;
+    use ascot_library::route::{Route, RouteHazards};
+
+    use axum::extract::{Json, State};
+
+    use serde::{Deserialize, Serialize};
+
+    use crate::actions::serial::{
+        mandatory_serial_stateful, mandatory_serial_stateless, serial_stateful, serial_stateless,
+        SerialPayload,
+    };
+    use crate::actions::ActionError;
+
+    use super::Fridge;
+
+    #[derive(Clone)]
+    struct FridgeState;
+
+    #[derive(Deserialize)]
+    struct IncreaseTemperature {
+        increment: f64,
+    }
+
+    #[derive(Serialize)]
+    struct ChangeTempResponse {
+        temperature: f64,
+    }
+
+    async fn increase_temperature(
+        State(_state): State<FridgeState>,
+        Json(inputs): Json<IncreaseTemperature>,
+    ) -> Result<SerialPayload<ChangeTempResponse>, ActionError> {
+        Ok(SerialPayload::new(ChangeTempResponse {
+            temperature: inputs.increment,
+        }))
+    }
+
+    async fn increase_temperature_without_state(
+        Json(inputs): Json<IncreaseTemperature>,
+    ) -> Result<SerialPayload<ChangeTempResponse>, ActionError> {
+        Ok(SerialPayload::new(ChangeTempResponse {
+            temperature: inputs.increment,
+        }))
+    }
+
+    #[derive(Deserialize)]
+    struct DecreaseTemperature {
+        decrement: f64,
+    }
+
+    async fn decrease_temperature(
+        State(_state): State<FridgeState>,
+        Json(inputs): Json<DecreaseTemperature>,
+    ) -> Result<SerialPayload<ChangeTempResponse>, ActionError> {
+        Ok(SerialPayload::new(ChangeTempResponse {
+            temperature: inputs.decrement,
+        }))
+    }
+
+    async fn decrease_temperature_without_state(
+        Json(inputs): Json<DecreaseTemperature>,
+    ) -> Result<SerialPayload<ChangeTempResponse>, ActionError> {
+        Ok(SerialPayload::new(ChangeTempResponse {
+            temperature: inputs.decrement,
+        }))
+    }
+
+    struct Routes {
+        increase_temp_route: RouteHazards,
+        decrease_temp_route: RouteHazards,
+        increase_temp_post_route: RouteHazards,
+    }
+
+    #[inline]
+    fn create_routes() -> Routes {
+        Routes {
+            increase_temp_route: RouteHazards::with_hazards(
+                Route::put("/increase-temperature")
+                    .description("Increase temperature.")
+                    .input(Input::rangef64("increment", (1., 4., 0.1, 2.))),
+                &[Hazard::ElectricEnergyConsumption, Hazard::SpoiledFood],
+            ),
+
+            decrease_temp_route: RouteHazards::single_hazard(
+                Route::put("/decrease-temperature")
+                    .description("Decrease temperature.")
+                    .input(Input::rangef64("decrement", (1., 4., 0.1, 2.))),
+                Hazard::ElectricEnergyConsumption,
+            ),
+
+            increase_temp_post_route: RouteHazards::no_hazards(
+                Route::post("/increase-temperature")
+                    .description("Increase temperature.")
+                    .input(Input::rangef64("increment", (1., 4., 0.1, 2.))),
+            ),
+        }
+    }
+
+    #[test]
+    fn complete_with_state() {
+        let routes = create_routes();
+
+        Fridge::with_state(FridgeState {})
+            .increase_temperature(mandatory_serial_stateful(
+                routes.increase_temp_route,
+                increase_temperature,
+            ))
+            .unwrap()
+            .decrease_temperature(mandatory_serial_stateful(
+                routes.decrease_temp_route,
+                decrease_temperature,
+            ))
+            .unwrap()
+            .add_action(serial_stateful(
+                routes.increase_temp_post_route,
+                increase_temperature,
+            ))
+            .unwrap()
+            .into_device();
+
+        assert!(true);
+    }
+
+    #[test]
+    fn without_action_with_state() {
+        let routes = create_routes();
+
+        Fridge::with_state(FridgeState {})
+            .increase_temperature(mandatory_serial_stateful(
+                routes.increase_temp_route,
+                increase_temperature,
+            ))
+            .unwrap()
+            .decrease_temperature(mandatory_serial_stateful(
+                routes.decrease_temp_route,
+                decrease_temperature,
+            ))
+            .unwrap()
+            .into_device();
+
+        assert!(true);
+    }
+
+    #[test]
+    fn stateless_action_with_state() {
+        let routes = create_routes();
+
+        Fridge::with_state(FridgeState {})
+            .increase_temperature(mandatory_serial_stateful(
+                routes.increase_temp_route,
+                increase_temperature,
+            ))
+            .unwrap()
+            .decrease_temperature(mandatory_serial_stateful(
+                routes.decrease_temp_route,
+                decrease_temperature,
+            ))
+            .unwrap()
+            .add_action(serial_stateless(
+                routes.increase_temp_post_route,
+                increase_temperature_without_state,
+            ))
+            .unwrap()
+            .into_device();
+
+        assert!(true);
+    }
+
+    #[test]
+    fn complete_without_state() {
+        let routes = create_routes();
+
+        Fridge::new()
+            .increase_temperature(mandatory_serial_stateless(
+                routes.increase_temp_route,
+                increase_temperature_without_state,
+            ))
+            .unwrap()
+            .decrease_temperature(mandatory_serial_stateless(
+                routes.decrease_temp_route,
+                decrease_temperature_without_state,
+            ))
+            .unwrap()
+            .add_action(serial_stateless(
+                routes.increase_temp_post_route,
+                increase_temperature_without_state,
+            ))
+            .unwrap()
+            .into_device();
+
+        assert!(true);
+    }
+
+    #[test]
+    fn without_action_and_state() {
+        let routes = create_routes();
+
+        Fridge::new()
+            .increase_temperature(mandatory_serial_stateless(
+                routes.increase_temp_route,
+                increase_temperature_without_state,
+            ))
+            .unwrap()
+            .decrease_temperature(mandatory_serial_stateless(
+                routes.decrease_temp_route,
+                decrease_temperature_without_state,
+            ))
+            .unwrap()
+            .into_device();
+
+        assert!(true);
     }
 }
