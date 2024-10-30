@@ -108,4 +108,90 @@ where
         self
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use ascot_library::route::{Route, RouteHazards};
+
+    use axum::extract::{Json, State};
+
+    use serde::{Deserialize, Serialize};
+
+    use crate::actions::serial::{serial_stateful, serial_stateless, SerialPayload};
+    use crate::actions::ActionError;
+
+    use super::Device;
+
+    #[derive(Clone)]
+    struct DeviceState;
+
+    #[derive(Deserialize)]
+    struct Inputs {
+        parameter: f64,
+    }
+
+    #[derive(Serialize)]
+    struct DeviceResponse {
+        parameter: f64,
+    }
+
+    async fn action_with_state(
+        State(_state): State<DeviceState>,
+        Json(inputs): Json<Inputs>,
+    ) -> Result<SerialPayload<DeviceResponse>, ActionError> {
+        Ok(SerialPayload::new(DeviceResponse {
+            parameter: inputs.parameter,
+        }))
+    }
+
+    async fn action_without_state(
+        Json(inputs): Json<Inputs>,
+    ) -> Result<SerialPayload<DeviceResponse>, ActionError> {
+        Ok(SerialPayload::new(DeviceResponse {
+            parameter: inputs.parameter,
+        }))
+    }
+
+    struct Routes {
+        with_state_route: RouteHazards,
+        without_state_route: RouteHazards,
+    }
+
+    #[inline]
+    fn create_routes() -> Routes {
+        Routes {
+            with_state_route: RouteHazards::no_hazards(
+                Route::put("/state-action").description("Run action with state."),
+            ),
+            without_state_route: RouteHazards::no_hazards(
+                Route::post("/no-state-route").description("Run action without state."),
+            ),
+        }
+    }
+
+    #[test]
+    fn with_state() {
+        let routes = create_routes();
+
+        Device::with_state(DeviceState {})
+            .add_action(serial_stateful(routes.with_state_route, action_with_state))
+            .add_action(serial_stateless(
+                routes.without_state_route,
+                action_without_state,
+            ));
+
+        assert!(true);
+    }
+
+    #[test]
+    fn without_state() {
+        let routes = create_routes();
+
+        Device::new().add_action(serial_stateless(
+            routes.without_state_route,
+            action_without_state,
+        ));
+
+        assert!(true);
+    }
 }
