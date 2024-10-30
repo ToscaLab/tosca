@@ -1,9 +1,7 @@
 use ascot_library::device::DeviceKind;
 use ascot_library::hazards::Hazard;
 
-use heapless::FnvIndexSet;
-
-use crate::actions::Action;
+use crate::actions::{DeviceAction, MandatoryAction};
 use crate::device::Device;
 use crate::error::{Error, ErrorKind, Result};
 
@@ -17,52 +15,128 @@ const DECREASE_TEMPERATURE: Hazard = Hazard::ElectricEnergyConsumption;
 // Allowed hazards.
 const ALLOWED_HAZARDS: &[Hazard] = &[Hazard::ElectricEnergyConsumption, Hazard::SpoiledFood];
 
-// Mandatory fridge actions.
-#[derive(Debug, PartialEq, Eq, Hash)]
-enum Actions {
-    IncreaseTemperature,
-    DecreaseTemperature,
-}
-
 /// A smart home fridge.
 ///
 /// The default server main route for a fridge is `fridge`.
 ///
 /// If a smart home needs more fridges, each fridge **MUST** provide a
 /// **different** main route in order to be registered.
-pub struct Fridge {
+pub struct Fridge<M1 = (), M2 = (), S = ()>
+where
+    S: Clone + Send + Sync + 'static,
+{
     // Device.
-    device: Device,
-    // Mandatory fridge actions.
-    mandatory_actions: FnvIndexSet<Actions, 2>,
+    device: Device<S>,
+    // Increase temperature action.
+    increase_temperature: MandatoryAction<M1>,
+    // Decrease temperature action.
+    decrease_temperature: MandatoryAction<M2>,
     // Allowed fridge hazards.
     allowed_hazards: &'static [Hazard],
 }
 
-impl Default for Fridge {
+impl Default for Fridge<(), (), ()> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl Fridge {
-    /// Creates a new [`Fridge`] instance.
+impl Fridge<(), (), ()> {
+    /// Creates a [`Fridge`] instance without a state.
+    #[inline(always)]
     pub fn new() -> Self {
-        // Create a new device.
-        let device = Device::new(DeviceKind::Fridge).main_route(FRIDGE_MAIN_ROUTE);
+        Self::with_state(())
+    }
+}
 
-        // Define mandatory actions.
-        let mut mandatory_actions = FnvIndexSet::new();
-        let _ = mandatory_actions.insert(Actions::IncreaseTemperature);
-        let _ = mandatory_actions.insert(Actions::DecreaseTemperature);
+impl<S> Fridge<(), (), S>
+where
+    S: Clone + Send + Sync + 'static,
+{
+    /// Creates a [`Fridge`] instance with a state.
+    #[inline]
+    pub fn with_state(state: S) -> Self {
+        // Create a new device.
+        let device = Device::init(DeviceKind::Fridge, state).main_route(FRIDGE_MAIN_ROUTE);
 
         Self {
             device,
-            mandatory_actions,
+            increase_temperature: MandatoryAction::empty(),
+            decrease_temperature: MandatoryAction::empty(),
             allowed_hazards: ALLOWED_HAZARDS,
         }
     }
 
+    /// Adds an increase temperature action for a [`Fridge`].
+    ///
+    /// **This method is mandatory, if not called, a compilation
+    /// error is raised.**.
+    pub fn increase_temperature(
+        self,
+        increase_temperature: impl FnOnce(S) -> MandatoryAction<()>,
+    ) -> Result<Fridge<u8, (), S>> {
+        let increase_temperature = increase_temperature(self.device.state.clone());
+
+        // Raise an error whether increase_temperature does not contain
+        // electric energy consumption or spoiled food hazards.
+        if increase_temperature
+            .device_action
+            .miss_hazards(INCREASE_TEMPERATURE)
+        {
+            return Err(Error::new(
+                ErrorKind::Fridge,
+                "No electric energy consumption or spoiled food hazards for the `increase_temperature` route",
+            ));
+        }
+
+        Ok(Fridge {
+            device: self.device,
+            increase_temperature: MandatoryAction::init(increase_temperature.device_action),
+            decrease_temperature: self.decrease_temperature,
+            allowed_hazards: ALLOWED_HAZARDS,
+        })
+    }
+}
+
+impl<S> Fridge<u8, (), S>
+where
+    S: Clone + Send + Sync + 'static,
+{
+    /// Adds a decrease temperature action for a [`Fridge`].
+    ///
+    /// **This method is mandatory, if not called, a compilation
+    /// error is raised.**.
+    pub fn decrease_temperature(
+        self,
+        decrease_temperature: impl FnOnce(S) -> MandatoryAction<()>,
+    ) -> Result<Fridge<u8, u8, S>> {
+        let decrease_temperature = decrease_temperature(self.device.state.clone());
+
+        // Raise an error whether decrease_temperature does not contain
+        // electric energy consumption hazard.
+        if decrease_temperature
+            .device_action
+            .miss_hazard(DECREASE_TEMPERATURE)
+        {
+            return Err(Error::new(
+                ErrorKind::Fridge,
+                "No electric energy consumption hazard for the `decrease_temperature` route",
+            ));
+        }
+
+        Ok(Fridge {
+            device: self.device,
+            increase_temperature: self.increase_temperature,
+            decrease_temperature: MandatoryAction::init(decrease_temperature.device_action),
+            allowed_hazards: ALLOWED_HAZARDS,
+        })
+    }
+}
+
+impl<S> Fridge<u8, u8, S>
+where
+    S: Clone + Send + Sync + 'static,
+{
     /// Sets a new main route.
     #[inline]
     pub fn main_route(mut self, main_route: &'static str) -> Self {
@@ -70,46 +144,10 @@ impl Fridge {
         self
     }
 
-    /// Adds increase temperature action for a [`Fridge`].
-    pub fn increase_temperature(mut self, increase_temperature: impl Action) -> Result<Self> {
-        // Raise an error whether increase_temperature does not contain
-        // electric energy consumption or spoiled food hazards.
-        if increase_temperature.miss_hazards(INCREASE_TEMPERATURE) {
-            return Err(Error::new(
-                ErrorKind::Fridge,
-                "No electric energy consumption or spoiled food hazards for the `increase_temperature` route",
-            ));
-        }
-
-        self.device = self.device.add_action(increase_temperature);
-
-        // Remove increase_temperature action from the list of actions to set.
-        self.mandatory_actions.remove(&Actions::IncreaseTemperature);
-
-        Ok(self)
-    }
-
-    /// Adds decrease temperature action for a [`Fridge`].
-    pub fn decrease_temperature(mut self, decrease_temperature: impl Action) -> Result<Self> {
-        // Raise an error whether decrease_temperature does not contain
-        // electric energy consumption hazard.
-        if decrease_temperature.miss_hazard(DECREASE_TEMPERATURE) {
-            return Err(Error::new(
-                ErrorKind::Fridge,
-                "No electric energy consumption hazard for the `decrease_temperature` route",
-            ));
-        }
-
-        self.device = self.device.add_action(decrease_temperature);
-
-        // Remove decrease_temperature action from the list of actions to set.
-        self.mandatory_actions.remove(&Actions::DecreaseTemperature);
-
-        Ok(self)
-    }
-
     /// Adds an additional action for a [`Fridge`].
-    pub fn add_action(mut self, fridge_action: impl Action) -> Result<Self> {
+    pub fn add_action(mut self, fridge_action: impl FnOnce(S) -> DeviceAction) -> Result<Self> {
+        let fridge_action = fridge_action(self.device.state.clone());
+
         // Return an error if action hazards are not a subset of allowed hazards.
         for hazard in fridge_action.hazards().iter() {
             if !self.allowed_hazards.contains(hazard) {
@@ -120,24 +158,18 @@ impl Fridge {
             }
         }
 
-        self.device = self.device.add_action(fridge_action);
+        self.device = self.device.add_device_action(fridge_action);
 
         Ok(self)
     }
 
-    /// Builds a new [`Device`].
-    pub fn build(self) -> Result<Device> {
-        // Return an error if not all mandatory actions are set.
-        if !self.mandatory_actions.is_empty() {
-            return Err(Error::new(
-                ErrorKind::Fridge,
-                format!(
-                    "The following mandatory actions are not set: {:?}",
-                    self.mandatory_actions
-                ),
-            ));
-        };
+    /// Converts a [`Fridge`] into a [`Device`].
+    pub fn into_device(self) -> Device<S> {
+        self.device
+            .add_device_action(self.increase_temperature.device_action)
+            .add_device_action(self.decrease_temperature.device_action)
+    }
+}
 
-        Ok(self.device)
     }
 }
