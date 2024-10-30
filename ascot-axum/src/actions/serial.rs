@@ -1,6 +1,5 @@
 use core::future::Future;
 
-use ascot_library::hazards::Hazards;
 use ascot_library::payloads::SerialPayload as AscotSerialPayload;
 use ascot_library::route::RouteHazards;
 
@@ -9,12 +8,11 @@ use axum::{
     handler::Handler,
     http::StatusCode,
     response::{IntoResponse, Response},
-    Router,
 };
 
 use serde::{Deserialize, Serialize};
 
-use super::{private::Internal, Action, ActionError, DeviceAction};
+use super::{ActionError, DeviceAction, MandatoryAction};
 
 /// Serial payload structure.
 #[derive(Serialize, Deserialize)]
@@ -61,42 +59,58 @@ macro_rules! impl_serial_type_name {
 
 super::all_the_tuples!(impl_serial_type_name);
 
-/// An action with a serial payload.
-pub struct SerialAction(DeviceAction);
-
-impl Internal for SerialAction {
-    #[inline(always)]
-    fn internal_hazards(&self) -> &Hazards {
-        &self.0.route_hazards.hazards
-    }
-
-    #[inline(always)]
-    fn data(self) -> (Router, RouteHazards) {
-        self.0.data()
-    }
+/// Creates a mandatory stateful [`DeviceAction`] with a [`SerialPayload`].
+#[inline(always)]
+pub fn mandatory_serial_stateful<H, T, S>(
+    route_hazards: RouteHazards,
+    handler: H,
+) -> impl FnOnce(S) -> MandatoryAction<()>
+where
+    H: Handler<T, S> + private::SerialTypeName<T>,
+    T: 'static,
+    S: Clone + Send + Sync + 'static,
+{
+    move |state: S| MandatoryAction::new(DeviceAction::stateful(route_hazards, handler, state))
 }
 
-impl Action for SerialAction {}
+/// Creates a stateful [`DeviceAction`] with a [`SerialPayload`].
+#[inline(always)]
+pub fn serial_stateful<H, T, S>(
+    route_hazards: RouteHazards,
+    handler: H,
+) -> impl FnOnce(S) -> DeviceAction
+where
+    H: Handler<T, S> + private::SerialTypeName<T>,
+    T: 'static,
+    S: Clone + Send + Sync + 'static,
+{
+    move |state: S| DeviceAction::stateful(route_hazards, handler, state)
+}
 
-impl SerialAction {
-    /// Creates a new [`SerialAction`] without a state.
-    #[inline]
-    pub fn stateless<H, T>(route_hazards: RouteHazards, handler: H) -> Self
-    where
-        H: Handler<T, ()> + private::SerialTypeName<T>,
-        T: 'static,
-    {
-        Self(DeviceAction::stateless(route_hazards, handler))
-    }
+/// Creates a mandatory stateless [`DeviceAction`] with a [`SerialPayload`].
+#[inline(always)]
+pub fn mandatory_serial_stateless<H, T, S>(
+    route_hazards: RouteHazards,
+    handler: H,
+) -> impl FnOnce(S) -> MandatoryAction<()>
+where
+    H: Handler<T, ()> + private::SerialTypeName<T>,
+    T: 'static,
+    S: Clone + Send + Sync + 'static,
+{
+    move |_state: S| MandatoryAction::new(DeviceAction::stateless(route_hazards, handler))
+}
 
-    /// Creates a new [`SerialAction`] with a state.
-    #[inline]
-    pub fn stateful<H, T, S>(route_hazards: RouteHazards, handler: H, state: S) -> Self
-    where
-        H: Handler<T, S> + private::SerialTypeName<T>,
-        T: 'static,
-        S: Clone + Send + Sync + 'static,
-    {
-        Self(DeviceAction::stateful(route_hazards, handler, state))
-    }
+/// Creates a stateless [`DeviceAction`] with a [`SerialPayload`].
+#[inline(always)]
+pub fn serial_stateless<H, T, S>(
+    route_hazards: RouteHazards,
+    handler: H,
+) -> impl FnOnce(S) -> DeviceAction
+where
+    H: Handler<T, ()> + private::SerialTypeName<T>,
+    T: 'static,
+    S: Clone + Send + Sync + 'static,
+{
+    move |_state: S| DeviceAction::stateless(route_hazards, handler)
 }
