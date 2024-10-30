@@ -31,7 +31,10 @@ const WELL_KNOWN_URI: &str = "/.well-known/server";
 
 /// The `Ascot` server.
 #[derive(Debug)]
-pub struct AscotServer<'a> {
+pub struct AscotServer<'a, S = ()>
+where
+    S: Clone + Send + Sync + 'static,
+{
     // HTTP address.
     http_address: Ipv4Addr,
     // Server port.
@@ -43,12 +46,15 @@ pub struct AscotServer<'a> {
     // Service configurator.
     service_config: Option<ServiceConfig<'a>>,
     // Device.
-    device: Device,
+    device: Device<S>,
 }
 
-impl<'a> AscotServer<'a> {
+impl<'a, S> AscotServer<'a, S>
+where
+    S: Clone + Send + Sync + 'static,
+{
     /// Creates a new [`AscotServer`] instance.
-    pub const fn new(device: Device) -> Self {
+    pub const fn new(device: Device<S>) -> Self {
         Self {
             http_address: DEFAULT_HTTP_ADDRESS,
             port: DEFAULT_SERVER_PORT,
