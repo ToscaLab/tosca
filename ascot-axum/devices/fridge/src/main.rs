@@ -15,7 +15,8 @@ use ascot_library::input::Input;
 use ascot_library::route::{Route, RouteHazards};
 
 // Ascot axum.
-use ascot_axum::actions::{ActionError, SerialAction, SerialPayload};
+use ascot_axum::actions::serial::{mandatory_serial_stateful, serial_stateful, SerialPayload};
+use ascot_axum::actions::ActionError;
 use ascot_axum::devices::fridge::Fridge;
 use ascot_axum::error::Error;
 use ascot_axum::extract::{Json, State};
@@ -128,49 +129,49 @@ async fn main() -> Result<(), Error> {
 
     let cli = Cli::parse();
 
+    // Define a state for the fridge.
     let state = FridgeState::new(FridgeMockup::default());
 
-    // Increase temperature action invoked by a `PUT` route.
-    let increase_temp_action = SerialAction::stateful(
-        RouteHazards::with_hazards(
-            Route::put("/increase-temperature")
-                .description("Increase temperature.")
-                .input(Input::rangef64("increment", (1., 4., 0.1, 2.))),
-            &[Hazard::ElectricEnergyConsumption, Hazard::SpoiledFood],
-        ),
-        increase_temperature,
-        state.clone(),
+    // Increase temperature `PUT` route.
+    let increase_temp_route = RouteHazards::with_hazards(
+        Route::put("/increase-temperature")
+            .description("Increase temperature.")
+            .input(Input::rangef64("increment", (1., 4., 0.1, 2.))),
+        &[Hazard::ElectricEnergyConsumption, Hazard::SpoiledFood],
     );
 
-    // Decrease temperature action invoked by a `PUT` route.
-    let decrease_temp_action = SerialAction::stateful(
-        RouteHazards::single_hazard(
-            Route::put("/decrease-temperature")
-                .description("Decrease temperature.")
-                .input(Input::rangef64("decrement", (1., 4., 0.1, 2.))),
-            Hazard::ElectricEnergyConsumption,
-        ),
-        decrease_temperature,
-        state.clone(),
+    // Decrease temperature `PUT` route.
+    let decrease_temp_route = RouteHazards::single_hazard(
+        Route::put("/decrease-temperature")
+            .description("Decrease temperature.")
+            .input(Input::rangef64("decrement", (1., 4., 0.1, 2.))),
+        Hazard::ElectricEnergyConsumption,
     );
 
-    // Increase temperature action invoked by a `POST` route.
-    let increase_temp_post_action = SerialAction::stateful(
-        RouteHazards::no_hazards(
-            Route::post("/increase-temperature")
-                .description("Increase temperature.")
-                .input(Input::rangef64("increment", (1., 4., 0.1, 2.))),
-        ),
-        increase_temperature,
-        state,
+    // Increase temperature `POST` route.
+    let increase_temp_post_route = RouteHazards::no_hazards(
+        Route::post("/increase-temperature")
+            .description("Increase temperature.")
+            .input(Input::rangef64("increment", (1., 4., 0.1, 2.))),
     );
 
     // A fridge device which is going to be run on the server.
-    let device = Fridge::new()
-        .increase_temperature(increase_temp_action)?
-        .decrease_temperature(decrease_temp_action)?
-        .add_action(increase_temp_post_action)?
-        .build()?;
+    let device = Fridge::with_state(state)
+        // This method is mandatory, if not called, a compiler error is raised.
+        .increase_temperature(mandatory_serial_stateful(
+            increase_temp_route,
+            increase_temperature,
+        ))?
+        // This method is mandatory, if not called, a compiler error is raised.
+        .decrease_temperature(mandatory_serial_stateful(
+            decrease_temp_route,
+            decrease_temperature,
+        ))?
+        .add_action(serial_stateful(
+            increase_temp_post_route,
+            increase_temperature,
+        ))?
+        .into_device();
 
     // Run a discovery service and the device on the server.
     AscotServer::new(device)
