@@ -1,10 +1,12 @@
-mod empty;
-mod serial;
+pub mod empty;
+pub mod serial;
+
+use core::marker::PhantomData;
 
 use ascot_library::actions::{ActionError as AscotActionError, ActionErrorKind};
 use ascot_library::hazards::{Hazard, Hazards};
 
-use ascot_library::route::{RestKind, RouteHazards, RouteMode};
+use ascot_library::route::{RestKind, Route, RouteHazards, RouteMode};
 
 use axum::{
     extract::Json,
@@ -75,41 +77,8 @@ impl IntoResponse for ActionError {
     }
 }
 
-mod private {
-    pub trait Internal {
-        fn internal_hazards(&self) -> &super::Hazards;
-        fn data(self) -> (super::Router, super::RouteHazards);
-    }
-}
-
-/// A trait which offers a series of methods to interact with an action.
-///
-/// An action is a specific operation executed on a device when a determined
-/// server route is being invoked.
-pub trait Action: private::Internal {
-    /// Checks whether an action does not define the given [`Hazard`].
-    #[inline]
-    fn miss_hazard(&self, hazard: Hazard) -> bool {
-        !self.internal_hazards().contains(hazard)
-    }
-
-    /// Checks whether an action does not define the given [`Hazard`]s.
-    #[inline]
-    fn miss_hazards(&self, hazards: &'static [Hazard]) -> bool {
-        !hazards
-            .iter()
-            .all(|hazard| self.internal_hazards().contains(*hazard))
-    }
-
-    /// Returns the [`Hazards`] collection associated with an action.
-    #[inline]
-    fn hazards(&self) -> &Hazards {
-        self.internal_hazards()
-    }
-}
-
 #[derive(Debug)]
-pub(crate) struct DeviceAction {
+pub struct DeviceAction {
     // Router.
     pub(crate) router: Router,
     // Route - Hazards
@@ -117,6 +86,26 @@ pub(crate) struct DeviceAction {
 }
 
 impl DeviceAction {
+    /// Checks whether an action does not define the given [`Hazard`].
+    #[inline]
+    pub fn miss_hazard(&self, hazard: Hazard) -> bool {
+        !self.route_hazards.hazards.contains(hazard)
+    }
+
+    /// Checks whether an action does not define the given [`Hazard`]s.
+    #[inline]
+    pub fn miss_hazards(&self, hazards: &'static [Hazard]) -> bool {
+        !hazards
+            .iter()
+            .all(|hazard| self.route_hazards.hazards.contains(*hazard))
+    }
+
+    /// Returns the [`Hazards`] collection associated with an action.
+    #[inline]
+    pub fn hazards(&self) -> &Hazards {
+        &self.route_hazards.hazards
+    }
+
     #[inline]
     pub(crate) fn stateless<H, T>(mut route_hazards: RouteHazards, handler: H) -> Self
     where
@@ -160,9 +149,11 @@ impl DeviceAction {
         }
     }
 
-    #[inline(always)]
-    pub(crate) fn data(self) -> (Router, RouteHazards) {
-        (self.router, self.route_hazards)
+    pub(crate) fn empty() -> Self {
+        Self {
+            router: Router::new(),
+            route_hazards: RouteHazards::new(Route::get(""), Hazards::empty()),
+        }
     }
 
     #[inline]
@@ -186,5 +177,39 @@ impl DeviceAction {
     }
 }
 
-pub use empty::{EmptyAction, EmptyPayload};
-pub use serial::{SerialAction, SerialPayload};
+/// A mandatory [`DeviceAction`].
+pub struct MandatoryAction<Args> {
+    pub(crate) device_action: DeviceAction,
+    flag: PhantomData<Args>,
+}
+
+impl MandatoryAction<()> {
+    #[inline(always)]
+    pub(crate) fn empty() -> Self {
+        Self {
+            device_action: DeviceAction::empty(),
+            flag: PhantomData,
+        }
+    }
+
+    pub(super) const fn new(device_action: DeviceAction) -> Self {
+        Self {
+            device_action,
+            flag: PhantomData,
+        }
+    }
+}
+
+impl MandatoryAction<u8> {
+    /// Returns a [`DeviceAction`] reference.
+    pub const fn action_as_ref(&self) -> &DeviceAction {
+        &self.device_action
+    }
+
+    pub(crate) const fn init(device_action: DeviceAction) -> Self {
+        Self {
+            device_action,
+            flag: PhantomData,
+        }
+    }
+}

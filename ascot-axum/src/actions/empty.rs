@@ -1,6 +1,5 @@
 use core::future::Future;
 
-use ascot_library::hazards::Hazards;
 use ascot_library::payloads::EmptyPayload as AscotEmptyPayload;
 use ascot_library::route::RouteHazards;
 
@@ -9,12 +8,11 @@ use axum::{
     handler::Handler,
     http::StatusCode,
     response::{IntoResponse, Response},
-    Router,
 };
 
 use serde::{Deserialize, Serialize};
 
-use super::{private::Internal, Action, ActionError, DeviceAction};
+use super::{ActionError, DeviceAction, MandatoryAction};
 
 /// An empty payload.
 #[derive(Serialize, Deserialize)]
@@ -59,41 +57,56 @@ macro_rules! impl_empty_type_name {
 }
 super::all_the_tuples!(impl_empty_type_name);
 
-/// An action with an empty payload.
-pub struct EmptyAction(DeviceAction);
-
-impl Internal for EmptyAction {
-    #[inline(always)]
-    fn internal_hazards(&self) -> &Hazards {
-        &self.0.route_hazards.hazards
-    }
-    #[inline(always)]
-    fn data(self) -> (Router, RouteHazards) {
-        self.0.data()
-    }
+/// Creates a mandatory stateful [`DeviceAction`] with an [`EmptyPayload`].
+#[inline(always)]
+pub fn mandatory_empty_stateful<H, T, S>(
+    route_hazards: RouteHazards,
+    handler: H,
+) -> impl FnOnce(S) -> MandatoryAction<()>
+where
+    H: Handler<T, S> + private::EmptyTypeName<T>,
+    T: 'static,
+    S: Clone + Send + Sync + 'static,
+{
+    move |state: S| MandatoryAction::new(DeviceAction::stateful(route_hazards, handler, state))
 }
 
-impl Action for EmptyAction {}
+/// Creates a stateful [`DeviceAction`] with an [`EmptyPayload`].
+pub fn empty_stateful<H, T, S>(
+    route_hazards: RouteHazards,
+    handler: H,
+) -> impl FnOnce(S) -> DeviceAction
+where
+    H: Handler<T, S> + private::EmptyTypeName<T>,
+    T: 'static,
+    S: Clone + Send + Sync + 'static,
+{
+    move |state: S| DeviceAction::stateful(route_hazards, handler, state)
+}
 
-impl EmptyAction {
-    /// Creates a new [`EmptyAction`] without a state.
-    #[inline]
-    pub fn stateless<H, T>(route_hazards: RouteHazards, handler: H) -> Self
-    where
-        H: Handler<T, ()> + private::EmptyTypeName<T>,
-        T: 'static,
-    {
-        Self(DeviceAction::stateless(route_hazards, handler))
-    }
+/// Creates a mandatory stateless [`DeviceAction`] with an [`EmptyPayload`].
+#[inline(always)]
+pub fn mandatory_empty_stateless<H, T, S>(
+    route_hazards: RouteHazards,
+    handler: H,
+) -> impl FnOnce(S) -> MandatoryAction<()>
+where
+    H: Handler<T, ()> + private::EmptyTypeName<T>,
+    T: 'static,
+    S: Clone + Send + Sync + 'static,
+{
+    move |_state: S| MandatoryAction::new(DeviceAction::stateless(route_hazards, handler))
+}
 
-    /// Creates a new [`EmptyAction`] with a state.
-    #[inline]
-    pub fn stateful<H, T, S>(route_hazards: RouteHazards, handler: H, state: S) -> Self
-    where
-        H: Handler<T, S> + private::EmptyTypeName<T>,
-        T: 'static,
-        S: Clone + Send + Sync + 'static,
-    {
-        Self(DeviceAction::stateful(route_hazards, handler, state))
-    }
+/// Creates a stateless [`DeviceAction`] with an [`EmptyPayload`].
+pub fn empty_stateless<H, T, S>(
+    route_hazards: RouteHazards,
+    handler: H,
+) -> impl FnOnce(S) -> DeviceAction
+where
+    H: Handler<T, ()> + private::EmptyTypeName<T>,
+    T: 'static,
+    S: Clone + Send + Sync + 'static,
+{
+    move |_state: S| DeviceAction::stateless(route_hazards, handler)
 }
