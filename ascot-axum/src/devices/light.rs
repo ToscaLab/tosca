@@ -155,5 +155,221 @@ where
             .add_device_action(self.turn_light_off.device_action)
     }
 }
+
+#[cfg(test)]
+mod tests {
+
+    use ascot_library::hazards::Hazard;
+    use ascot_library::input::Input;
+    use ascot_library::route::{Route, RouteHazards};
+
+    use axum::extract::{Json, State};
+
+    use serde::{Deserialize, Serialize};
+
+    use crate::actions::empty::{
+        empty_stateful, empty_stateless, mandatory_empty_stateful, mandatory_empty_stateless,
+        EmptyPayload,
+    };
+    use crate::actions::serial::{
+        mandatory_serial_stateful, mandatory_serial_stateless, serial_stateful, serial_stateless,
+        SerialPayload,
+    };
+    use crate::actions::ActionError;
+
+    use super::Light;
+
+    #[derive(Clone)]
+    struct LightState;
+
+    #[derive(Deserialize)]
+    struct Inputs {
+        brightness: f64,
+        #[serde(alias = "save-energy")]
+        save_energy: bool,
+    }
+
+    #[derive(Serialize)]
+    struct LightOnResponse {
+        brightness: f64,
+        #[serde(rename = "save-energy")]
+        save_energy: bool,
+    }
+
+    async fn turn_light_on(
+        State(_state): State<LightState>,
+        Json(inputs): Json<Inputs>,
+    ) -> Result<SerialPayload<LightOnResponse>, ActionError> {
+        Ok(SerialPayload::new(LightOnResponse {
+            brightness: inputs.brightness,
+            save_energy: inputs.save_energy,
+        }))
+    }
+
+    async fn turn_light_on_stateless(
+        Json(inputs): Json<Inputs>,
+    ) -> Result<SerialPayload<LightOnResponse>, ActionError> {
+        Ok(SerialPayload::new(LightOnResponse {
+            brightness: inputs.brightness,
+            save_energy: inputs.save_energy,
+        }))
+    }
+
+    async fn turn_light_off(State(_state): State<LightState>) -> Result<EmptyPayload, ActionError> {
+        Ok(EmptyPayload::new("Turn light off worked perfectly"))
+    }
+
+    async fn turn_light_off_stateless() -> Result<EmptyPayload, ActionError> {
+        Ok(EmptyPayload::new("Turn light off worked perfectly"))
+    }
+
+    async fn toggle(State(_state): State<LightState>) -> Result<EmptyPayload, ActionError> {
+        Ok(EmptyPayload::new("Toggle worked perfectly"))
+    }
+
+    async fn toggle_stateless() -> Result<EmptyPayload, ActionError> {
+        Ok(EmptyPayload::new("Toggle worked perfectly"))
+    }
+
+    struct Routes {
+        light_on_route: RouteHazards,
+        light_on_post_route: RouteHazards,
+        light_off_route: RouteHazards,
+        toggle_route: RouteHazards,
+    }
+
+    #[inline]
+    fn create_routes() -> Routes {
+        Routes {
+            light_on_route: RouteHazards::single_hazard(
+                Route::put("/on").description("Turn light on.").inputs([
+                    Input::rangef64("brightness", (0., 20., 0.1, 0.)),
+                    Input::boolean("save-energy", false),
+                ]),
+                Hazard::FireHazard,
+            ),
+            light_on_post_route: RouteHazards::no_hazards(
+                Route::post("/on").description("Turn light on.").inputs([
+                    Input::rangef64("brightness", (0., 20., 0.1, 0.)),
+                    Input::boolean("save-energy", false),
+                ]),
+            ),
+            light_off_route: RouteHazards::no_hazards(
+                Route::put("/off").description("Turn light off."),
+            ),
+            toggle_route: RouteHazards::no_hazards(
+                Route::put("/toggle").description("Toggle a light."),
+            ),
+        }
+    }
+
+    #[test]
+    fn complete_with_state() {
+        let routes = create_routes();
+
+        Light::with_state(LightState {})
+            .turn_light_on(mandatory_serial_stateful(
+                routes.light_on_route,
+                turn_light_on,
+            ))
+            .unwrap()
+            .turn_light_off(mandatory_empty_stateful(
+                routes.light_off_route,
+                turn_light_off,
+            ))
+            .add_action(serial_stateful(routes.light_on_post_route, turn_light_on))
+            .unwrap()
+            .add_action(empty_stateful(routes.toggle_route, toggle))
+            .unwrap()
+            .into_device();
+
+        assert!(true);
+    }
+
+    #[test]
+    fn without_action_with_state() {
+        let routes = create_routes();
+
+        Light::with_state(LightState {})
+            .turn_light_on(mandatory_serial_stateful(
+                routes.light_on_route,
+                turn_light_on,
+            ))
+            .unwrap()
+            .turn_light_off(mandatory_empty_stateful(
+                routes.light_off_route,
+                turn_light_off,
+            ))
+            .into_device();
+
+        assert!(true);
+    }
+
+    #[test]
+    fn stateless_action_with_state() {
+        let routes = create_routes();
+
+        Light::with_state(LightState {})
+            .turn_light_on(mandatory_serial_stateful(
+                routes.light_on_route,
+                turn_light_on,
+            ))
+            .unwrap()
+            .turn_light_off(mandatory_empty_stateful(
+                routes.light_off_route,
+                turn_light_off,
+            ))
+            .add_action(serial_stateful(routes.light_on_post_route, turn_light_on))
+            .unwrap()
+            .add_action(empty_stateless(routes.toggle_route, toggle_stateless))
+            .unwrap()
+            .into_device();
+
+        assert!(true);
+    }
+
+    #[test]
+    fn complete_without_state() {
+        let routes = create_routes();
+
+        Light::new()
+            .turn_light_on(mandatory_serial_stateless(
+                routes.light_on_route,
+                turn_light_on_stateless,
+            ))
+            .unwrap()
+            .turn_light_off(mandatory_empty_stateless(
+                routes.light_off_route,
+                turn_light_off_stateless,
+            ))
+            .add_action(serial_stateless(
+                routes.light_on_post_route,
+                turn_light_on_stateless,
+            ))
+            .unwrap()
+            .add_action(empty_stateless(routes.toggle_route, toggle_stateless))
+            .unwrap()
+            .into_device();
+
+        assert!(true);
+    }
+
+    #[test]
+    fn without_action_and_state() {
+        let routes = create_routes();
+
+        Light::new()
+            .turn_light_on(mandatory_serial_stateless(
+                routes.light_on_route,
+                turn_light_on_stateless,
+            ))
+            .unwrap()
+            .turn_light_off(mandatory_empty_stateless(
+                routes.light_off_route,
+                turn_light_off_stateless,
+            ))
+            .into_device();
+
+        assert!(true);
     }
 }
