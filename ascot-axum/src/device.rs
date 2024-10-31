@@ -343,7 +343,7 @@ mod tests {
                 ),
                 serial_action_with_substate2,
             ))
-            .add_action(info_stateful(
+            .add_info_action(info_stateful(
                 RouteHazards::no_hazards(
                     Route::put("/substate-info")
                         .description("Run an informative action with a substate."),
