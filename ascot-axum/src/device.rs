@@ -28,6 +28,20 @@ where
     routes_hazards: RoutesHazards,
 }
 
+impl Default for Device<()> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl Device<()> {
+    /// Creates an unknown [`Device`] without a state.
+    #[inline(always)]
+    pub fn new() -> Self {
+        Self::with_state(())
+    }
+}
+
 impl<S> DeviceSerializer for Device<S>
 where
     S: Clone + Send + Sync + 'static,
@@ -50,20 +64,6 @@ where
             main_route: self.main_route,
             route_configs,
         }
-    }
-}
-
-impl Default for Device<()> {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-impl Device<()> {
-    /// Creates an unknown [`Device`] without a state.
-    #[inline(always)]
-    pub fn new() -> Self {
-        Self::with_state(())
     }
 }
 
