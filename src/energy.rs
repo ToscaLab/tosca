@@ -176,17 +176,17 @@ pub struct WaterUseEfficiency {
     ///
     /// Article: <https://www.sciencedirect.com/science/article/abs/pii/S0168192313002141>
     #[serde(rename = "gross-primary-productivity")]
-    gpp: Option<f64>,
+    pub gpp: Option<f64>,
     /// Penman–Monteith Equation.
     ///
     /// Article: <https://www.frontiersin.org/journals/plant-science/articles/10.3389/fpls.2019.00103/full#B7>
     #[serde(rename = "penman-monteith-equation")]
-    penman_monteith_equation: Option<f64>,
+    pub penman_monteith_equation: Option<f64>,
     /// Water Equivalent Ratio (WER).
     ///
     /// Article: <https://www.sciencedirect.com/science/article/abs/pii/S0378377416303924>
     #[serde(rename = "water-equivalent-ratio")]
-    wer: Option<f64>,
+    pub wer: Option<f64>,
 }
 
 impl WaterUseEfficiency {
