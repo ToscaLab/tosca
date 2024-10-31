@@ -10,17 +10,20 @@ use async_lock::Mutex;
 use serde::{Deserialize, Serialize};
 
 // Ascot library.
+use ascot_library::device::DeviceInfo;
+use ascot_library::energy::{EnergyClass, EnergyEfficiencies, EnergyEfficiency};
 use ascot_library::hazards::Hazard;
 use ascot_library::input::Input;
 use ascot_library::route::{Route, RouteHazards};
 
 // Ascot axum device.
 use ascot_axum::actions::empty::{empty_stateful, mandatory_empty_stateful, EmptyPayload};
+use ascot_axum::actions::info::{info_stateful, InfoPayload};
 use ascot_axum::actions::serial::{mandatory_serial_stateful, serial_stateful, SerialPayload};
 use ascot_axum::actions::ActionError;
 use ascot_axum::devices::light::Light;
 use ascot_axum::error::Error;
-use ascot_axum::extract::{Json, State};
+use ascot_axum::extract::{FromRef, Json, State};
 use ascot_axum::server::AscotServer;
 use ascot_axum::service::ServiceConfig;
 
@@ -33,16 +36,31 @@ use tracing_subscriber::filter::LevelFilter;
 // A light implementation mock-up
 use light_mockup::LightMockup;
 
-#[derive(Clone, Default)]
-struct LightState(Arc<Mutex<LightMockup>>);
+#[derive(Clone)]
+struct LightState {
+    state: InternalState,
+    info: LightInfoState,
+}
 
 impl LightState {
+    fn new(state: LightMockup, info: DeviceInfo) -> Self {
+        Self {
+            state: InternalState::new(state),
+            info: LightInfoState::new(info),
+        }
+    }
+}
+
+#[derive(Clone, Default)]
+struct InternalState(Arc<Mutex<LightMockup>>);
+
+impl InternalState {
     fn new(light: LightMockup) -> Self {
         Self(Arc::new(Mutex::new(light)))
     }
 }
 
-impl core::ops::Deref for LightState {
+impl core::ops::Deref for InternalState {
     type Target = Arc<Mutex<LightMockup>>;
 
     fn deref(&self) -> &Self::Target {
@@ -50,9 +68,48 @@ impl core::ops::Deref for LightState {
     }
 }
 
-impl core::ops::DerefMut for LightState {
+impl core::ops::DerefMut for InternalState {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
+    }
+}
+
+impl FromRef<LightState> for InternalState {
+    fn from_ref(light_state: &LightState) -> InternalState {
+        light_state.state.clone()
+    }
+}
+
+#[derive(Clone)]
+struct LightInfoState {
+    info: Arc<Mutex<DeviceInfo>>,
+}
+
+impl LightInfoState {
+    fn new(info: DeviceInfo) -> Self {
+        Self {
+            info: Arc::new(Mutex::new(info)),
+        }
+    }
+}
+
+impl core::ops::Deref for LightInfoState {
+    type Target = Arc<Mutex<DeviceInfo>>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.info
+    }
+}
+
+impl core::ops::DerefMut for LightInfoState {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.info
+    }
+}
+
+impl FromRef<LightState> for LightInfoState {
+    fn from_ref(light_state: &LightState) -> LightInfoState {
+        light_state.info.clone()
     }
 }
 
@@ -71,7 +128,7 @@ struct Inputs {
 }
 
 async fn turn_light_on(
-    State(state): State<LightState>,
+    State(state): State<InternalState>,
     Json(inputs): Json<Inputs>,
 ) -> Result<SerialPayload<LightOnResponse>, ActionError> {
     let mut light = state.lock().await;
@@ -83,14 +140,43 @@ async fn turn_light_on(
     }))
 }
 
-async fn turn_light_off(State(state): State<LightState>) -> Result<EmptyPayload, ActionError> {
+async fn turn_light_off(State(state): State<InternalState>) -> Result<EmptyPayload, ActionError> {
     state.lock().await.turn_light_off();
     Ok(EmptyPayload::new("Turn light off worked perfectly"))
 }
 
-async fn toggle(State(state): State<LightState>) -> Result<EmptyPayload, ActionError> {
+async fn toggle(State(state): State<InternalState>) -> Result<EmptyPayload, ActionError> {
     state.lock().await.toggle();
     Ok(EmptyPayload::new("Toggle worked perfectly"))
+}
+
+async fn info(State(state): State<LightInfoState>) -> Result<InfoPayload, ActionError> {
+    // Retrieve light information state.
+    let light_info = state.lock().await.clone();
+
+    Ok(InfoPayload::new(light_info))
+}
+
+async fn update_energy_efficiency(
+    State(state): State<LightState>,
+) -> Result<InfoPayload, ActionError> {
+    // Retrieve internal state.
+    let light = state.state.lock().await;
+
+    // Retrieve light info state.
+    let mut light_info = state.info.lock().await;
+
+    // Compute a new energy efficiency according to the brightness value
+    let energy_efficiency = if light.brightness as i64 > 15 {
+        EnergyEfficiency::new(5, EnergyClass::C)
+    } else {
+        EnergyEfficiency::new(-5, EnergyClass::D)
+    };
+
+    // Change energy information replacing the old ones.
+    light_info.energy.energy_efficiencies = Some(EnergyEfficiencies::init(energy_efficiency));
+
+    Ok(InfoPayload::new(light_info.clone()))
 }
 
 #[derive(Parser)]
@@ -129,7 +215,7 @@ async fn main() -> Result<(), Error> {
     let cli = Cli::parse();
 
     // Define a state for the light.
-    let state = LightState::new(LightMockup::default());
+    let state = LightState::new(LightMockup::default(), DeviceInfo::empty());
 
     // Turn light on `PUT` route.
     let light_on_route = RouteHazards::single_hazard(
@@ -155,6 +241,15 @@ async fn main() -> Result<(), Error> {
     let toggle_route =
         RouteHazards::no_hazards(Route::put("/toggle").description("Toggle a light."));
 
+    // Device info `GET` route.
+    let info_route =
+        RouteHazards::no_hazards(Route::get("/info").description("Get info about a light."));
+
+    // Update energy efficiency `GET` route.
+    let update_energy_efficiency_route = RouteHazards::no_hazards(
+        Route::get("/update-energy").description("Update energy efficiency."),
+    );
+
     // A light device which is going to be run on the server.
     let device = Light::with_state(state)
         // This method is mandatory, if not called, a compiler error is raised.
@@ -163,6 +258,11 @@ async fn main() -> Result<(), Error> {
         .turn_light_off(mandatory_empty_stateful(light_off_route, turn_light_off))
         .add_action(serial_stateful(light_on_post_route, turn_light_on))?
         .add_action(empty_stateful(toggle_route, toggle))?
+        .add_action(info_stateful(info_route, info))?
+        .add_action(info_stateful(
+            update_energy_efficiency_route,
+            update_energy_efficiency,
+        ))?
         .into_device();
 
     // Run a discovery service and the device on the server.
