@@ -58,27 +58,29 @@ macro_rules! impl_info_type_name {
 super::all_the_tuples!(impl_info_type_name);
 
 /// Creates a stateful [`DeviceAction`] with a [`InfoPayload`].
-pub fn info_stateful<H, T, S>(
+pub fn info_stateful<H, T, S, I>(
     route_hazards: RouteHazards,
     handler: H,
-) -> impl FnOnce(S) -> DeviceAction
+) -> impl FnOnce(S, I) -> DeviceAction
 where
     H: Handler<T, S> + private::InfoTypeName<T>,
     T: 'static,
     S: Clone + Send + Sync + 'static,
+    I: 'static,
 {
-    move |state: S| DeviceAction::stateful(route_hazards, handler, state)
+    move |state: S, _: I| DeviceAction::stateful(route_hazards, handler, state)
 }
 
 /// Creates a stateless [`DeviceAction`] with a [`InfoPayload`].
-pub fn info_stateless<H, T, S>(
+pub fn info_stateless<H, T, S, I>(
     route_hazards: RouteHazards,
     handler: H,
-) -> impl FnOnce(S) -> DeviceAction
+) -> impl FnOnce(S, I) -> DeviceAction
 where
     H: Handler<T, ()> + private::InfoTypeName<T>,
     T: 'static,
     S: Clone + Send + Sync + 'static,
+    I: 'static,
 {
-    move |_state: S| DeviceAction::stateless(route_hazards, handler)
+    move |_state: S, _: I| DeviceAction::stateless(route_hazards, handler)
 }

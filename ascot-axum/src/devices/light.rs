@@ -148,6 +148,18 @@ where
         Ok(self)
     }
 
+    /// Adds an informative action for [`Light`].
+    pub fn add_info_action(
+        mut self,
+        light_info_action: impl FnOnce(S, ()) -> DeviceAction,
+    ) -> Self {
+        let light_info_action = light_info_action(self.device.state.clone(), ());
+
+        self.device = self.device.add_device_action(light_info_action);
+
+        self
+    }
+
     /// Converts a [`Light`] into a [`Device`].
     pub fn into_device(self) -> Device<S> {
         self.device

@@ -163,6 +163,18 @@ where
         Ok(self)
     }
 
+    /// Adds an informative action for [`Fridge`].
+    pub fn add_info_action(
+        mut self,
+        fridge_info_action: impl FnOnce(S, ()) -> DeviceAction,
+    ) -> Self {
+        let fridge_info_action = fridge_info_action(self.device.state.clone(), ());
+
+        self.device = self.device.add_device_action(fridge_info_action);
+
+        self
+    }
+
     /// Converts a [`Fridge`] into a [`Device`].
     pub fn into_device(self) -> Device<S> {
         self.device

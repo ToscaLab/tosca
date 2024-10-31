@@ -90,6 +90,12 @@ where
         self.add_device_action(device_action)
     }
 
+    /// Adds an informative action to the [`Device`].
+    pub fn add_info_action(self, device_info_action: impl FnOnce(S, ()) -> DeviceAction) -> Self {
+        let device_info_action = device_info_action(self.state.clone(), ());
+        self.add_device_action(device_info_action)
+    }
+
     #[inline]
     pub(crate) fn init(kind: DeviceKind, state: S) -> Self {
         Self {
