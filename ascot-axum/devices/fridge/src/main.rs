@@ -266,11 +266,11 @@ async fn main() -> Result<(), Error> {
             increase_temp_post_route,
             increase_temperature,
         ))?
-        .add_action(info_stateful(info_route, info))?
-        .add_action(info_stateful(
+        .add_info_action(info_stateful(info_route, info))
+        .add_info_action(info_stateful(
             update_energy_efficiency_route,
             update_energy_efficiency,
-        ))?
+        ))
         .into_device();
 
     // Run a discovery service and the device on the server.

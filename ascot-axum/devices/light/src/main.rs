@@ -258,11 +258,11 @@ async fn main() -> Result<(), Error> {
         .turn_light_off(mandatory_empty_stateful(light_off_route, turn_light_off))
         .add_action(serial_stateful(light_on_post_route, turn_light_on))?
         .add_action(empty_stateful(toggle_route, toggle))?
-        .add_action(info_stateful(info_route, info))?
-        .add_action(info_stateful(
+        .add_info_action(info_stateful(info_route, info))
+        .add_info_action(info_stateful(
             update_energy_efficiency_route,
             update_energy_efficiency,
-        ))?
+        ))
         .into_device();
 
     // Run a discovery service and the device on the server.
