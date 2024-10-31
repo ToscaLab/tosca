@@ -10,16 +10,19 @@ use async_lock::Mutex;
 use serde::{Deserialize, Serialize};
 
 // Ascot library.
+use ascot_library::device::DeviceInfo;
+use ascot_library::energy::{EnergyClass, EnergyEfficiencies, EnergyEfficiency};
 use ascot_library::hazards::Hazard;
 use ascot_library::input::Input;
 use ascot_library::route::{Route, RouteHazards};
 
 // Ascot axum.
+use ascot_axum::actions::info::{info_stateful, InfoPayload};
 use ascot_axum::actions::serial::{mandatory_serial_stateful, serial_stateful, SerialPayload};
 use ascot_axum::actions::ActionError;
 use ascot_axum::devices::fridge::Fridge;
 use ascot_axum::error::Error;
-use ascot_axum::extract::{Json, State};
+use ascot_axum::extract::{FromRef, Json, State};
 use ascot_axum::server::AscotServer;
 use ascot_axum::service::ServiceConfig;
 
@@ -32,16 +35,31 @@ use tracing_subscriber::filter::LevelFilter;
 // A fridge implementation mock-up
 use fridge_mockup::FridgeMockup;
 
-#[derive(Clone, Default)]
-struct FridgeState(Arc<Mutex<FridgeMockup>>);
+#[derive(Clone)]
+struct FridgeState {
+    state: InternalState,
+    info: FridgeInfoState,
+}
 
 impl FridgeState {
+    fn new(state: FridgeMockup, info: DeviceInfo) -> Self {
+        Self {
+            state: InternalState::new(state),
+            info: FridgeInfoState::new(info),
+        }
+    }
+}
+
+#[derive(Clone, Default)]
+struct InternalState(Arc<Mutex<FridgeMockup>>);
+
+impl InternalState {
     fn new(fridge: FridgeMockup) -> Self {
         Self(Arc::new(Mutex::new(fridge)))
     }
 }
 
-impl core::ops::Deref for FridgeState {
+impl core::ops::Deref for InternalState {
     type Target = Arc<Mutex<FridgeMockup>>;
 
     fn deref(&self) -> &Self::Target {
@@ -49,9 +67,48 @@ impl core::ops::Deref for FridgeState {
     }
 }
 
-impl core::ops::DerefMut for FridgeState {
+impl core::ops::DerefMut for InternalState {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
+    }
+}
+
+impl FromRef<FridgeState> for InternalState {
+    fn from_ref(fridge_state: &FridgeState) -> InternalState {
+        fridge_state.state.clone()
+    }
+}
+
+#[derive(Clone)]
+struct FridgeInfoState {
+    info: Arc<Mutex<DeviceInfo>>,
+}
+
+impl FridgeInfoState {
+    fn new(info: DeviceInfo) -> Self {
+        Self {
+            info: Arc::new(Mutex::new(info)),
+        }
+    }
+}
+
+impl core::ops::Deref for FridgeInfoState {
+    type Target = Arc<Mutex<DeviceInfo>>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.info
+    }
+}
+
+impl core::ops::DerefMut for FridgeInfoState {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.info
+    }
+}
+
+impl FromRef<FridgeState> for FridgeInfoState {
+    fn from_ref(fridge_state: &FridgeState) -> FridgeInfoState {
+        fridge_state.info.clone()
     }
 }
 
@@ -66,7 +123,7 @@ struct ChangeTempResponse {
 }
 
 async fn increase_temperature(
-    State(state): State<FridgeState>,
+    State(state): State<InternalState>,
     Json(inputs): Json<IncreaseTemperature>,
 ) -> Result<SerialPayload<ChangeTempResponse>, ActionError> {
     let mut fridge = state.lock().await;
@@ -83,7 +140,7 @@ struct DecreaseTemperature {
 }
 
 async fn decrease_temperature(
-    State(state): State<FridgeState>,
+    State(state): State<InternalState>,
     Json(inputs): Json<DecreaseTemperature>,
 ) -> Result<SerialPayload<ChangeTempResponse>, ActionError> {
     let mut fridge = state.lock().await;
@@ -92,6 +149,35 @@ async fn decrease_temperature(
     Ok(SerialPayload::new(ChangeTempResponse {
         temperature: fridge.temperature,
     }))
+}
+
+async fn info(State(state): State<FridgeInfoState>) -> Result<InfoPayload, ActionError> {
+    // Retrieve fridge information state.
+    let fridge_info = state.lock().await.clone();
+
+    Ok(InfoPayload::new(fridge_info))
+}
+
+async fn update_energy_efficiency(
+    State(state): State<FridgeState>,
+) -> Result<InfoPayload, ActionError> {
+    // Retrieve internal state.
+    let fridge = state.state.lock().await;
+
+    // Retrieve fridge info state.
+    let mut fridge_info = state.info.lock().await;
+
+    // Compute a new energy efficiency according to the temperature value
+    let energy_efficiency = if fridge.temperature.is_sign_negative() {
+        EnergyEfficiency::new(5, EnergyClass::C)
+    } else {
+        EnergyEfficiency::new(-5, EnergyClass::D)
+    };
+
+    // Change energy efficiencies information replacing the old ones.
+    fridge_info.energy.energy_efficiencies = Some(EnergyEfficiencies::init(energy_efficiency));
+
+    Ok(InfoPayload::new(fridge_info.clone()))
 }
 
 #[derive(Parser)]
@@ -130,7 +216,7 @@ async fn main() -> Result<(), Error> {
     let cli = Cli::parse();
 
     // Define a state for the fridge.
-    let state = FridgeState::new(FridgeMockup::default());
+    let state = FridgeState::new(FridgeMockup::default(), DeviceInfo::empty());
 
     // Increase temperature `PUT` route.
     let increase_temp_route = RouteHazards::with_hazards(
@@ -155,6 +241,15 @@ async fn main() -> Result<(), Error> {
             .input(Input::rangef64("increment", (1., 4., 0.1, 2.))),
     );
 
+    // Device info `GET` route.
+    let info_route =
+        RouteHazards::no_hazards(Route::get("/info").description("Get info about a fridge."));
+
+    // Update energy efficiency `GET` route.
+    let update_energy_efficiency_route = RouteHazards::no_hazards(
+        Route::get("/update-energy").description("Update energy efficiency."),
+    );
+
     // A fridge device which is going to be run on the server.
     let device = Fridge::with_state(state)
         // This method is mandatory, if not called, a compiler error is raised.
@@ -170,6 +265,11 @@ async fn main() -> Result<(), Error> {
         .add_action(serial_stateful(
             increase_temp_post_route,
             increase_temperature,
+        ))?
+        .add_action(info_stateful(info_route, info))?
+        .add_action(info_stateful(
+            update_energy_efficiency_route,
+            update_energy_efficiency,
         ))?
         .into_device();
 
