@@ -8,7 +8,7 @@ use crate::strings::MiniString;
 pub enum PayloadKind {
     /// No data.
     Empty,
-    /// Serial data (i.e JSON).
+    /// Serial data (i.e. JSON).
     Serial,
     /// Informative data on a device (i.e. JSON).
     Info,
@@ -16,7 +16,7 @@ pub enum PayloadKind {
     Stream,
 }
 
-/// Empty payload.
+/// Empty payload with only a description.
 #[derive(Serialize, Deserialize)]
 pub struct EmptyPayload {
     // Empty payload description (maximum 32 byte-long).
@@ -24,7 +24,7 @@ pub struct EmptyPayload {
 }
 
 impl EmptyPayload {
-    /// Creates a new [`EmptyPayload`].
+    /// Creates an [`EmptyPayload`].
     #[inline(always)]
     pub fn new(description: &str) -> Self {
         Self {
@@ -33,7 +33,7 @@ impl EmptyPayload {
     }
 }
 
-/// Serial payload structure.
+/// Serial payload.
 #[derive(Serialize, Deserialize)]
 pub struct SerialPayload<S: Serialize> {
     // Serializable data.
@@ -42,7 +42,7 @@ pub struct SerialPayload<S: Serialize> {
 }
 
 impl<S: Serialize> SerialPayload<S> {
-    /// Creates a new [`SerialPayload`].
+    /// Creates a [`SerialPayload`].
     pub const fn new(data: S) -> Self {
         Self { data }
     }
@@ -62,6 +62,8 @@ impl InfoPayload {
         Self { data }
     }
 }
+
+/// Stream payload.
 pub struct StreamPayload<'a> {
     // Stream type.
     #[allow(dead_code)]
@@ -72,7 +74,7 @@ pub struct StreamPayload<'a> {
 }
 
 impl<'a> StreamPayload<'a> {
-    /// Creates a new [`StreamPayload`].
+    /// Creates a [`StreamPayload`].
     pub const fn new(stream_type: (&'a str, &'a str)) -> Self {
         Self {
             stream_type,
