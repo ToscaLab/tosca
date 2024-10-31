@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 
+use crate::device::DeviceInfo;
 use crate::strings::MiniString;
 
 /// Payload kinds.
@@ -9,6 +10,8 @@ pub enum PayloadKind {
     Empty,
     /// Serial data (i.e JSON).
     Serial,
+    /// Informative data on a device (i.e. JSON).
+    Info,
     /// Stream of data (bytes).
     Stream,
 }
@@ -45,7 +48,20 @@ impl<S: Serialize> SerialPayload<S> {
     }
 }
 
-/// Stream payload structure.
+/// Informative payload.
+#[derive(Serialize, Deserialize)]
+pub struct InfoPayload {
+    // Serializable data.
+    #[serde(flatten)]
+    data: DeviceInfo,
+}
+
+impl InfoPayload {
+    /// Creates a [`InfoPayload`].
+    pub const fn new(data: DeviceInfo) -> Self {
+        Self { data }
+    }
+}
 pub struct StreamPayload<'a> {
     // Stream type.
     #[allow(dead_code)]
