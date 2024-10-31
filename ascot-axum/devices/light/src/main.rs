@@ -180,7 +180,7 @@ async fn update_energy_efficiency(
 }
 
 #[derive(Parser)]
-#[command(version, about, long_about = None)]
+#[command(version, about, long_about = "A complete light device example.")]
 struct Cli {
     /// Server address.
     ///
@@ -197,7 +197,7 @@ struct Cli {
     port: u16,
 
     /// Service domain.
-    #[arg(short, long, default_value = "device")]
+    #[arg(short, long, default_value = "light")]
     domain: String,
 
     /// Service type.
