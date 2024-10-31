@@ -111,19 +111,104 @@ where
 
 #[cfg(test)]
 mod tests {
+    extern crate alloc;
+
+    use alloc::sync::Arc;
+
+    use core::ops::{Deref, DerefMut};
+
+    use ascot_library::device::DeviceInfo;
+    use ascot_library::energy::Energy;
     use ascot_library::route::{Route, RouteHazards};
 
-    use axum::extract::{Json, State};
+    use async_lock::Mutex;
+
+    use axum::extract::{FromRef, Json, State};
 
     use serde::{Deserialize, Serialize};
 
+    use crate::actions::info::{info_stateful, InfoPayload};
     use crate::actions::serial::{serial_stateful, serial_stateless, SerialPayload};
     use crate::actions::ActionError;
 
     use super::Device;
 
     #[derive(Clone)]
-    struct DeviceState;
+    struct DeviceState<S>
+    where
+        S: Clone + Send + Sync + 'static,
+    {
+        state: S,
+        info: DeviceInfoState,
+    }
+
+    impl DeviceState<()> {
+        fn empty() -> Self {
+            Self::new(())
+        }
+    }
+
+    impl<S> DeviceState<S>
+    where
+        S: Clone + Send + Sync + 'static,
+    {
+        fn new(state: S) -> Self {
+            Self {
+                state,
+                info: DeviceInfoState::new(DeviceInfo::empty()),
+            }
+        }
+
+        fn add_device_info(mut self, info: DeviceInfo) -> Self {
+            self.info = DeviceInfoState::new(info);
+            self
+        }
+    }
+
+    #[derive(Clone)]
+    struct SubState {}
+
+    impl FromRef<DeviceState<SubState>> for SubState {
+        fn from_ref(device_state: &DeviceState<SubState>) -> SubState {
+            device_state.state.clone()
+        }
+    }
+
+    #[derive(Clone)]
+    struct DeviceInfoState {
+        info: Arc<Mutex<DeviceInfo>>,
+    }
+
+    impl DeviceInfoState {
+        fn new(info: DeviceInfo) -> Self {
+            Self {
+                info: Arc::new(Mutex::new(info)),
+            }
+        }
+    }
+
+    impl Deref for DeviceInfoState {
+        type Target = Arc<Mutex<DeviceInfo>>;
+
+        fn deref(&self) -> &Self::Target {
+            &self.info
+        }
+    }
+
+    impl DerefMut for DeviceInfoState {
+        fn deref_mut(&mut self) -> &mut Self::Target {
+            &mut self.info
+        }
+    }
+
+    impl<S> FromRef<DeviceState<S>> for DeviceInfoState
+    where
+        S: Clone + Send + Sync + 'static,
+    {
+        fn from_ref(device_state: &DeviceState<S>) -> DeviceInfoState {
+            device_state.info.clone()
+        }
+    }
 
     #[derive(Deserialize)]
     struct Inputs {
@@ -135,8 +220,8 @@ mod tests {
         parameter: f64,
     }
 
-    async fn action_with_state(
-        State(_state): State<DeviceState>,
+    async fn serial_action_with_state(
+        State(_state): State<DeviceState<()>>,
         Json(inputs): Json<Inputs>,
     ) -> Result<SerialPayload<DeviceResponse>, ActionError> {
         Ok(SerialPayload::new(DeviceResponse {
@@ -144,7 +229,50 @@ mod tests {
         }))
     }
 
-    async fn action_without_state(
+    async fn serial_action_with_substate1(
+        State(_state): State<SubState>,
+        Json(inputs): Json<Inputs>,
+    ) -> Result<SerialPayload<DeviceResponse>, ActionError> {
+        Ok(SerialPayload::new(DeviceResponse {
+            parameter: inputs.parameter,
+        }))
+    }
+
+    #[derive(Serialize)]
+    struct DeviceInfoResponse {
+        parameter: f64,
+        device_info: DeviceInfo,
+    }
+
+    async fn serial_action_with_substate2(
+        State(state): State<DeviceInfoState>,
+        Json(inputs): Json<Inputs>,
+    ) -> Result<SerialPayload<DeviceInfoResponse>, ActionError> {
+        // Retrieve internal state
+        let mut device_info = state.lock().await;
+
+        // Change state.
+        device_info.energy = Energy::empty();
+
+        Ok(SerialPayload::new(DeviceInfoResponse {
+            parameter: inputs.parameter,
+            device_info: device_info.clone(),
+        }))
+    }
+
+    async fn info_action_with_substate3(
+        State(state): State<DeviceInfoState>,
+    ) -> Result<InfoPayload, ActionError> {
+        // Retrieve internal state
+        let mut device_info = state.lock().await;
+
+        // Change state.
+        device_info.energy = Energy::empty();
+
+        Ok(InfoPayload::new(device_info.clone()))
+    }
+
+    async fn serial_action_without_state(
         Json(inputs): Json<Inputs>,
     ) -> Result<SerialPayload<DeviceResponse>, ActionError> {
         Ok(SerialPayload::new(DeviceResponse {
@@ -173,11 +301,49 @@ mod tests {
     fn with_state() {
         let routes = create_routes();
 
-        Device::with_state(DeviceState {})
-            .add_action(serial_stateful(routes.with_state_route, action_with_state))
+        let state = DeviceState::empty().add_device_info(DeviceInfo::empty());
+
+        Device::with_state(state)
+            .add_action(serial_stateful(
+                routes.with_state_route,
+                serial_action_with_state,
+            ))
             .add_action(serial_stateless(
                 routes.without_state_route,
-                action_without_state,
+                serial_action_without_state,
+            ));
+
+        assert!(true);
+    }
+
+    #[test]
+    fn with_substates() {
+        let routes = create_routes();
+
+        let state = DeviceState::new(SubState {}).add_device_info(DeviceInfo::empty());
+
+        Device::with_state(state)
+            .add_action(serial_stateful(
+                routes.with_state_route,
+                serial_action_with_substate1,
+            ))
+            .add_action(serial_stateful(
+                RouteHazards::no_hazards(
+                    Route::put("/substate-action")
+                        .description("Run a serial action with a substate."),
+                ),
+                serial_action_with_substate2,
+            ))
+            .add_action(info_stateful(
+                RouteHazards::no_hazards(
+                    Route::put("/substate-info")
+                        .description("Run an informative action with a substate."),
+                ),
+                info_action_with_substate3,
+            ))
+            .add_action(serial_stateless(
+                routes.without_state_route,
+                serial_action_without_state,
             ));
 
         assert!(true);
@@ -189,7 +355,7 @@ mod tests {
 
         Device::new().add_action(serial_stateless(
             routes.without_state_route,
-            action_without_state,
+            serial_action_without_state,
         ));
 
         assert!(true);
