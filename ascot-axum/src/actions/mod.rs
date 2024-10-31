@@ -1,4 +1,5 @@
 pub mod empty;
+pub mod info;
 pub mod serial;
 
 use core::marker::PhantomData;
