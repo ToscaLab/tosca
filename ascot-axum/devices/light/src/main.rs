@@ -173,7 +173,7 @@ async fn update_energy_efficiency(
         EnergyEfficiency::new(-5, EnergyClass::D)
     };
 
-    // Change energy information replacing the old ones.
+    // Change energy efficiencies information replacing the old ones.
     light_info.energy.energy_efficiencies = Some(EnergyEfficiencies::init(energy_efficiency));
 
     Ok(InfoPayload::new(light_info.clone()))
