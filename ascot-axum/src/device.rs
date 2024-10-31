@@ -244,11 +244,14 @@ mod tests {
         device_info: DeviceInfo,
     }
 
+    // This method is just a demonstration of this library flexibility,
+    // but we do not recommend it because a DeviceInfo inside a SerialPayload
+    // could be ignored as response by a receiver.
     async fn serial_action_with_substate2(
         State(state): State<DeviceInfoState>,
         Json(inputs): Json<Inputs>,
     ) -> Result<SerialPayload<DeviceInfoResponse>, ActionError> {
-        // Retrieve internal state
+        // Retrieve internal state.
         let mut device_info = state.lock().await;
 
         // Change state.
@@ -263,7 +266,7 @@ mod tests {
     async fn info_action_with_substate3(
         State(state): State<DeviceInfoState>,
     ) -> Result<InfoPayload, ActionError> {
-        // Retrieve internal state
+        // Retrieve internal state.
         let mut device_info = state.lock().await;
 
         // Change state.
