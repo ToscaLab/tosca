@@ -21,7 +21,7 @@ const ALLOWED_HAZARDS: &[Hazard] = &[Hazard::ElectricEnergyConsumption, Hazard::
 ///
 /// If a smart home needs more fridges, each fridge **MUST** provide a
 /// **different** main route in order to be registered.
-pub struct Fridge<M1 = (), M2 = (), S = ()>
+pub struct Fridge<const M1: bool, const M2: bool, S = ()>
 where
     S: Clone + Send + Sync + 'static,
 {
@@ -35,13 +35,13 @@ where
     allowed_hazards: &'static [Hazard],
 }
 
-impl Default for Fridge<(), (), ()> {
+impl Default for Fridge<false, false, ()> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl Fridge<(), (), ()> {
+impl Fridge<false, false, ()> {
     /// Creates a [`Fridge`] instance without a state.
     #[inline(always)]
     pub fn new() -> Self {
@@ -49,7 +49,7 @@ impl Fridge<(), (), ()> {
     }
 }
 
-impl<S> Fridge<(), (), S>
+impl<S> Fridge<false, false, S>
 where
     S: Clone + Send + Sync + 'static,
 {
@@ -73,8 +73,8 @@ where
     /// error is raised.**.
     pub fn increase_temperature(
         self,
-        increase_temperature: impl FnOnce(S) -> MandatoryAction<()>,
-    ) -> Result<Fridge<u8, (), S>> {
+        increase_temperature: impl FnOnce(S) -> MandatoryAction<false>,
+    ) -> Result<Fridge<true, false, S>> {
         let increase_temperature = increase_temperature(self.device.state.clone());
 
         // Raise an error whether increase_temperature does not contain
@@ -98,7 +98,7 @@ where
     }
 }
 
-impl<S> Fridge<u8, (), S>
+impl<S> Fridge<true, false, S>
 where
     S: Clone + Send + Sync + 'static,
 {
@@ -108,8 +108,8 @@ where
     /// error is raised.**.
     pub fn decrease_temperature(
         self,
-        decrease_temperature: impl FnOnce(S) -> MandatoryAction<()>,
-    ) -> Result<Fridge<u8, u8, S>> {
+        decrease_temperature: impl FnOnce(S) -> MandatoryAction<false>,
+    ) -> Result<Fridge<true, true, S>> {
         let decrease_temperature = decrease_temperature(self.device.state.clone());
 
         // Raise an error whether decrease_temperature does not contain
@@ -133,7 +133,7 @@ where
     }
 }
 
-impl<S> Fridge<u8, u8, S>
+impl<S> Fridge<true, true, S>
 where
     S: Clone + Send + Sync + 'static,
 {

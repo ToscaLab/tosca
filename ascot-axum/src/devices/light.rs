@@ -20,7 +20,7 @@ const ALLOWED_HAZARDS: &[Hazard] = &[Hazard::FireHazard, Hazard::ElectricEnergyC
 ///
 /// If a smart home needs more lights, each light **MUST** provide a
 /// **different** main route in order to be registered.
-pub struct Light<M1 = (), M2 = (), S = ()>
+pub struct Light<const M1: bool, const M2: bool, S = ()>
 where
     S: Clone + Send + Sync + 'static,
 {
@@ -34,13 +34,13 @@ where
     allowed_hazards: &'static [Hazard],
 }
 
-impl Default for Light<(), (), ()> {
+impl Default for Light<false, false, ()> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl Light<(), (), ()> {
+impl Light<false, false, ()> {
     /// Creates a [`Light`] instance without a state.
     #[inline(always)]
     pub fn new() -> Self {
@@ -48,7 +48,7 @@ impl Light<(), (), ()> {
     }
 }
 
-impl<S> Light<(), (), S>
+impl<S> Light<false, false, S>
 where
     S: Clone + Send + Sync + 'static,
 {
@@ -72,8 +72,8 @@ where
     /// error is raised.**.
     pub fn turn_light_on(
         self,
-        turn_light_on: impl FnOnce(S) -> MandatoryAction<()>,
-    ) -> Result<Light<u8, (), S>> {
+        turn_light_on: impl FnOnce(S) -> MandatoryAction<false>,
+    ) -> Result<Light<true, false, S>> {
         let turn_light_on = turn_light_on(self.device.state.clone());
 
         // Raise an error whether turn light_on does not contain a
@@ -94,7 +94,7 @@ where
     }
 }
 
-impl<S> Light<u8, (), S>
+impl<S> Light<true, false, S>
 where
     S: Clone + Send + Sync + 'static,
 {
@@ -105,8 +105,8 @@ where
     /// error is raised.**.
     pub fn turn_light_off(
         self,
-        turn_light_off: impl FnOnce(S) -> MandatoryAction<()>,
-    ) -> Light<u8, u8, S> {
+        turn_light_off: impl FnOnce(S) -> MandatoryAction<false>,
+    ) -> Light<true, true, S> {
         let turn_light_off = turn_light_off(self.device.state.clone());
 
         Light {
@@ -118,7 +118,7 @@ where
     }
 }
 
-impl<S> Light<u8, u8, S>
+impl<S> Light<true, true, S>
 where
     S: Clone + Send + Sync + 'static,
 {

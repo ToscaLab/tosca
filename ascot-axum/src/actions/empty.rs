@@ -62,7 +62,7 @@ super::all_the_tuples!(impl_empty_type_name);
 pub fn mandatory_empty_stateful<H, T, S>(
     route_hazards: RouteHazards,
     handler: H,
-) -> impl FnOnce(S) -> MandatoryAction<()>
+) -> impl FnOnce(S) -> MandatoryAction<false>
 where
     H: Handler<T, S> + private::EmptyTypeName<T>,
     T: 'static,
@@ -89,7 +89,7 @@ where
 pub fn mandatory_empty_stateless<H, T, S>(
     route_hazards: RouteHazards,
     handler: H,
-) -> impl FnOnce(S) -> MandatoryAction<()>
+) -> impl FnOnce(S) -> MandatoryAction<false>
 where
     H: Handler<T, ()> + private::EmptyTypeName<T>,
     T: 'static,
