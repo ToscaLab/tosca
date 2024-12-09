@@ -2,8 +2,6 @@ pub mod empty;
 pub mod info;
 pub mod serial;
 
-use core::marker::PhantomData;
-
 use ascot_library::actions::{ActionError as AscotActionError, ActionErrorKind};
 use ascot_library::hazards::{Hazard, Hazards};
 
@@ -179,38 +177,30 @@ impl DeviceAction {
 }
 
 /// A mandatory [`DeviceAction`].
-pub struct MandatoryAction<Args> {
+pub struct MandatoryAction<const SET: bool> {
     pub(crate) device_action: DeviceAction,
-    flag: PhantomData<Args>,
 }
 
-impl MandatoryAction<()> {
+impl MandatoryAction<false> {
     #[inline(always)]
     pub(crate) fn empty() -> Self {
         Self {
             device_action: DeviceAction::empty(),
-            flag: PhantomData,
         }
     }
 
     pub(super) const fn new(device_action: DeviceAction) -> Self {
-        Self {
-            device_action,
-            flag: PhantomData,
-        }
+        Self { device_action }
     }
 }
 
-impl MandatoryAction<u8> {
+impl MandatoryAction<true> {
     /// Returns a [`DeviceAction`] reference.
     pub const fn action_as_ref(&self) -> &DeviceAction {
         &self.device_action
     }
 
     pub(crate) const fn init(device_action: DeviceAction) -> Self {
-        Self {
-            device_action,
-            flag: PhantomData,
-        }
+        Self { device_action }
     }
 }

@@ -64,7 +64,7 @@ super::all_the_tuples!(impl_serial_type_name);
 pub fn mandatory_serial_stateful<H, T, S>(
     route_hazards: RouteHazards,
     handler: H,
-) -> impl FnOnce(S) -> MandatoryAction<()>
+) -> impl FnOnce(S) -> MandatoryAction<false>
 where
     H: Handler<T, S> + private::SerialTypeName<T>,
     T: 'static,
@@ -92,7 +92,7 @@ where
 pub fn mandatory_serial_stateless<H, T, S>(
     route_hazards: RouteHazards,
     handler: H,
-) -> impl FnOnce(S) -> MandatoryAction<()>
+) -> impl FnOnce(S) -> MandatoryAction<false>
 where
     H: Handler<T, ()> + private::SerialTypeName<T>,
     T: 'static,
