@@ -84,7 +84,7 @@ impl Error {
         )
     }
 
-    fn format(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+    fn format(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(f, "Error: {}", self.kind)?;
         write!(f, "Cause: {}", self.description)
     }
@@ -103,7 +103,7 @@ impl From<ascot_library::Error> for Error {
 }
 
 /// A specialized [`Result`] type for [`Error`].
-pub type Result<T> = core::result::Result<T, Error>;
+pub type Result<T> = std::result::Result<T, Error>;
 
 #[cfg(test)]
 mod tests {
