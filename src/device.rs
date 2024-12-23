@@ -17,6 +17,23 @@ pub enum DeviceKind {
     Camera,
 }
 
+impl DeviceKind {
+    const fn description(self) -> &'static str {
+        match self {
+            Self::Unknown => "Unknown",
+            Self::Light => "Light",
+            Self::Fridge => "Fridge",
+            Self::Camera => "Camera",
+        }
+    }
+}
+
+impl core::fmt::Display for DeviceKind {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "{}", self.description())
+    }
+}
+
 /// Device information.
 #[derive(Clone, Serialize, Deserialize)]
 pub struct DeviceInfo {
