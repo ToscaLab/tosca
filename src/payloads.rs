@@ -62,23 +62,3 @@ impl InfoPayload {
         Self { data }
     }
 }
-
-/// Stream payload.
-pub struct StreamPayload<'a> {
-    // Stream type.
-    #[allow(dead_code)]
-    stream_type: (&'a str, &'a str),
-    // Stream headers.
-    #[allow(dead_code)]
-    headers: Option<&'a [(&'a str, &'a str)]>,
-}
-
-impl<'a> StreamPayload<'a> {
-    /// Creates a [`StreamPayload`].
-    pub const fn new(stream_type: (&'a str, &'a str)) -> Self {
-        Self {
-            stream_type,
-            headers: None,
-        }
-    }
-}
