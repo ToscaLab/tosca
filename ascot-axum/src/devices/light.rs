@@ -3,7 +3,7 @@ use ascot_library::hazards::Hazard;
 
 use crate::actions::{DeviceAction, MandatoryAction};
 use crate::device::Device;
-use crate::error::{Error, ErrorKind, Result};
+use crate::error::{Error, Result};
 
 // The default main route for a light.
 const LIGHT_MAIN_ROUTE: &str = "/light";
@@ -79,8 +79,8 @@ where
         // Raise an error whether turn light_on does not contain a
         // fire hazard.
         if turn_light_on.device_action.miss_hazard(TURN_LIGHT_ON) {
-            return Err(Error::new(
-                ErrorKind::Light,
+            return Err(Error::device(
+                DeviceKind::Light,
                 "No fire hazard for the `turn_light_on` route",
             ));
         }
@@ -136,8 +136,8 @@ where
         // Return an error if action hazards are not a subset of allowed hazards.
         for hazard in light_action.hazards().iter() {
             if !self.allowed_hazards.contains(hazard) {
-                return Err(Error::new(
-                    ErrorKind::Light,
+                return Err(Error::device(
+                    DeviceKind::Light,
                     format!("{hazard} hazard is not allowed for light"),
                 ));
             }

@@ -1,5 +1,7 @@
 use std::borrow::Cow;
 
+use ascot_library::device::DeviceKind;
+
 /// All possible error kinds.
 #[derive(Debug, Copy, Clone)]
 pub enum ErrorKind {
@@ -11,10 +13,8 @@ pub enum ErrorKind {
     Serialization,
     /// An `Ascot` error.
     Ascot,
-    /// Light error.
-    Light,
-    /// Fridge error.
-    Fridge,
+    /// A device error.
+    Device,
     /// External error.
     ///
     /// An error caused by an external dependency.
@@ -28,15 +28,14 @@ impl ErrorKind {
             ErrorKind::NotFoundAddress => "Not Found Address",
             ErrorKind::Serialization => "Serialization",
             ErrorKind::Ascot => "Ascot",
-            ErrorKind::Light => "Light",
-            ErrorKind::Fridge => "Fridge",
+            ErrorKind::Device => "Device",
             ErrorKind::External => "External",
         }
     }
 }
 
-impl core::fmt::Display for ErrorKind {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+impl std::fmt::Display for ErrorKind {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.description())
     }
 }
@@ -47,14 +46,14 @@ pub struct Error {
     description: Cow<'static, str>,
 }
 
-impl core::fmt::Display for Error {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+impl std::fmt::Display for Error {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.format(f)
     }
 }
 
-impl core::fmt::Debug for Error {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+impl std::fmt::Debug for Error {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.format(f)
     }
 }
@@ -72,6 +71,22 @@ impl Error {
     /// description.
     pub fn external(description: impl Into<Cow<'static, str>>) -> Self {
         Self::new(ErrorKind::External, description)
+    }
+
+    pub(crate) fn device(
+        device_type: DeviceKind,
+        description: impl Into<Cow<'static, str>>,
+    ) -> Self {
+        let description = description.into();
+        Self::new(
+            ErrorKind::Device,
+            format!(
+                r#"
+                "Device type -> {device_type}
+                {description}
+            "#
+            ),
+        )
     }
 
     fn format(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
