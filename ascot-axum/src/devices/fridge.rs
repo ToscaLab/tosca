@@ -3,7 +3,7 @@ use ascot_library::hazards::Hazard;
 
 use crate::actions::{DeviceAction, MandatoryAction};
 use crate::device::Device;
-use crate::error::{Error, ErrorKind, Result};
+use crate::error::{Error, Result};
 
 // The default main route for a fridge.
 const FRIDGE_MAIN_ROUTE: &str = "/fridge";
@@ -83,8 +83,8 @@ where
             .device_action
             .miss_hazards(INCREASE_TEMPERATURE)
         {
-            return Err(Error::new(
-                ErrorKind::Fridge,
+            return Err(Error::device(
+                DeviceKind::Fridge,
                 "No electric energy consumption or spoiled food hazards for the `increase_temperature` route",
             ));
         }
@@ -118,8 +118,8 @@ where
             .device_action
             .miss_hazard(DECREASE_TEMPERATURE)
         {
-            return Err(Error::new(
-                ErrorKind::Fridge,
+            return Err(Error::device(
+                DeviceKind::Fridge,
                 "No electric energy consumption hazard for the `decrease_temperature` route",
             ));
         }
@@ -151,8 +151,8 @@ where
         // Return an error if action hazards are not a subset of allowed hazards.
         for hazard in fridge_action.hazards().iter() {
             if !self.allowed_hazards.contains(hazard) {
-                return Err(Error::new(
-                    ErrorKind::Fridge,
+                return Err(Error::device(
+                    DeviceKind::Fridge,
                     format!("{hazard} hazard is not allowed for fridge"),
                 ));
             }
