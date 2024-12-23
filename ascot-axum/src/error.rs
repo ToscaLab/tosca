@@ -80,17 +80,12 @@ impl Error {
         let description = description.into();
         Self::new(
             ErrorKind::Device,
-            format!(
-                r#"
-                "Device type -> {device_type}
-                {description}
-            "#
-            ),
+            format!("{description} [{device_type} Device]"),
         )
     }
 
     fn format(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        writeln!(f, "{}", self.kind)?;
+        writeln!(f, "Error: {}", self.kind)?;
         write!(f, "Cause: {}", self.description)
     }
 }
@@ -109,3 +104,20 @@ impl From<ascot_library::Error> for Error {
 
 /// A specialized [`Result`] type for [`Error`].
 pub type Result<T> = core::result::Result<T, Error>;
+
+#[cfg(test)]
+mod tests {
+    use ascot_library::device::DeviceKind;
+
+    use super::Error;
+
+    #[test]
+    fn device_error() {
+        let error = Error::device(DeviceKind::Fridge, "This hazard is not correct");
+        assert_eq!(
+            error.to_string(),
+            r#"Error: Device
+Cause: This hazard is not correct [Fridge Device]"#
+        );
+    }
+}
