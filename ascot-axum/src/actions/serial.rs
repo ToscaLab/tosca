@@ -10,22 +10,23 @@ use axum::{
     response::{IntoResponse, Response},
 };
 
-use serde::{Deserialize, Serialize};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
 use super::{ActionError, DeviceAction, MandatoryAction};
 
 /// Serial payload structure.
 #[derive(Serialize, Deserialize)]
-pub struct SerialPayload<S: Serialize>(AscotSerialPayload<S>);
+#[serde(bound = "T: Serialize + DeserializeOwned")]
+pub struct SerialPayload<T: DeserializeOwned>(AscotSerialPayload<T>);
 
-impl<S: Serialize> SerialPayload<S> {
+impl<T: Serialize + DeserializeOwned> SerialPayload<T> {
     /// Creates a new [`SerialPayload`].
-    pub const fn new(data: S) -> Self {
+    pub const fn new(data: T) -> Self {
         Self(AscotSerialPayload::new(data))
     }
 }
 
-impl<S: Serialize> IntoResponse for SerialPayload<S> {
+impl<T: Serialize + DeserializeOwned> IntoResponse for SerialPayload<T> {
     fn into_response(self) -> Response {
         (StatusCode::OK, Json(self.0)).into_response()
     }
@@ -35,11 +36,11 @@ mod private {
     pub trait SerialTypeName<Args> {}
 }
 
-impl<S, F, Fut> private::SerialTypeName<()> for F
+impl<T, F, Fut> private::SerialTypeName<()> for F
 where
-    S: Serialize,
+    T: Serialize + DeserializeOwned,
     F: FnOnce() -> Fut,
-    Fut: Future<Output = Result<SerialPayload<S>, ActionError>> + Send,
+    Fut: Future<Output = Result<SerialPayload<T>, ActionError>> + Send,
 {
 }
 
@@ -47,11 +48,11 @@ macro_rules! impl_serial_type_name {
     (
         [$($ty:ident),*], $($last:ident)?
     ) => {
-        impl<F, S, Fut, M, $($ty,)* $($last)?> private::SerialTypeName<(M, $($ty,)* $($last)?)> for F
+        impl<F, T, Fut, M, $($ty,)* $($last)?> private::SerialTypeName<(M, $($ty,)* $($last)?)> for F
         where
-            S: Serialize,
+            T: Serialize + DeserializeOwned,
             F: FnOnce($($ty,)* $($last)?) -> Fut,
-            Fut: Future<Output = Result<SerialPayload<S>, ActionError>> + Send,
+            Fut: Future<Output = Result<SerialPayload<T>, ActionError>> + Send,
             {
             }
     };

@@ -201,7 +201,7 @@ mod tests {
         save_energy: bool,
     }
 
-    #[derive(Serialize)]
+    #[derive(Serialize, Deserialize)]
     struct LightOnResponse {
         brightness: f64,
         #[serde(rename = "save-energy")]

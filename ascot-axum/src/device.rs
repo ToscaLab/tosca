@@ -221,7 +221,7 @@ mod tests {
         parameter: f64,
     }
 
-    #[derive(Serialize)]
+    #[derive(Serialize, Deserialize)]
     struct DeviceResponse {
         parameter: f64,
     }
@@ -244,7 +244,7 @@ mod tests {
         }))
     }
 
-    #[derive(Serialize)]
+    #[derive(Serialize, Deserialize)]
     struct DeviceInfoResponse {
         parameter: f64,
         device_info: DeviceInfo,

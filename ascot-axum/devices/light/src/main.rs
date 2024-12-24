@@ -113,7 +113,7 @@ impl FromRef<LightState> for LightInfoState {
     }
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize)]
 struct LightOnResponse {
     brightness: f64,
     #[serde(rename = "save-energy")]
