@@ -1,15 +1,14 @@
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
 use crate::device::DeviceInfo;
-use crate::strings::MiniString;
+use crate::strings::ShortString;
 
 /// Payload kinds for an action response.
 #[derive(Serialize, Deserialize)]
 pub enum PayloadKind {
-    /// No data in an action response.
-    ///
-    /// This payload identifies an action which terminated in the correct way.
-    Empty,
+    /// A short message to notify the receiver that an action terminated
+    /// correctly.
+    Ok,
     /// Serial data (i.e. JSON).
     ///
     /// This payload adds further information to an action response.
@@ -22,20 +21,17 @@ pub enum PayloadKind {
     Stream,
 }
 
-/// Empty payload with only a description.
+/// An `Ok` payload notifies a receiver with a short message that a device
+/// action has terminated correctly.
 #[derive(Serialize, Deserialize)]
-pub struct EmptyPayload {
-    // Empty payload description (maximum 32 byte-long).
-    description: MiniString,
-}
+pub struct OkPayload(ShortString);
 
-impl EmptyPayload {
-    /// Creates an [`EmptyPayload`].
+impl OkPayload {
+    /// Creates an [`OkPayload`].
     #[inline(always)]
-    pub fn new(description: &str) -> Self {
-        Self {
-            description: MiniString::new(description).unwrap_or(MiniString::empty()),
-        }
+    pub fn ok() -> Self {
+        // Ok payload message (64 byte-long).
+        Self(ShortString::new("The action terminated correctly.").unwrap_or(ShortString::empty()))
     }
 }
 
