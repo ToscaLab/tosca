@@ -1,4 +1,4 @@
-use serde::{Deserialize, Serialize};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
 use crate::device::DeviceInfo;
 use crate::strings::MiniString;
@@ -43,15 +43,16 @@ impl EmptyPayload {
 ///
 /// This payload adds further information to an action response.
 #[derive(Serialize, Deserialize)]
-pub struct SerialPayload<S: Serialize> {
+#[serde(bound = "T: Serialize + DeserializeOwned")]
+pub struct SerialPayload<T: DeserializeOwned> {
     // Serializable data.
     #[serde(flatten)]
-    data: S,
+    data: T,
 }
 
-impl<S: Serialize> SerialPayload<S> {
+impl<T: Serialize + DeserializeOwned> SerialPayload<T> {
     /// Creates a [`SerialPayload`].
-    pub const fn new(data: S) -> Self {
+    pub const fn new(data: T) -> Self {
         Self { data }
     }
 }
