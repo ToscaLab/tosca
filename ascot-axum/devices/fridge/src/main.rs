@@ -117,7 +117,7 @@ struct IncreaseTemperature {
     increment: f64,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize)]
 struct ChangeTempResponse {
     temperature: f64,
 }
