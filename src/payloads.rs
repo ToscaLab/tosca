@@ -3,16 +3,22 @@ use serde::{Deserialize, Serialize};
 use crate::device::DeviceInfo;
 use crate::strings::MiniString;
 
-/// Payload kinds.
+/// Payload kinds for an action response.
 #[derive(Serialize, Deserialize)]
 pub enum PayloadKind {
-    /// No data.
+    /// No data in an action response.
+    ///
+    /// This payload identifies an action which terminated in the correct way.
     Empty,
     /// Serial data (i.e. JSON).
+    ///
+    /// This payload adds further information to an action response.
     Serial,
-    /// Informative data on a device (i.e. JSON).
+    /// Informative data to describe a device (i.e. JSON).
+    ///
+    /// This payload contains additional information on a device.
     Info,
-    /// Stream of data (bytes).
+    /// Stream of data expressed as a sequence of bytes.
     Stream,
 }
 
@@ -34,6 +40,8 @@ impl EmptyPayload {
 }
 
 /// Serial payload.
+///
+/// This payload adds further information to an action response.
 #[derive(Serialize, Deserialize)]
 pub struct SerialPayload<S: Serialize> {
     // Serializable data.
@@ -49,6 +57,8 @@ impl<S: Serialize> SerialPayload<S> {
 }
 
 /// Informative payload.
+///
+/// This payload contains additional information on a device.
 #[derive(Serialize, Deserialize)]
 pub struct InfoPayload {
     // Serializable data.
