@@ -78,6 +78,13 @@ impl MiniString {
         Ok(Self(create_string::<MINI_STRING_LENGHT>(text)?))
     }
 
+    /// Creates a new infallible [`MiniString`].
+    ///
+    /// When an error occurs, an empty [`MiniString`] is returned.
+    pub fn infallible(text: &str) -> Self {
+        Self::new(text).unwrap_or(Self::empty())
+    }
+
     /// Checks whether the [`MiniString`] is empty.
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
@@ -118,6 +125,13 @@ impl ShortString {
         Ok(Self(create_string::<SHORT_STRING_LENGHT>(text)?))
     }
 
+    /// Creates a new infallible [`ShortString`].
+    ///
+    /// When an error occurs, an empty [`ShortString`] is returned.
+    pub fn infallible(text: &str) -> Self {
+        Self::new(text).unwrap_or(Self::empty())
+    }
+
     /// Checks whether the [`MiniString`] is empty.
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
@@ -156,6 +170,13 @@ impl LongString {
     /// Creates a new [`LongString`].
     pub fn new(text: &str) -> Result<Self> {
         Ok(Self(create_string::<LONG_STRING_LENGHT>(text)?))
+    }
+
+    /// Creates a new infallible [`LongString`].
+    ///
+    /// When an error occurs, an empty [`LongString`] is returned.
+    pub fn infallible(text: &str) -> Self {
+        Self::new(text).unwrap_or(Self::empty())
     }
 
     /// Checks whether the [`MiniString`] is empty.
