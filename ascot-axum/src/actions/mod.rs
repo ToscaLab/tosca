@@ -1,5 +1,5 @@
-pub mod empty;
 pub mod info;
+pub mod ok;
 pub mod serial;
 
 use ascot_library::actions::ActionErrorKind;

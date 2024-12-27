@@ -17,8 +17,8 @@ use ascot_library::input::Input;
 use ascot_library::route::{Route, RouteHazards};
 
 // Ascot axum device.
-use ascot_axum::actions::empty::{empty_stateful, mandatory_empty_stateful, EmptyPayload};
 use ascot_axum::actions::info::{info_stateful, InfoPayload};
+use ascot_axum::actions::ok::{mandatory_ok_stateful, ok_stateful, OkPayload};
 use ascot_axum::actions::serial::{mandatory_serial_stateful, serial_stateful, SerialPayload};
 use ascot_axum::actions::ActionError;
 use ascot_axum::devices::light::Light;
@@ -140,14 +140,14 @@ async fn turn_light_on(
     }))
 }
 
-async fn turn_light_off(State(state): State<InternalState>) -> Result<EmptyPayload, ActionError> {
+async fn turn_light_off(State(state): State<InternalState>) -> Result<OkPayload, ActionError> {
     state.lock().await.turn_light_off();
-    Ok(EmptyPayload::new("Turn light off worked perfectly"))
+    Ok(OkPayload::ok())
 }
 
-async fn toggle(State(state): State<InternalState>) -> Result<EmptyPayload, ActionError> {
+async fn toggle(State(state): State<InternalState>) -> Result<OkPayload, ActionError> {
     state.lock().await.toggle();
-    Ok(EmptyPayload::new("Toggle worked perfectly"))
+    Ok(OkPayload::ok())
 }
 
 async fn info(State(state): State<LightInfoState>) -> Result<InfoPayload, ActionError> {
@@ -255,9 +255,9 @@ async fn main() -> Result<(), Error> {
         // This method is mandatory, if not called, a compiler error is raised.
         .turn_light_on(mandatory_serial_stateful(light_on_route, turn_light_on))?
         // This method is mandatory, if not called, a compiler error is raised.
-        .turn_light_off(mandatory_empty_stateful(light_off_route, turn_light_off))
+        .turn_light_off(mandatory_ok_stateful(light_off_route, turn_light_off))
         .add_action(serial_stateful(light_on_post_route, turn_light_on))?
-        .add_action(empty_stateful(toggle_route, toggle))?
+        .add_action(ok_stateful(toggle_route, toggle))?
         .add_info_action(info_stateful(info_route, info))
         .add_info_action(info_stateful(
             update_energy_efficiency_route,

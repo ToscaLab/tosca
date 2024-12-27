@@ -179,9 +179,8 @@ mod tests {
 
     use serde::{Deserialize, Serialize};
 
-    use crate::actions::empty::{
-        empty_stateful, empty_stateless, mandatory_empty_stateful, mandatory_empty_stateless,
-        EmptyPayload,
+    use crate::actions::ok::{
+        mandatory_ok_stateful, mandatory_ok_stateless, ok_stateful, ok_stateless, OkPayload,
     };
     use crate::actions::serial::{
         mandatory_serial_stateful, mandatory_serial_stateless, serial_stateful, serial_stateless,
@@ -227,20 +226,20 @@ mod tests {
         }))
     }
 
-    async fn turn_light_off(State(_state): State<LightState>) -> Result<EmptyPayload, ActionError> {
-        Ok(EmptyPayload::new("Turn light off worked perfectly"))
+    async fn turn_light_off(State(_state): State<LightState>) -> Result<OkPayload, ActionError> {
+        Ok(OkPayload::ok())
     }
 
-    async fn turn_light_off_stateless() -> Result<EmptyPayload, ActionError> {
-        Ok(EmptyPayload::new("Turn light off worked perfectly"))
+    async fn turn_light_off_stateless() -> Result<OkPayload, ActionError> {
+        Ok(OkPayload::ok())
     }
 
-    async fn toggle(State(_state): State<LightState>) -> Result<EmptyPayload, ActionError> {
-        Ok(EmptyPayload::new("Toggle worked perfectly"))
+    async fn toggle(State(_state): State<LightState>) -> Result<OkPayload, ActionError> {
+        Ok(OkPayload::ok())
     }
 
-    async fn toggle_stateless() -> Result<EmptyPayload, ActionError> {
-        Ok(EmptyPayload::new("Toggle worked perfectly"))
+    async fn toggle_stateless() -> Result<OkPayload, ActionError> {
+        Ok(OkPayload::ok())
     }
 
     struct Routes {
@@ -285,13 +284,13 @@ mod tests {
                 turn_light_on,
             ))
             .unwrap()
-            .turn_light_off(mandatory_empty_stateful(
+            .turn_light_off(mandatory_ok_stateful(
                 routes.light_off_route,
                 turn_light_off,
             ))
             .add_action(serial_stateful(routes.light_on_post_route, turn_light_on))
             .unwrap()
-            .add_action(empty_stateful(routes.toggle_route, toggle))
+            .add_action(ok_stateful(routes.toggle_route, toggle))
             .unwrap()
             .into_device();
 
@@ -308,7 +307,7 @@ mod tests {
                 turn_light_on,
             ))
             .unwrap()
-            .turn_light_off(mandatory_empty_stateful(
+            .turn_light_off(mandatory_ok_stateful(
                 routes.light_off_route,
                 turn_light_off,
             ))
@@ -327,13 +326,13 @@ mod tests {
                 turn_light_on,
             ))
             .unwrap()
-            .turn_light_off(mandatory_empty_stateful(
+            .turn_light_off(mandatory_ok_stateful(
                 routes.light_off_route,
                 turn_light_off,
             ))
             .add_action(serial_stateful(routes.light_on_post_route, turn_light_on))
             .unwrap()
-            .add_action(empty_stateless(routes.toggle_route, toggle_stateless))
+            .add_action(ok_stateless(routes.toggle_route, toggle_stateless))
             .unwrap()
             .into_device();
 
@@ -350,7 +349,7 @@ mod tests {
                 turn_light_on_stateless,
             ))
             .unwrap()
-            .turn_light_off(mandatory_empty_stateless(
+            .turn_light_off(mandatory_ok_stateless(
                 routes.light_off_route,
                 turn_light_off_stateless,
             ))
@@ -359,7 +358,7 @@ mod tests {
                 turn_light_on_stateless,
             ))
             .unwrap()
-            .add_action(empty_stateless(routes.toggle_route, toggle_stateless))
+            .add_action(ok_stateless(routes.toggle_route, toggle_stateless))
             .unwrap()
             .into_device();
 
@@ -376,7 +375,7 @@ mod tests {
                 turn_light_on_stateless,
             ))
             .unwrap()
-            .turn_light_off(mandatory_empty_stateless(
+            .turn_light_off(mandatory_ok_stateless(
                 routes.light_off_route,
                 turn_light_off_stateless,
             ))
