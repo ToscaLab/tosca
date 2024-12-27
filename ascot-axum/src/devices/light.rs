@@ -179,6 +179,7 @@ mod tests {
 
     use serde::{Deserialize, Serialize};
 
+    use crate::actions::error::ErrorPayload;
     use crate::actions::ok::{
         mandatory_ok_stateful, mandatory_ok_stateless, ok_stateful, ok_stateless, OkPayload,
     };
@@ -186,7 +187,6 @@ mod tests {
         mandatory_serial_stateful, mandatory_serial_stateless, serial_stateful, serial_stateless,
         SerialPayload,
     };
-    use crate::actions::ActionError;
 
     use super::Light;
 
@@ -210,7 +210,7 @@ mod tests {
     async fn turn_light_on(
         State(_state): State<LightState>,
         Json(inputs): Json<Inputs>,
-    ) -> Result<SerialPayload<LightOnResponse>, ActionError> {
+    ) -> Result<SerialPayload<LightOnResponse>, ErrorPayload> {
         Ok(SerialPayload::new(LightOnResponse {
             brightness: inputs.brightness,
             save_energy: inputs.save_energy,
@@ -219,26 +219,26 @@ mod tests {
 
     async fn turn_light_on_stateless(
         Json(inputs): Json<Inputs>,
-    ) -> Result<SerialPayload<LightOnResponse>, ActionError> {
+    ) -> Result<SerialPayload<LightOnResponse>, ErrorPayload> {
         Ok(SerialPayload::new(LightOnResponse {
             brightness: inputs.brightness,
             save_energy: inputs.save_energy,
         }))
     }
 
-    async fn turn_light_off(State(_state): State<LightState>) -> Result<OkPayload, ActionError> {
+    async fn turn_light_off(State(_state): State<LightState>) -> Result<OkPayload, ErrorPayload> {
         Ok(OkPayload::ok())
     }
 
-    async fn turn_light_off_stateless() -> Result<OkPayload, ActionError> {
+    async fn turn_light_off_stateless() -> Result<OkPayload, ErrorPayload> {
         Ok(OkPayload::ok())
     }
 
-    async fn toggle(State(_state): State<LightState>) -> Result<OkPayload, ActionError> {
+    async fn toggle(State(_state): State<LightState>) -> Result<OkPayload, ErrorPayload> {
         Ok(OkPayload::ok())
     }
 
-    async fn toggle_stateless() -> Result<OkPayload, ActionError> {
+    async fn toggle_stateless() -> Result<OkPayload, ErrorPayload> {
         Ok(OkPayload::ok())
     }
 

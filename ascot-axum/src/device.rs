@@ -133,9 +133,9 @@ mod tests {
 
     use serde::{Deserialize, Serialize};
 
+    use crate::actions::error::ErrorPayload;
     use crate::actions::info::{info_stateful, InfoPayload};
     use crate::actions::serial::{serial_stateful, serial_stateless, SerialPayload};
-    use crate::actions::ActionError;
 
     use super::Device;
 
@@ -229,7 +229,7 @@ mod tests {
     async fn serial_action_with_state(
         State(_state): State<DeviceState<()>>,
         Json(inputs): Json<Inputs>,
-    ) -> Result<SerialPayload<DeviceResponse>, ActionError> {
+    ) -> Result<SerialPayload<DeviceResponse>, ErrorPayload> {
         Ok(SerialPayload::new(DeviceResponse {
             parameter: inputs.parameter,
         }))
@@ -238,7 +238,7 @@ mod tests {
     async fn serial_action_with_substate1(
         State(_state): State<SubState>,
         Json(inputs): Json<Inputs>,
-    ) -> Result<SerialPayload<DeviceResponse>, ActionError> {
+    ) -> Result<SerialPayload<DeviceResponse>, ErrorPayload> {
         Ok(SerialPayload::new(DeviceResponse {
             parameter: inputs.parameter,
         }))
@@ -256,7 +256,7 @@ mod tests {
     async fn serial_action_with_substate2(
         State(state): State<DeviceInfoState>,
         Json(inputs): Json<Inputs>,
-    ) -> Result<SerialPayload<DeviceInfoResponse>, ActionError> {
+    ) -> Result<SerialPayload<DeviceInfoResponse>, ErrorPayload> {
         // Retrieve internal state.
         let mut device_info = state.lock().await;
 
@@ -271,7 +271,7 @@ mod tests {
 
     async fn info_action_with_substate3(
         State(state): State<DeviceInfoState>,
-    ) -> Result<InfoPayload, ActionError> {
+    ) -> Result<InfoPayload, ErrorPayload> {
         // Retrieve internal state.
         let mut device_info = state.lock().await;
 
@@ -283,7 +283,7 @@ mod tests {
 
     async fn serial_action_without_state(
         Json(inputs): Json<Inputs>,
-    ) -> Result<SerialPayload<DeviceResponse>, ActionError> {
+    ) -> Result<SerialPayload<DeviceResponse>, ErrorPayload> {
         Ok(SerialPayload::new(DeviceResponse {
             parameter: inputs.parameter,
         }))

@@ -1,21 +1,12 @@
+pub mod error;
 pub mod info;
 pub mod ok;
 pub mod serial;
 
-use ascot_library::actions::ActionErrorKind;
 use ascot_library::hazards::{Hazard, Hazards};
-
 use ascot_library::route::{RestKind, Route, RouteHazards, RouteMode};
 
-use axum::{
-    extract::Json,
-    handler::Handler,
-    http::StatusCode,
-    response::{IntoResponse, Response},
-    Router,
-};
-
-use serde::Serialize;
+use axum::{handler::Handler, Router};
 
 #[rustfmt::skip]
 macro_rules! all_the_tuples {
@@ -41,79 +32,6 @@ macro_rules! all_the_tuples {
 }
 
 pub(super) use all_the_tuples;
-
-#[derive(Serialize)]
-struct ErrorPayload {
-    kind: ActionErrorKind,
-    description: &'static str,
-    error: Option<String>,
-}
-
-/// An error which might arise during the execution of an action on a device.
-pub struct ActionError(ErrorPayload);
-
-impl ActionError {
-    /// Creates a new [`ActionError`] with a specific [`ActionErrorKind`]
-    /// and an error description.
-    #[inline]
-    pub fn with_description(kind: ActionErrorKind, description: &'static str) -> Self {
-        Self(ErrorPayload {
-            kind,
-            description,
-            error: None,
-        })
-    }
-
-    /// Creates a new [`ActionError`] with a specific [`ActionErrorKind`],
-    /// an error description, and the effective error.
-    #[inline]
-    pub fn with_description_error(
-        kind: ActionErrorKind,
-        description: &'static str,
-        error: impl std::error::Error,
-    ) -> Self {
-        Self(ErrorPayload {
-            kind,
-            description,
-            error: Some(error.to_string()),
-        })
-    }
-
-    /// Creates an [`ActionError`] for invalid data with a description.
-    #[inline]
-    pub fn invalid_data(description: &'static str) -> Self {
-        Self::with_description(ActionErrorKind::InvalidData, description)
-    }
-
-    /// Creates an [`ActionError`] for invalid data with a description and
-    /// the effective error.
-    #[inline]
-    pub fn invalid_data_with_error(
-        description: &'static str,
-        error: impl std::error::Error,
-    ) -> Self {
-        Self::with_description_error(ActionErrorKind::InvalidData, description, error)
-    }
-
-    /// Creates an [`ActionError`] for an internal error with a description.
-    #[inline]
-    pub fn internal(description: &'static str) -> Self {
-        Self::with_description(ActionErrorKind::Internal, description)
-    }
-
-    /// Creates an [`ActionError`] for an internal error with a description and
-    /// the effective error.
-    #[inline(always)]
-    pub fn internal_with_error(description: &'static str, error: impl std::error::Error) -> Self {
-        Self::with_description_error(ActionErrorKind::Internal, description, error)
-    }
-}
-
-impl IntoResponse for ActionError {
-    fn into_response(self) -> Response {
-        (StatusCode::INTERNAL_SERVER_ERROR, Json(self.0)).into_response()
-    }
-}
 
 #[derive(Debug)]
 pub struct DeviceAction {
