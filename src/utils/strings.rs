@@ -15,9 +15,8 @@ const SHORT_STRING_LENGHT: usize = 64;
 // Maximum string length for a long string.
 const LONG_STRING_LENGHT: usize = 128;
 
-#[inline(always)]
 fn create_string<const N: usize>(text: &str) -> Result<String<N>> {
-    String::from_str(text).map_err(|_| {
+    String::from_str(text).map_err(|()| {
         Error::new(
             ErrorKind::FixedText,
             "Impossible to create a new stack string. Characters might not be UTF-8 or its length is wrong.",
@@ -25,9 +24,8 @@ fn create_string<const N: usize>(text: &str) -> Result<String<N>> {
     })
 }
 
-#[inline(always)]
 fn push_string<const N: usize>(string: &mut String<N>, text: &str) -> Result<()> {
-    string.push_str(text).map_err(|_| {
+    string.push_str(text).map_err(|()| {
         Error::new(
             ErrorKind::FixedText,
             "Impossible to add another stack string at the end of the current one.",
@@ -35,9 +33,8 @@ fn push_string<const N: usize>(string: &mut String<N>, text: &str) -> Result<()>
     })
 }
 
-#[inline(always)]
 fn push_char<const N: usize>(string: &mut String<N>, c: char) -> Result<()> {
-    string.push(c).map_err(|_| {
+    string.push(c).map_err(|()| {
         Error::new(
             ErrorKind::FixedText,
             "Impossible to add a char at the end of the stack string.",
@@ -69,6 +66,7 @@ impl_write_trait!(MiniString);
 
 impl MiniString {
     /// Creates an empty [`MiniString`].
+    #[must_use]
     pub const fn empty() -> Self {
         Self(String::<MINI_STRING_LENGHT>::new())
     }
@@ -84,16 +82,19 @@ impl MiniString {
     /// Creates a new infallible [`MiniString`].
     ///
     /// When an error occurs, an empty [`MiniString`] is returned.
+    #[must_use]
     pub fn infallible(text: &str) -> Self {
         Self::new(text).unwrap_or(Self::empty())
     }
 
     /// Checks whether the [`MiniString`] is empty.
+    #[must_use]
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
     }
 
     /// Returns a string slice containing the entire string.
+    #[must_use]
     pub fn as_str(&self) -> &str {
         self.0.as_str()
     }
@@ -126,6 +127,7 @@ impl_write_trait!(ShortString);
 
 impl ShortString {
     /// Creates an empty [`ShortString`].
+    #[must_use]
     pub const fn empty() -> Self {
         Self(String::<SHORT_STRING_LENGHT>::new())
     }
@@ -141,16 +143,19 @@ impl ShortString {
     /// Creates a new infallible [`ShortString`].
     ///
     /// When an error occurs, an empty [`ShortString`] is returned.
+    #[must_use]
     pub fn infallible(text: &str) -> Self {
         Self::new(text).unwrap_or(Self::empty())
     }
 
     /// Checks whether the [`MiniString`] is empty.
+    #[must_use]
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
     }
 
     /// Returns a string slice containing the entire string.
+    #[must_use]
     pub fn as_str(&self) -> &str {
         self.0.as_str()
     }
@@ -183,6 +188,7 @@ impl_write_trait!(LongString);
 
 impl LongString {
     /// Creates an empty [`LongString`].
+    #[must_use]
     pub const fn empty() -> Self {
         Self(String::<LONG_STRING_LENGHT>::new())
     }
@@ -198,16 +204,19 @@ impl LongString {
     /// Creates a new infallible [`LongString`].
     ///
     /// When an error occurs, an empty [`LongString`] is returned.
+    #[must_use]
     pub fn infallible(text: &str) -> Self {
         Self::new(text).unwrap_or(Self::empty())
     }
 
     /// Checks whether the [`MiniString`] is empty.
+    #[must_use]
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
     }
 
     /// Returns a string slice containing the entire string.
+    #[must_use]
     pub fn as_str(&self) -> &str {
         self.0.as_str()
     }

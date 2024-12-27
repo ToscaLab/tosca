@@ -90,6 +90,7 @@ impl EnergyEfficiency {
     /// is automatically being set.
     /// If the `percentage` parameter is greater than 100, the value of 100 is
     /// automatically being set.
+    #[must_use]
     pub const fn new(percentage: i8, energy_class: EnergyClass) -> Self {
         let percentage = match percentage {
             100.. => 100,
@@ -103,6 +104,7 @@ impl EnergyEfficiency {
     }
 
     /// Returns the [`EnergyEfficiency`] percentage as decimal value.
+    #[must_use]
     pub const fn decimal_percentage(&self) -> f64 {
         decimal_percentage(self.percentage)
     }
@@ -145,6 +147,7 @@ impl CarbonFootprint {
     /// is automatically being set.
     /// If the `percentage` parameter is greater than 100, the value of 100 is
     /// automatically being set.
+    #[must_use]
     pub const fn new(percentage: i8, energy_class: EnergyClass) -> Self {
         let percentage = match percentage {
             100.. => 100,
@@ -158,6 +161,7 @@ impl CarbonFootprint {
     }
 
     /// Returns the [`CarbonFootprint`] percentage as decimal value.
+    #[must_use]
     pub const fn decimal_percentage(&self) -> f64 {
         decimal_percentage(self.percentage)
     }
@@ -192,6 +196,7 @@ pub struct WaterUseEfficiency {
 impl WaterUseEfficiency {
     /// Creates a new [`WaterUseEfficiency`] instance initialized with
     /// `GPP` metric.
+    #[must_use]
     pub const fn init_with_gpp(gpp: f64) -> Self {
         Self {
             gpp: Some(gpp),
@@ -202,6 +207,7 @@ impl WaterUseEfficiency {
 
     /// Creates a new [`WaterUseEfficiency`] instance initialized with
     /// `Penman-Monteith Equation` metric.
+    #[must_use]
     pub const fn init_with_penman_monteith_equation(penman_monteith_equation: f64) -> Self {
         Self {
             gpp: None,
@@ -212,6 +218,7 @@ impl WaterUseEfficiency {
 
     /// Creates a new [`WaterUseEfficiency`] instance initialized with
     /// `Water Equivalent Ratio (WER)` metric.
+    #[must_use]
     pub const fn init_with_wer(wer: f64) -> Self {
         Self {
             gpp: None,
@@ -221,18 +228,21 @@ impl WaterUseEfficiency {
     }
 
     /// Adds `GPP` metric.
+    #[must_use]
     pub const fn gpp(mut self, gpp: f64) -> Self {
         self.gpp = Some(gpp);
         self
     }
 
     /// Adds `Penman-Monteith Equation` metric.
+    #[must_use]
     pub const fn penman_monteith_equation(mut self, penman_monteith_equation: f64) -> Self {
         self.penman_monteith_equation = Some(penman_monteith_equation);
         self
     }
 
     /// Adds `Water Equivalent Ratio (WER)` metric.
+    #[must_use]
     pub const fn wer(mut self, wer: f64) -> Self {
         self.wer = Some(wer);
         self
@@ -258,6 +268,7 @@ pub struct Energy {
 
 impl Energy {
     /// Creates an empty [`Energy`] instance.
+    #[must_use]
     pub const fn empty() -> Self {
         Self {
             energy_efficiencies: None,
@@ -268,6 +279,7 @@ impl Energy {
 
     /// Creates a new [`Energy`] instance initialized with
     /// [`EnergyEfficiencies`] data.
+    #[must_use]
     pub const fn init_with_energy_efficiencies(energy_efficiencies: EnergyEfficiencies) -> Self {
         Self {
             energy_efficiencies: Some(energy_efficiencies),
@@ -278,6 +290,7 @@ impl Energy {
 
     /// Creates a new [`Energy`] instance initialized with
     /// [`CarbonFootprints`] data.
+    #[must_use]
     pub const fn init_with_carbon_footprints(carbon_footprints: CarbonFootprints) -> Self {
         Self {
             energy_efficiencies: None,
@@ -288,6 +301,7 @@ impl Energy {
 
     /// Creates a new [`Energy`] instance initialized with
     /// [`WaterUseEfficiency`] data.
+    #[must_use]
     pub const fn init_with_water_use_efficiency(water_use_efficiency: WaterUseEfficiency) -> Self {
         Self {
             energy_efficiencies: None,
@@ -297,26 +311,30 @@ impl Energy {
     }
 
     /// Adds [`EnergyEfficiencies`] data.
-    #[inline(always)]
+    #[must_use]
+    #[inline]
     pub fn energy_efficiencies(mut self, energy_efficiencies: EnergyEfficiencies) -> Self {
         self.energy_efficiencies = Some(energy_efficiencies);
         self
     }
 
     /// Adds [`CarbonFootprints`] data.
-    #[inline(always)]
+    #[must_use]
+    #[inline]
     pub fn carbon_footprints(mut self, carbon_footprints: CarbonFootprints) -> Self {
         self.carbon_footprints = Some(carbon_footprints);
         self
     }
 
     /// Adds [`WaterUseEfficiency`] data.
+    #[must_use]
     pub const fn water_use_efficiency(mut self, water_use_efficiency: WaterUseEfficiency) -> Self {
         self.water_use_efficiency = Some(water_use_efficiency);
         self
     }
 
     /// Checks whether [`Energy`] is **completely** empty.
+    #[must_use]
     pub const fn is_empty(&self) -> bool {
         self.energy_efficiencies.is_none()
             && self.carbon_footprints.is_none()

@@ -37,7 +37,7 @@ impl core::hash::Hash for HazardData<'_> {
     where
         H: core::hash::Hasher,
     {
-        self.id.hash(state)
+        self.id.hash(state);
     }
 }
 
@@ -118,6 +118,7 @@ impl core::fmt::Display for Hazard {
 
 impl Hazard {
     /// Returns an [`Hazard`] name.
+    #[must_use]
     pub const fn name(&self) -> &'static str {
         match self {
             Self::AirPoisoning => "Air Poisoning",
@@ -146,6 +147,7 @@ impl Hazard {
     }
 
     /// Returns an [`Hazard`] description.
+    #[must_use]
     pub const fn description(&self) -> &'static str {
         match self {
             Self::AirPoisoning => "The execution may release toxic gases.",
@@ -176,34 +178,36 @@ impl Hazard {
     /// Returns the [`Category`] associated with an [`Hazard`].
     ///
     /// An hazard **must** be associated with **only** one category.
+    #[must_use]
     pub const fn category(&self) -> Category {
         match self {
-            Self::AirPoisoning => Category::Safety,
-            Self::Asphyxia => Category::Safety,
-            Self::AudioVideoRecordAndStore => Category::Privacy,
-            Self::AudioVideoStream => Category::Privacy,
-            Self::ElectricEnergyConsumption => Category::Financial,
-            Self::Explosion => Category::Safety,
-            Self::FireHazard => Category::Safety,
-            Self::GasConsumption => Category::Financial,
-            Self::LogEnergyConsumption => Category::Privacy,
-            Self::LogUsageTime => Category::Privacy,
-            Self::PaySubscriptionFee => Category::Financial,
-            Self::PowerOutage => Category::Safety,
-            Self::PowerSurge => Category::Safety,
-            Self::RecordIssuedCommands => Category::Privacy,
-            Self::RecordUserPreferences => Category::Privacy,
-            Self::SpendMoney => Category::Financial,
-            Self::SpoiledFood => Category::Safety,
-            Self::TakeDeviceScreenshots => Category::Privacy,
-            Self::TakePictures => Category::Privacy,
-            Self::UnauthorisedPhysicalAccess => Category::Safety,
-            Self::WaterConsumption => Category::Financial,
-            Self::WaterFlooding => Category::Safety,
+            Self::AirPoisoning
+            | Self::Asphyxia
+            | Self::Explosion
+            | Self::FireHazard
+            | Self::PowerOutage
+            | Self::PowerSurge
+            | Self::SpoiledFood
+            | Self::UnauthorisedPhysicalAccess
+            | Self::WaterFlooding => Category::Safety,
+            Self::AudioVideoRecordAndStore
+            | Self::AudioVideoStream
+            | Self::LogEnergyConsumption
+            | Self::RecordIssuedCommands
+            | Self::RecordUserPreferences
+            | Self::TakeDeviceScreenshots
+            | Self::TakePictures
+            | Self::LogUsageTime => Category::Privacy,
+            Self::ElectricEnergyConsumption
+            | Self::GasConsumption
+            | Self::PaySubscriptionFee
+            | Self::SpendMoney
+            | Self::WaterConsumption => Category::Financial,
         }
     }
 
     /// Returns the identifier associated with an [`Hazard`].
+    #[must_use]
     pub const fn id(&self) -> u16 {
         match self {
             Self::AirPoisoning => 0,
@@ -235,6 +239,7 @@ impl Hazard {
     ///
     /// The value is [`None`] whenever the identifier does not exist or
     /// it is not correct.
+    #[must_use]
     pub const fn from_id(id: u16) -> Option<Self> {
         match id {
             0 => Some(Self::AirPoisoning),
@@ -296,7 +301,7 @@ impl core::hash::Hash for CategoryData<'_> {
     where
         H: core::hash::Hasher,
     {
-        self.name.hash(state)
+        self.name.hash(state);
     }
 }
 
@@ -319,6 +324,7 @@ impl core::fmt::Display for Category {
 
 impl Category {
     /// Returns a [`Category`] name.
+    #[must_use]
     pub const fn name(&self) -> &'static str {
         match self {
             Self::Financial => "Financial",
@@ -328,6 +334,7 @@ impl Category {
     }
 
     /// Returns a [`Category`] description.
+    #[must_use]
     pub const fn description(&self) -> &'static str {
         match self {
             Self::Financial => "Category which includes all the financial-related hazards.",
@@ -337,6 +344,7 @@ impl Category {
     }
 
     /// Returns all [`Hazard`]s associated with a [`Category`].
+    #[must_use]
     pub const fn hazards(&self) -> &[Hazard] {
         match self {
             Self::Financial => &[

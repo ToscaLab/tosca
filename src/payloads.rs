@@ -29,7 +29,8 @@ pub struct OkPayload(ShortString);
 
 impl OkPayload {
     /// Creates an [`OkPayload`].
-    #[inline(always)]
+    #[must_use]
+    #[inline]
     pub fn ok() -> Self {
         // Ok payload message (64 byte-long).
         Self(ShortString::new("The action terminated correctly.").unwrap_or(ShortString::empty()))
@@ -49,6 +50,7 @@ pub struct SerialPayload<T: DeserializeOwned> {
 
 impl<T: Serialize + DeserializeOwned> SerialPayload<T> {
     /// Creates a [`SerialPayload`].
+    #[must_use]
     pub const fn new(data: T) -> Self {
         Self { data }
     }
@@ -66,6 +68,7 @@ pub struct InfoPayload {
 
 impl InfoPayload {
     /// Creates a [`InfoPayload`].
+    #[must_use]
     pub const fn new(data: DeviceInfo) -> Self {
         Self { data }
     }
@@ -89,6 +92,7 @@ impl ErrorPayload {
     /// a description.
     ///
     /// If an error occurs, an empty description is returned.
+    #[must_use]
     #[inline]
     pub fn with_description(error: ActionError, description: &'static str) -> Self {
         Self {
@@ -103,6 +107,7 @@ impl ErrorPayload {
     ///
     /// If this method fails for some internal reasons, empty description and
     /// information are returned.
+    #[must_use]
     #[inline]
     pub fn with_description_error(
         error: ActionError,
@@ -120,6 +125,7 @@ impl ErrorPayload {
     ///
     /// If this method fails for some internal reasons, an empty description
     /// is returned.
+    #[must_use]
     #[inline]
     pub fn invalid_data(description: &'static str) -> Self {
         Self::with_description(ActionError::InvalidData, description)
@@ -130,6 +136,7 @@ impl ErrorPayload {
     ///
     /// If this method fails for some internal reasons, empty description and
     /// information are returned.
+    #[must_use]
     #[inline]
     pub fn invalid_data_with_error(description: &'static str, info: &str) -> Self {
         Self::with_description_error(ActionError::InvalidData, description, info)
@@ -139,6 +146,7 @@ impl ErrorPayload {
     ///
     /// If this method fails for some internal reasons, an empty description
     /// is returned.
+    #[must_use]
     #[inline]
     pub fn internal(description: &'static str) -> Self {
         Self::with_description(ActionError::Internal, description)
@@ -149,7 +157,8 @@ impl ErrorPayload {
     ///
     /// If this method fails for some internal reasons, empty description and
     /// information are returned.
-    #[inline(always)]
+    #[must_use]
+    #[inline]
     pub fn internal_with_error(description: &'static str, info: &str) -> Self {
         Self::with_description_error(ActionError::Internal, description, info)
     }
