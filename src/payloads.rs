@@ -74,7 +74,7 @@ impl InfoPayload {
 /// A payload containing information about an error occurred within an action.
 ///
 /// It describes the kind of error, the cause, and optional information.
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize)]
 pub struct ErrorPayload {
     /// Action error type.
     pub error: ActionError,
