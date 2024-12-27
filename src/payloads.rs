@@ -22,18 +22,21 @@ pub enum PayloadKind {
     Stream,
 }
 
-/// An `Ok` payload notifies a receiver with a short message that a device
-/// action has terminated correctly.
+/// An `Ok` payload sends a boolean as action response to notify a receiver that
+/// a device action has terminated correctly.
 #[derive(Serialize, Deserialize)]
-pub struct OkPayload(ShortString);
+pub struct OkPayload {
+    action_terminated_correctly: bool,
+}
 
 impl OkPayload {
     /// Creates an [`OkPayload`].
     #[must_use]
     #[inline]
     pub fn ok() -> Self {
-        // Ok payload message (64 byte-long).
-        Self(ShortString::new("The action terminated correctly.").unwrap_or(ShortString::empty()))
+        Self {
+            action_terminated_correctly: true,
+        }
     }
 }
 
