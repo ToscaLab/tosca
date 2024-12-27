@@ -6,7 +6,7 @@ use crate::strings::ShortString;
 /// Payload kinds for an action response.
 #[derive(Serialize, Deserialize)]
 pub enum PayloadKind {
-    /// A short message to notify the receiver that an action terminated
+    /// A short message to notify a receiver that an action terminated
     /// correctly.
     Ok,
     /// Serial data (i.e. JSON).
