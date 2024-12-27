@@ -17,10 +17,10 @@ use ascot_library::input::Input;
 use ascot_library::route::{Route, RouteHazards};
 
 // Ascot axum device.
+use ascot_axum::actions::error::ErrorPayload;
 use ascot_axum::actions::info::{info_stateful, InfoPayload};
 use ascot_axum::actions::ok::{mandatory_ok_stateful, ok_stateful, OkPayload};
 use ascot_axum::actions::serial::{mandatory_serial_stateful, serial_stateful, SerialPayload};
-use ascot_axum::actions::ActionError;
 use ascot_axum::devices::light::Light;
 use ascot_axum::error::Error;
 use ascot_axum::extract::{FromRef, Json, State};
@@ -130,7 +130,7 @@ struct Inputs {
 async fn turn_light_on(
     State(state): State<InternalState>,
     Json(inputs): Json<Inputs>,
-) -> Result<SerialPayload<LightOnResponse>, ActionError> {
+) -> Result<SerialPayload<LightOnResponse>, ErrorPayload> {
     let mut light = state.lock().await;
     light.turn_light_on(inputs.brightness, inputs.save_energy);
 
@@ -140,17 +140,17 @@ async fn turn_light_on(
     }))
 }
 
-async fn turn_light_off(State(state): State<InternalState>) -> Result<OkPayload, ActionError> {
+async fn turn_light_off(State(state): State<InternalState>) -> Result<OkPayload, ErrorPayload> {
     state.lock().await.turn_light_off();
     Ok(OkPayload::ok())
 }
 
-async fn toggle(State(state): State<InternalState>) -> Result<OkPayload, ActionError> {
+async fn toggle(State(state): State<InternalState>) -> Result<OkPayload, ErrorPayload> {
     state.lock().await.toggle();
     Ok(OkPayload::ok())
 }
 
-async fn info(State(state): State<LightInfoState>) -> Result<InfoPayload, ActionError> {
+async fn info(State(state): State<LightInfoState>) -> Result<InfoPayload, ErrorPayload> {
     // Retrieve light information state.
     let light_info = state.lock().await.clone();
 
@@ -159,7 +159,7 @@ async fn info(State(state): State<LightInfoState>) -> Result<InfoPayload, Action
 
 async fn update_energy_efficiency(
     State(state): State<LightState>,
-) -> Result<InfoPayload, ActionError> {
+) -> Result<InfoPayload, ErrorPayload> {
     // Retrieve internal state.
     let light = state.state.lock().await;
 

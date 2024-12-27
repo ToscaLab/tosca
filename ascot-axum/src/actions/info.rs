@@ -13,7 +13,7 @@ use axum::{
 
 use serde::{Deserialize, Serialize};
 
-use super::{ActionError, DeviceAction};
+use super::{error::ErrorPayload, DeviceAction};
 
 /// An informative payload on a device.
 #[derive(Serialize, Deserialize)]
@@ -39,7 +39,7 @@ mod private {
 impl<F, Fut> private::InfoTypeName<()> for F
 where
     F: FnOnce() -> Fut,
-    Fut: Future<Output = Result<InfoPayload, ActionError>> + Send,
+    Fut: Future<Output = Result<InfoPayload, ErrorPayload>> + Send,
 {
 }
 
@@ -50,7 +50,7 @@ macro_rules! impl_info_type_name {
         impl<F, Fut, M, $($ty,)* $($last)?> private::InfoTypeName<(M, $($ty,)* $($last)?)> for F
         where
             F: FnOnce($($ty,)* $($last)?) -> Fut,
-            Fut: Future<Output = Result<InfoPayload, ActionError>> + Send,
+            Fut: Future<Output = Result<InfoPayload, ErrorPayload>> + Send,
             {
             }
     };

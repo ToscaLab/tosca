@@ -12,7 +12,7 @@ use axum::{
 
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
-use super::{ActionError, DeviceAction, MandatoryAction};
+use super::{error::ErrorPayload, DeviceAction, MandatoryAction};
 
 /// Serial payload structure.
 #[derive(Serialize, Deserialize)]
@@ -40,7 +40,7 @@ impl<T, F, Fut> private::SerialTypeName<()> for F
 where
     T: Serialize + DeserializeOwned,
     F: FnOnce() -> Fut,
-    Fut: Future<Output = Result<SerialPayload<T>, ActionError>> + Send,
+    Fut: Future<Output = Result<SerialPayload<T>, ErrorPayload>> + Send,
 {
 }
 
@@ -52,7 +52,7 @@ macro_rules! impl_serial_type_name {
         where
             T: Serialize + DeserializeOwned,
             F: FnOnce($($ty,)* $($last)?) -> Fut,
-            Fut: Future<Output = Result<SerialPayload<T>, ActionError>> + Send,
+            Fut: Future<Output = Result<SerialPayload<T>, ErrorPayload>> + Send,
             {
             }
     };

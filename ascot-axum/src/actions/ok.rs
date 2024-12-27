@@ -12,7 +12,7 @@ use axum::{
 
 use serde::{Deserialize, Serialize};
 
-use super::{ActionError, DeviceAction, MandatoryAction};
+use super::{error::ErrorPayload, DeviceAction, MandatoryAction};
 
 /// An `Ok` payload.
 #[derive(Serialize, Deserialize)]
@@ -39,7 +39,7 @@ mod private {
 impl<F, Fut> private::OkTypeName<()> for F
 where
     F: FnOnce() -> Fut,
-    Fut: Future<Output = Result<OkPayload, ActionError>> + Send,
+    Fut: Future<Output = Result<OkPayload, ErrorPayload>> + Send,
 {
 }
 
@@ -50,7 +50,7 @@ macro_rules! impl_ok_type_name {
         impl<F, Fut, M, $($ty,)* $($last)?> private::OkTypeName<(M, $($ty,)* $($last)?)> for F
         where
             F: FnOnce($($ty,)* $($last)?) -> Fut,
-            Fut: Future<Output = Result<OkPayload, ActionError>> + Send,
+            Fut: Future<Output = Result<OkPayload, ErrorPayload>> + Send,
             {
             }
     };

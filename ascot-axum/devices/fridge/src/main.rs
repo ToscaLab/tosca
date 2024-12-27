@@ -17,9 +17,9 @@ use ascot_library::input::Input;
 use ascot_library::route::{Route, RouteHazards};
 
 // Ascot axum.
+use ascot_axum::actions::error::ErrorPayload;
 use ascot_axum::actions::info::{info_stateful, InfoPayload};
 use ascot_axum::actions::serial::{mandatory_serial_stateful, serial_stateful, SerialPayload};
-use ascot_axum::actions::ActionError;
 use ascot_axum::devices::fridge::Fridge;
 use ascot_axum::error::Error;
 use ascot_axum::extract::{FromRef, Json, State};
@@ -125,7 +125,7 @@ struct ChangeTempResponse {
 async fn increase_temperature(
     State(state): State<InternalState>,
     Json(inputs): Json<IncreaseTemperature>,
-) -> Result<SerialPayload<ChangeTempResponse>, ActionError> {
+) -> Result<SerialPayload<ChangeTempResponse>, ErrorPayload> {
     let mut fridge = state.lock().await;
     fridge.increase_temperature(inputs.increment);
 
@@ -142,7 +142,7 @@ struct DecreaseTemperature {
 async fn decrease_temperature(
     State(state): State<InternalState>,
     Json(inputs): Json<DecreaseTemperature>,
-) -> Result<SerialPayload<ChangeTempResponse>, ActionError> {
+) -> Result<SerialPayload<ChangeTempResponse>, ErrorPayload> {
     let mut fridge = state.lock().await;
     fridge.decrease_temperature(inputs.decrement);
 
@@ -151,7 +151,7 @@ async fn decrease_temperature(
     }))
 }
 
-async fn info(State(state): State<FridgeInfoState>) -> Result<InfoPayload, ActionError> {
+async fn info(State(state): State<FridgeInfoState>) -> Result<InfoPayload, ErrorPayload> {
     // Retrieve fridge information state.
     let fridge_info = state.lock().await.clone();
 
@@ -160,7 +160,7 @@ async fn info(State(state): State<FridgeInfoState>) -> Result<InfoPayload, Actio
 
 async fn update_energy_efficiency(
     State(state): State<FridgeState>,
-) -> Result<InfoPayload, ActionError> {
+) -> Result<InfoPayload, ErrorPayload> {
     // Retrieve internal state.
     let fridge = state.state.lock().await;
 
