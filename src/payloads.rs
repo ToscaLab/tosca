@@ -1,5 +1,6 @@
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
+use crate::actions::ActionError;
 use crate::device::DeviceInfo;
 use crate::strings::ShortString;
 
@@ -67,5 +68,72 @@ impl InfoPayload {
     /// Creates a [`InfoPayload`].
     pub const fn new(data: DeviceInfo) -> Self {
         Self { data }
+    }
+}
+
+/// A payload containing information about an error occurred within an action.
+///
+/// It describes the kind of error, the cause, and optional information.
+#[derive(Deserialize)]
+pub struct ErrorPayload {
+    /// Action error type.
+    pub error: ActionError,
+    /// Error description.
+    pub description: ShortString,
+    /// Information about an error.
+    pub info: Option<ShortString>,
+}
+
+impl ErrorPayload {
+    /// Creates an [`ErrorPayload`] with a specific [`ActionError`]
+    /// and a description.
+    #[inline]
+    pub fn with_description(error: ActionError, description: &'static str) -> Self {
+        Self {
+            error,
+            description: ShortString::infallible(description),
+            info: None,
+        }
+    }
+
+    /// Creates an [`ErrorPayload`] with a specific [`ActionError`], a
+    /// description, and the effective error.
+    #[inline]
+    pub fn with_description_error(
+        error: ActionError,
+        description: &'static str,
+        info: &str,
+    ) -> Self {
+        Self {
+            error,
+            description: ShortString::infallible(description),
+            info: Some(ShortString::infallible(info)),
+        }
+    }
+
+    /// Creates an [`ErrorPayload`] for invalid data with a description.
+    #[inline]
+    pub fn invalid_data(description: &'static str) -> Self {
+        Self::with_description(ActionError::InvalidData, description)
+    }
+
+    /// Creates an [`ErrorPayload`] for invalid data with a description and
+    /// the effective error.
+    #[inline]
+    pub fn invalid_data_with_error(description: &'static str, info: &str) -> Self {
+        Self::with_description_error(ActionError::InvalidData, description, info)
+    }
+
+    /// Creates an [`ErrorPayload`] for an internal error with a description.
+    #[inline]
+    pub fn internal(description: &'static str) -> Self {
+        Self::with_description(ActionError::Internal, description)
+    }
+
+    /// Creates an [`ErrorPayload`] for an internal error with a description and
+    /// the effective error.
+    #[inline(always)]
+    pub fn internal_with_error(description: &'static str, info: &str) -> Self {
+        Self::with_description_error(ActionError::Internal, description, info)
     }
 }
