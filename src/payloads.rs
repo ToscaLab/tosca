@@ -85,8 +85,10 @@ pub struct ErrorPayload {
 }
 
 impl ErrorPayload {
-    /// Creates an [`ErrorPayload`] with a specific [`ActionError`]
-    /// and a description.
+    /// Creates an [`ErrorPayload`] with a specific [`ActionError`] and
+    /// a description.
+    ///
+    /// If an error occurs, an empty description is returned.
     #[inline]
     pub fn with_description(error: ActionError, description: &'static str) -> Self {
         Self {
@@ -96,8 +98,11 @@ impl ErrorPayload {
         }
     }
 
-    /// Creates an [`ErrorPayload`] with a specific [`ActionError`], a
-    /// description, and the effective error.
+    /// Creates an [`ErrorPayload`] with a specific [`ActionError`], an
+    /// error description, and additional information about the error.
+    ///
+    /// If this method fails for some internal reasons, empty description and
+    /// information are returned.
     #[inline]
     pub fn with_description_error(
         error: ActionError,
@@ -112,26 +117,38 @@ impl ErrorPayload {
     }
 
     /// Creates an [`ErrorPayload`] for invalid data with a description.
+    ///
+    /// If this method fails for some internal reasons, an empty description
+    /// is returned.
     #[inline]
     pub fn invalid_data(description: &'static str) -> Self {
         Self::with_description(ActionError::InvalidData, description)
     }
 
     /// Creates an [`ErrorPayload`] for invalid data with a description and
-    /// the effective error.
+    /// additional information about the error.
+    ///
+    /// If this method fails for some internal reasons, empty description and
+    /// information are returned.
     #[inline]
     pub fn invalid_data_with_error(description: &'static str, info: &str) -> Self {
         Self::with_description_error(ActionError::InvalidData, description, info)
     }
 
     /// Creates an [`ErrorPayload`] for an internal error with a description.
+    ///
+    /// If this method fails for some internal reasons, an empty description
+    /// is returned.
     #[inline]
     pub fn internal(description: &'static str) -> Self {
         Self::with_description(ActionError::Internal, description)
     }
 
     /// Creates an [`ErrorPayload`] for an internal error with a description and
-    /// the effective error.
+    /// additional information about the error.
+    ///
+    /// If this method fails for some internal reasons, empty description and
+    /// information are returned.
     #[inline(always)]
     pub fn internal_with_error(description: &'static str, info: &str) -> Self {
         Self::with_description_error(ActionError::Internal, description, info)
