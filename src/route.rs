@@ -98,15 +98,15 @@ pub struct RouteConfig<'a> {
     pub hazards: HazardsData<'a>,
 }
 
-impl<'a> PartialEq for RouteConfig<'a> {
+impl PartialEq for RouteConfig<'_> {
     fn eq(&self, other: &Self) -> bool {
         self.data.name.eq(other.data.name) && self.rest_kind == other.rest_kind
     }
 }
 
-impl<'a> Eq for RouteConfig<'a> {}
+impl Eq for RouteConfig<'_> {}
 
-impl<'a> core::hash::Hash for RouteConfig<'a> {
+impl core::hash::Hash for RouteConfig<'_> {
     fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
         self.data.name.hash(state);
         self.rest_kind.hash(state);

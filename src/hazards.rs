@@ -26,13 +26,13 @@ impl<'a> HazardData<'a> {
     }
 }
 
-impl<'a> core::cmp::PartialEq for HazardData<'a> {
+impl core::cmp::PartialEq for HazardData<'_> {
     fn eq(&self, other: &Self) -> bool {
         self.id == other.id
     }
 }
 
-impl<'a> core::hash::Hash for HazardData<'a> {
+impl core::hash::Hash for HazardData<'_> {
     fn hash<H>(&self, state: &mut H)
     where
         H: core::hash::Hasher,
@@ -41,7 +41,7 @@ impl<'a> core::hash::Hash for HazardData<'a> {
     }
 }
 
-impl<'a> From<Hazard> for HazardData<'a> {
+impl From<Hazard> for HazardData<'_> {
     fn from(hazard: Hazard) -> Self {
         Self::new(
             hazard.id(),
@@ -276,7 +276,7 @@ pub struct CategoryData<'a> {
     pub description: &'a str,
 }
 
-impl<'a> CategoryData<'a> {
+impl CategoryData<'_> {
     const fn new(hazard: Hazard) -> Self {
         Self {
             name: hazard.category().name(),
@@ -285,13 +285,13 @@ impl<'a> CategoryData<'a> {
     }
 }
 
-impl<'a> core::cmp::PartialEq for CategoryData<'a> {
+impl core::cmp::PartialEq for CategoryData<'_> {
     fn eq(&self, other: &Self) -> bool {
         self.name == other.name
     }
 }
 
-impl<'a> core::hash::Hash for CategoryData<'a> {
+impl core::hash::Hash for CategoryData<'_> {
     fn hash<H>(&self, state: &mut H)
     where
         H: core::hash::Hasher,
