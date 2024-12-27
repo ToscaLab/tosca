@@ -47,6 +47,7 @@ pub struct DeviceInfo {
 
 impl DeviceInfo {
     /// Creates a [`DeviceInfo`].
+    #[must_use]
     pub fn empty() -> Self {
         Self {
             energy: Energy::empty(),
@@ -55,12 +56,14 @@ impl DeviceInfo {
     }
 
     /// Adds [`Energy`] data.
+    #[must_use]
     pub fn add_energy(mut self, energy: Energy) -> Self {
         self.energy = energy;
         self
     }
 
     /// Adds [`Economy`] data.
+    #[must_use]
     pub fn add_economy(mut self, economy: Economy) -> Self {
         self.economy = economy;
         self

@@ -1,4 +1,5 @@
 #![no_std]
+#![allow(clippy::module_name_repetitions)]
 
 // REMINDERS:
 //

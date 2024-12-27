@@ -93,7 +93,8 @@ impl core::hash::Hash for Input {
 
 impl Input {
     /// Creates a new [`u64`] range.
-    #[inline(always)]
+    #[must_use]
+    #[inline]
     pub fn rangeu64(name: &'static str, range: (u64, u64, u64, u64)) -> Self {
         Self {
             name,
@@ -102,7 +103,8 @@ impl Input {
     }
 
     /// Creates a new [`f64`] range.
-    #[inline(always)]
+    #[must_use]
+    #[inline]
     pub fn rangef64(name: &'static str, range: (f64, f64, f64, f64)) -> Self {
         Self {
             name,
@@ -111,7 +113,8 @@ impl Input {
     }
 
     /// Creates a new [`bool`] range.
-    #[inline(always)]
+    #[must_use]
+    #[inline]
     pub fn boolean(name: &'static str, default: bool) -> Self {
         Self {
             name,

@@ -153,40 +153,47 @@ impl core::hash::Hash for Route {
 
 impl Route {
     /// Creates a new [`Route`] through a REST `GET` API.
+    #[must_use]
     pub const fn get(route: &'static str) -> Self {
         Self::init(RestKind::Get, route)
     }
 
     /// Creates a new [`Route`] through a REST `PUT` API.
+    #[must_use]
     pub const fn put(route: &'static str) -> Self {
         Self::init(RestKind::Put, route)
     }
 
     /// Creates a new [`Route`] through a REST `POST` API.
+    #[must_use]
     pub const fn post(route: &'static str) -> Self {
         Self::init(RestKind::Post, route)
     }
 
     /// Sets the route description.
+    #[must_use]
     pub const fn description(mut self, description: &'static str) -> Self {
         self.description = Some(description);
         self
     }
 
     /// Sets the route as stateless.
+    #[must_use]
     pub const fn stateless(mut self) -> Self {
         self.stateless = true;
         self
     }
 
     /// Sets a single [`Input`].
-    #[inline(always)]
+    #[must_use]
+    #[inline]
     pub fn input(mut self, input: Input) -> Self {
         self.inputs.add(input);
         self
     }
 
     /// Sets more [`Input`]s.
+    #[must_use]
     #[inline]
     pub fn inputs<const N: usize>(mut self, inputs: [Input; N]) -> Self {
         inputs.into_iter().take(MAXIMUM_ELEMENTS).for_each(|input| {
@@ -230,7 +237,7 @@ impl Route {
     }
 
     /// Returns route.
-    #[inline(always)]
+    #[must_use]
     pub fn route(&self) -> &str {
         if self.inputs_route.is_empty() {
             self.route
@@ -240,6 +247,7 @@ impl Route {
     }
 
     /// Returns [`RestKind`].
+    #[must_use]
     pub const fn kind(&self) -> RestKind {
         self.rest_kind
     }
@@ -281,11 +289,13 @@ impl core::hash::Hash for RouteHazards {
 
 impl RouteHazards {
     /// Creates a [`RouteHazards`] instance.
+    #[must_use]
     pub const fn new(route: Route, hazards: Hazards) -> Self {
         Self { route, hazards }
     }
 
     /// Creates a [`RouteHazards`] without any hazard.
+    #[must_use]
     pub const fn no_hazards(route: Route) -> Self {
         Self {
             route,
@@ -294,6 +304,7 @@ impl RouteHazards {
     }
 
     /// Initializes a [`RouteHazards`] with a single [`Hazard`].
+    #[must_use]
     #[inline]
     pub fn single_hazard(route: Route, hazard: Hazard) -> Self {
         Self {
@@ -303,6 +314,7 @@ impl RouteHazards {
     }
 
     /// Initializes a [`RouteHazards`] with some [`Hazard`]s.
+    #[must_use]
     #[inline]
     pub fn with_hazards(route: Route, hazards: &'static [Hazard]) -> Self {
         Self {
@@ -312,6 +324,7 @@ impl RouteHazards {
     }
 
     /// Serializes [`RouteHazards`] data.
+    #[must_use]
     #[inline]
     pub fn serialize_data(&self) -> RouteConfig {
         RouteConfig {

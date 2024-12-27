@@ -40,6 +40,7 @@ macro_rules! implementation {
             T: PartialEq + Eq + Hash,
         {
             #[doc = concat!("Creates an empty [`", stringify!($impl), "`].")]
+            #[must_use]
             pub const fn empty() -> Self {
                 Self(FnvIndexSet::new())
             }
@@ -53,24 +54,25 @@ macro_rules! implementation {
             }
 
             #[doc = concat!("Adds an element to a [`", stringify!($impl), "`].")]
-            #[inline(always)]
+            #[inline]
             pub fn add(&mut self, element: T) {
                 let _ = self.0.insert(element);
             }
 
             #[doc = concat!("Checks whether the [`", stringify!($impl), "`] is empty.")]
-            #[inline(always)]
+            #[inline]
             pub fn is_empty(&self) -> bool {
                 self.0.is_empty()
             }
 
             #[doc = concat!("Checks whether the [`", stringify!($impl), "`] contains the given element.")]
-            #[inline(always)]
+            #[inline]
             pub fn contains(&self, element: impl AsRef<T>) -> bool {
                 self.0.contains(element.as_ref())
             }
 
             #[doc = concat!("Returns an iterator over the [`", stringify!($impl), "`].")]
+            #[allow(clippy::iter_without_into_iter)]
             #[inline]
             pub fn iter(&self) -> IndexSetIter<'_, T> {
                 self.0.iter()
@@ -85,9 +87,9 @@ macro_rules! implementation {
             #[inline]
             pub fn init_with_elements(input_elements: &[T]) -> Self {
                 let mut elements = Self::empty();
-                input_elements.iter().for_each(|element| {
-                    elements.add(*element);
-                });
+                for element in input_elements.iter() {
+                     elements.add(*element);
+                }
                 elements
             }
         }

@@ -58,6 +58,7 @@ impl core::fmt::Display for Cost {
 
 impl Cost {
     /// Creates a [`Cost`] instance.
+    #[must_use]
     pub const fn new(usd_currency: i32, timespan: CostTimespan) -> Self {
         Self {
             usd_currency,
@@ -99,6 +100,7 @@ impl Roi {
     /// is automatically being set.
     /// If the `years` parameter is greater than **30**, the value of **30** is
     /// automatically being set.
+    #[must_use]
     pub const fn new(years: u8, energy_class: EnergyClass) -> Self {
         let years = match years {
             0 => 1,
@@ -128,6 +130,7 @@ pub struct Economy {
 
 impl Economy {
     /// Creates an empty [`Economy`] instance.
+    #[must_use]
     pub const fn empty() -> Self {
         Self {
             costs: None,
@@ -137,6 +140,7 @@ impl Economy {
 
     /// Creates a new [`Economy`] instance initialized with
     /// [`Costs`] data.
+    #[must_use]
     pub const fn init_with_costs(costs: Costs) -> Self {
         Self {
             costs: Some(costs),
@@ -146,6 +150,7 @@ impl Economy {
 
     /// Creates a new [`Economy`] instance initialized with
     /// [`Rois`] data.
+    #[must_use]
     pub const fn init_with_roi(roi: Rois) -> Self {
         Self {
             costs: None,
@@ -154,20 +159,23 @@ impl Economy {
     }
 
     /// Adds [`Costs`] data.
-    #[inline(always)]
+    #[must_use]
+    #[inline]
     pub fn costs(mut self, costs: Costs) -> Self {
         self.costs = Some(costs);
         self
     }
 
     /// Adds [`Rois`] data.
-    #[inline(always)]
+    #[must_use]
+    #[inline]
     pub fn roi(mut self, roi: Rois) -> Self {
         self.roi = Some(roi);
         self
     }
 
     /// Checks whether [`Economy`] is **completely** empty.
+    #[must_use]
     pub const fn is_empty(&self) -> bool {
         self.costs.is_none() && self.roi.is_none()
     }
