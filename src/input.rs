@@ -36,7 +36,7 @@ pub struct InputData<'a> {
     pub datatype: InputType,
 }
 
-impl<'a> InputData<'a> {
+impl InputData<'_> {
     const fn new(input: Input) -> Self {
         Self {
             name: input.name,
@@ -45,21 +45,21 @@ impl<'a> InputData<'a> {
     }
 }
 
-impl<'a> core::cmp::PartialEq for InputData<'a> {
+impl core::cmp::PartialEq for InputData<'_> {
     fn eq(&self, other: &Self) -> bool {
         self.name == other.name
     }
 }
 
-impl<'a> core::cmp::Eq for InputData<'a> {}
+impl core::cmp::Eq for InputData<'_> {}
 
-impl<'a> core::hash::Hash for InputData<'a> {
+impl core::hash::Hash for InputData<'_> {
     fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
         self.name.hash(state);
     }
 }
 
-impl<'a> From<Input> for InputData<'a> {
+impl From<Input> for InputData<'_> {
     fn from(input: Input) -> Self {
         Self::new(input)
     }
