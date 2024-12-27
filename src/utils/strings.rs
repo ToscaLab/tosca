@@ -74,6 +74,9 @@ impl MiniString {
     }
 
     /// Creates a new [`MiniString`].
+    ///
+    /// # Errors
+    /// If the input text is greater than 32 bytes, an error is returned.
     pub fn new(text: &str) -> Result<Self> {
         Ok(Self(create_string::<MINI_STRING_LENGHT>(text)?))
     }
@@ -96,11 +99,18 @@ impl MiniString {
     }
 
     /// Adds a string slice to [`MiniString`].
+    ///
+    /// # Errors
+    /// If the input text is greater than 32 bytes, an error is returned.
     pub fn push(&mut self, text: &str) -> Result<()> {
         push_string::<MINI_STRING_LENGHT>(&mut self.0, text)
     }
 
     /// Adds a character to [`MiniString`].
+    ///
+    /// # Errors
+    /// If the input character causes the [`MiniString`] to go beyond 32 bytes,
+    /// an error is returned.
     pub fn push_char(&mut self, c: char) -> Result<()> {
         push_char::<MINI_STRING_LENGHT>(&mut self.0, c)
     }
@@ -121,6 +131,9 @@ impl ShortString {
     }
 
     /// Creates a new [`ShortString`].
+    ///
+    /// # Errors
+    /// If the input text is greater than 64 bytes, an error is returned.
     pub fn new(text: &str) -> Result<Self> {
         Ok(Self(create_string::<SHORT_STRING_LENGHT>(text)?))
     }
@@ -143,11 +156,18 @@ impl ShortString {
     }
 
     /// Adds a string slice to [`ShortString`].
+    ///
+    /// # Errors
+    /// If the input text is greater than 64 bytes, an error is returned.
     pub fn push(&mut self, text: &str) -> Result<()> {
         push_string::<SHORT_STRING_LENGHT>(&mut self.0, text)
     }
 
     /// Adds a character to [`ShortString`].
+    ///
+    /// # Errors
+    /// If the input character causes the [`ShortString`] to go beyond 64 bytes,
+    /// an error is returned.
     pub fn push_char(&mut self, c: char) -> Result<()> {
         push_char::<SHORT_STRING_LENGHT>(&mut self.0, c)
     }
@@ -168,6 +188,9 @@ impl LongString {
     }
 
     /// Creates a new [`LongString`].
+    ///
+    /// # Errors
+    /// If the input text is greater than 128 bytes, an error is returned.
     pub fn new(text: &str) -> Result<Self> {
         Ok(Self(create_string::<LONG_STRING_LENGHT>(text)?))
     }
@@ -190,11 +213,18 @@ impl LongString {
     }
 
     /// Adds a string slice to [`LongString`].
+    ///
+    /// # Errors
+    /// If the input text is greater than 128 bytes, an error is returned.
     pub fn push(&mut self, text: &str) -> Result<()> {
         push_string::<LONG_STRING_LENGHT>(&mut self.0, text)
     }
 
     /// Adds a character to [`LongString`].
+    ///
+    /// # Errors
+    /// If the input character causes the [`LongString`] to go beyond 128 bytes,
+    /// an error is returned.
     pub fn push_char(&mut self, c: char) -> Result<()> {
         push_char::<LONG_STRING_LENGHT>(&mut self.0, c)
     }
