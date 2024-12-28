@@ -46,7 +46,6 @@ impl OkPayload {
 #[derive(Serialize, Deserialize)]
 #[serde(bound = "T: Serialize + DeserializeOwned")]
 pub struct SerialPayload<T: DeserializeOwned> {
-    // Serializable data.
     #[serde(flatten)]
     data: T,
 }
@@ -64,7 +63,6 @@ impl<T: Serialize + DeserializeOwned> SerialPayload<T> {
 /// This payload contains additional information on a device.
 #[derive(Serialize, Deserialize)]
 pub struct InfoPayload {
-    // Serializable data.
     #[serde(flatten)]
     data: DeviceInfo,
 }
