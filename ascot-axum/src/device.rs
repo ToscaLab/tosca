@@ -1,5 +1,5 @@
 use ascot_library::device::{DeviceData, DeviceKind, DeviceSerializer};
-use ascot_library::route::{RouteConfigs, RoutesHazards};
+use ascot_library::route::{RouteConfigs, Routes};
 
 use axum::Router;
 
@@ -25,7 +25,7 @@ where
     // Kind.
     kind: DeviceKind,
     // All device routes and their hazards.
-    routes_hazards: RoutesHazards,
+    routes: Routes,
 }
 
 impl Default for Device<()> {
@@ -48,15 +48,15 @@ where
 {
     fn serialize_data(&self) -> DeviceData {
         let mut route_configs = RouteConfigs::empty();
-        for route_hazards in self.routes_hazards.iter() {
+        for route in self.routes.iter() {
             info!(
                 "Device route: [{}, \"{}{}\"]",
-                route_hazards.route.kind(),
+                route.kind(),
                 self.main_route,
-                route_hazards.route.route()
+                route.route()
             );
 
-            route_configs.add(route_hazards.serialize_data());
+            route_configs.add(route.serialize_data());
         }
 
         DeviceData {
@@ -102,7 +102,7 @@ where
             main_route: DEFAULT_MAIN_ROUTE,
             router: Router::new(),
             kind,
-            routes_hazards: RoutesHazards::empty(),
+            routes: Routes::empty(),
             state,
         }
     }
@@ -110,7 +110,7 @@ where
     #[inline]
     pub(crate) fn add_device_action(mut self, device_action: DeviceAction) -> Self {
         self.router = self.router.merge(device_action.router);
-        self.routes_hazards.add(device_action.route_hazards);
+        self.routes.add(device_action.route);
         self
     }
 }
@@ -125,7 +125,7 @@ mod tests {
 
     use ascot_library::device::DeviceInfo;
     use ascot_library::energy::Energy;
-    use ascot_library::route::{Route, RouteHazards};
+    use ascot_library::route::Route;
 
     use async_lock::Mutex;
 
@@ -289,20 +289,18 @@ mod tests {
         }))
     }
 
-    struct Routes {
-        with_state_route: RouteHazards,
-        without_state_route: RouteHazards,
+    struct AllRoutes {
+        with_state_route: Route,
+        without_state_route: Route,
     }
 
     #[inline]
-    fn create_routes() -> Routes {
-        Routes {
-            with_state_route: RouteHazards::no_hazards(
-                Route::put("/state-action").description("Run action with state."),
-            ),
-            without_state_route: RouteHazards::no_hazards(
-                Route::post("/no-state-route").description("Run action without state."),
-            ),
+    fn create_routes() -> AllRoutes {
+        AllRoutes {
+            with_state_route: Route::put("/state-action").description("Run action with state."),
+
+            without_state_route: Route::post("/no-state-route")
+                .description("Run action without state."),
         }
     }
 
@@ -337,17 +335,12 @@ mod tests {
                 serial_action_with_substate1,
             ))
             .add_action(serial_stateful(
-                RouteHazards::no_hazards(
-                    Route::put("/substate-action")
-                        .description("Run a serial action with a substate."),
-                ),
+                Route::put("/substate-action").description("Run a serial action with a substate."),
                 serial_action_with_substate2,
             ))
             .add_info_action(info_stateful(
-                RouteHazards::no_hazards(
-                    Route::put("/substate-info")
-                        .description("Run an informative action with a substate."),
-                ),
+                Route::put("/substate-info")
+                    .description("Run an informative action with a substate."),
                 info_action_with_substate3,
             ))
             .add_action(serial_stateless(

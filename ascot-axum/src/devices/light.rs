@@ -173,7 +173,7 @@ mod tests {
 
     use ascot_library::hazards::Hazard;
     use ascot_library::input::Input;
-    use ascot_library::route::{Route, RouteHazards};
+    use ascot_library::route::Route;
 
     use axum::extract::{Json, State};
 
@@ -243,34 +243,31 @@ mod tests {
     }
 
     struct Routes {
-        light_on_route: RouteHazards,
-        light_on_post_route: RouteHazards,
-        light_off_route: RouteHazards,
-        toggle_route: RouteHazards,
+        light_on_route: Route,
+        light_on_post_route: Route,
+        light_off_route: Route,
+        toggle_route: Route,
     }
 
     #[inline]
     fn create_routes() -> Routes {
         Routes {
-            light_on_route: RouteHazards::single_hazard(
-                Route::put("/on").description("Turn light on.").inputs([
+            light_on_route: Route::put("/on")
+                .description("Turn light on.")
+                .inputs([
                     Input::rangef64("brightness", (0., 20., 0.1, 0.)),
                     Input::boolean("save-energy", false),
-                ]),
-                Hazard::FireHazard,
-            ),
-            light_on_post_route: RouteHazards::no_hazards(
-                Route::post("/on").description("Turn light on.").inputs([
-                    Input::rangef64("brightness", (0., 20., 0.1, 0.)),
-                    Input::boolean("save-energy", false),
-                ]),
-            ),
-            light_off_route: RouteHazards::no_hazards(
-                Route::put("/off").description("Turn light off."),
-            ),
-            toggle_route: RouteHazards::no_hazards(
-                Route::put("/toggle").description("Toggle a light."),
-            ),
+                ])
+                .with_single_hazard(Hazard::FireHazard),
+
+            light_on_post_route: Route::post("/on").description("Turn light on.").inputs([
+                Input::rangef64("brightness", (0., 20., 0.1, 0.)),
+                Input::boolean("save-energy", false),
+            ]),
+
+            light_off_route: Route::put("/off").description("Turn light off."),
+
+            toggle_route: Route::put("/toggle").description("Toggle a light."),
         }
     }
 
