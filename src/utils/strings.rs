@@ -71,7 +71,7 @@ impl MiniString {
         Self(String::<MINI_STRING_LENGHT>::new())
     }
 
-    /// Creates a new [`MiniString`].
+    /// Creates a [`MiniString`].
     ///
     /// # Errors
     /// If the input text is greater than 32 bytes, an error is returned.
@@ -79,7 +79,7 @@ impl MiniString {
         Ok(Self(create_string::<MINI_STRING_LENGHT>(text)?))
     }
 
-    /// Creates a new infallible [`MiniString`].
+    /// Creates an infallible [`MiniString`].
     ///
     /// When an error occurs, an empty [`MiniString`] is returned.
     #[must_use]
@@ -87,13 +87,13 @@ impl MiniString {
         Self::new(text).unwrap_or(Self::empty())
     }
 
-    /// Checks whether the [`MiniString`] is empty.
+    /// Checks whether a [`MiniString`] is empty.
     #[must_use]
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
     }
 
-    /// Returns a string slice containing the entire string.
+    /// Returns the associated string slice.
     #[must_use]
     pub fn as_str(&self) -> &str {
         self.0.as_str()
@@ -132,7 +132,7 @@ impl ShortString {
         Self(String::<SHORT_STRING_LENGHT>::new())
     }
 
-    /// Creates a new [`ShortString`].
+    /// Creates a [`ShortString`].
     ///
     /// # Errors
     /// If the input text is greater than 64 bytes, an error is returned.
@@ -140,7 +140,7 @@ impl ShortString {
         Ok(Self(create_string::<SHORT_STRING_LENGHT>(text)?))
     }
 
-    /// Creates a new infallible [`ShortString`].
+    /// Creates an infallible [`ShortString`].
     ///
     /// When an error occurs, an empty [`ShortString`] is returned.
     #[must_use]
@@ -148,13 +148,13 @@ impl ShortString {
         Self::new(text).unwrap_or(Self::empty())
     }
 
-    /// Checks whether the [`MiniString`] is empty.
+    /// Checks whether a [`MiniString`] is empty.
     #[must_use]
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
     }
 
-    /// Returns a string slice containing the entire string.
+    /// Returns the associated string slice.
     #[must_use]
     pub fn as_str(&self) -> &str {
         self.0.as_str()
@@ -193,7 +193,7 @@ impl LongString {
         Self(String::<LONG_STRING_LENGHT>::new())
     }
 
-    /// Creates a new [`LongString`].
+    /// Creates a [`LongString`].
     ///
     /// # Errors
     /// If the input text is greater than 128 bytes, an error is returned.
@@ -201,7 +201,7 @@ impl LongString {
         Ok(Self(create_string::<LONG_STRING_LENGHT>(text)?))
     }
 
-    /// Creates a new infallible [`LongString`].
+    /// Creates an infallible [`LongString`].
     ///
     /// When an error occurs, an empty [`LongString`] is returned.
     #[must_use]
@@ -209,13 +209,13 @@ impl LongString {
         Self::new(text).unwrap_or(Self::empty())
     }
 
-    /// Checks whether the [`MiniString`] is empty.
+    /// Checks whether a [`MiniString`] is empty.
     #[must_use]
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
     }
 
-    /// Returns a string slice containing the entire string.
+    /// Returns the associated string slice.
     #[must_use]
     pub fn as_str(&self) -> &str {
         self.0.as_str()
