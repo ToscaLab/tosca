@@ -4,7 +4,7 @@ pub mod ok;
 pub mod serial;
 
 use ascot_library::hazards::{Hazard, Hazards};
-use ascot_library::route::{RestKind, Route, RouteHazards, RouteMode};
+use ascot_library::route::{RestKind, Route, RouteHazards};
 
 use axum::{handler::Handler, Router};
 
@@ -63,15 +63,11 @@ impl DeviceAction {
     }
 
     #[inline]
-    pub(crate) fn stateless<H, T>(mut route_hazards: RouteHazards, handler: H) -> Self
+    pub(crate) fn stateless<H, T>(route_hazards: RouteHazards, handler: H) -> Self
     where
         H: Handler<T, ()>,
         T: 'static,
     {
-        route_hazards
-            .route
-            .join_inputs(RouteMode::Linear, Some(":"));
-
         Self {
             router: Self::create_router(
                 route_hazards.route.route(),
@@ -84,16 +80,12 @@ impl DeviceAction {
     }
 
     #[inline]
-    pub(crate) fn stateful<H, T, S>(mut route_hazards: RouteHazards, handler: H, state: S) -> Self
+    pub(crate) fn stateful<H, T, S>(route_hazards: RouteHazards, handler: H, state: S) -> Self
     where
         H: Handler<T, S>,
         T: 'static,
         S: Clone + Send + Sync + 'static,
     {
-        route_hazards
-            .route
-            .join_inputs(RouteMode::Linear, Some(":"));
-
         Self {
             router: Self::create_router(
                 route_hazards.route.route(),
