@@ -1,3 +1,5 @@
+#![allow(clippy::iter_without_into_iter)]
+
 use core::hash::Hash;
 
 use heapless::{FnvIndexSet, IndexSetIter};
@@ -72,7 +74,6 @@ macro_rules! implementation {
             }
 
             #[doc = concat!("Returns an iterator over the [`", stringify!($impl), "`].")]
-            #[allow(clippy::iter_without_into_iter)]
             #[inline]
             pub fn iter(&self) -> IndexSetIter<'_, T> {
                 self.0.iter()
