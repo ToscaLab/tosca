@@ -164,6 +164,12 @@ impl Route {
         self.rest_kind
     }
 
+    /// Returns [`Hazards`].
+    #[must_use]
+    pub const fn hazards(&self) -> &Hazards {
+        &self.hazards
+    }
+
     /// Adds [`Hazards`] to a [`Route`].
     #[must_use]
     #[inline]
