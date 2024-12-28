@@ -164,3 +164,78 @@ impl ErrorPayload {
         Self::with_description_error(ActionError::Internal, description, info)
     }
 }
+
+#[cfg(test)]
+mod tests {
+
+    use serde_json::{json, Value};
+
+    use crate::energy::{Energy, WaterUseEfficiency};
+
+    use super::*;
+
+    #[derive(Debug, Serialize, Deserialize)]
+    struct Serial {
+        value: u32,
+    }
+
+    fn serialize<T: Serialize>(value: T) -> Value {
+        serde_json::to_value(value).unwrap()
+    }
+
+    #[test]
+    fn test_ok_payload() {
+        assert_eq!(
+            serialize(OkPayload::ok()),
+            json!({
+                "action_terminated_correctly": true,
+            })
+        );
+    }
+
+    #[test]
+    fn test_serial_payload() {
+        assert_eq!(
+            serialize(SerialPayload::new(Serial { value: 42 })),
+            json!({
+                "value": 42,
+            })
+        );
+    }
+
+    #[test]
+    fn test_info_payload() {
+        let energy =
+            Energy::init_with_water_use_efficiency(WaterUseEfficiency::init_with_gpp(42.0));
+
+        assert_eq!(
+            serialize(InfoPayload::new(DeviceInfo::empty().add_energy(energy))),
+            json!({
+                 "energy": {
+                     "water-use-efficiency": {
+                         "gross-primary-productivity": 42.0,
+                         "penman-monteith-equation": null,
+                         "water-equivalent-ratio": null
+                     }
+                 }
+            })
+        );
+    }
+
+    #[test]
+    fn test_error_payload() {
+        let error = ErrorPayload::with_description(
+            ActionError::InvalidData,
+            "Invalid data error description",
+        );
+
+        assert_eq!(
+            serialize(error),
+            json!({
+                 "error": "Invalid Data",
+                 "description": "Invalid data error description",
+                 "info": null,
+            })
+        );
+    }
+}
