@@ -89,6 +89,8 @@ pub struct Route {
     description: Option<&'static str>,
     // Inputs.
     inputs: Inputs,
+    // Hazards.
+    hazards: Hazards,
 }
 
 impl PartialEq for Route {
@@ -162,90 +164,55 @@ impl Route {
         self.rest_kind
     }
 
+    /// Adds [`Hazards`] to a [`Route`].
+    #[must_use]
+    #[inline]
+    pub fn add_hazards(mut self, hazards: Hazards) -> Self {
+        self.hazards = hazards;
+        self
+    }
+
+    /// Adds a single [`Hazard`] to a [`Route`].
+    #[must_use]
+    #[inline]
+    pub fn single_hazard(mut self, hazard: Hazard) -> Self {
+        self.hazards = Hazards::init(hazard);
+        self
+    }
+
+    /// Adds a slice of [`Hazard`]s to a [`Route`].
+    #[must_use]
+    #[inline]
+    pub fn add_hazards_slice(mut self, hazards: &'static [Hazard]) -> Self {
+        self.hazards = Hazards::init_with_elements(hazards);
+        self
+    }
+
+    /// Serializes [`Route`] data.
+    #[must_use]
+    #[inline]
+    pub fn serialize_data(&self) -> RouteConfig {
+        RouteConfig {
+            rest_kind: self.rest_kind,
+            hazards: HazardsData::from(&self.hazards),
+            data: RouteData {
+                name: self.route(),
+                description: self.description,
+                inputs: InputsData::from(&self.inputs),
+            },
+        }
+    }
+
     const fn init(rest_kind: RestKind, route: &'static str) -> Self {
         Self {
             route,
             rest_kind,
             description: None,
+            hazards: Hazards::empty(),
             inputs: Inputs::empty(),
         }
     }
 }
 
-/// A route with its associated hazards.
-#[derive(Debug)]
-pub struct RouteHazards {
-    /// Route.
-    pub route: Route,
-    /// Hazards.
-    pub hazards: Hazards,
-}
-
-impl core::cmp::PartialEq for RouteHazards {
-    fn eq(&self, other: &Self) -> bool {
-        self.route.eq(&other.route)
-    }
-}
-
-impl core::cmp::Eq for RouteHazards {}
-
-impl core::hash::Hash for RouteHazards {
-    fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
-        self.route.hash(state);
-    }
-}
-
-impl RouteHazards {
-    /// Creates a [`RouteHazards`] instance.
-    #[must_use]
-    pub const fn new(route: Route, hazards: Hazards) -> Self {
-        Self { route, hazards }
-    }
-
-    /// Creates a [`RouteHazards`] without any hazard.
-    #[must_use]
-    pub const fn no_hazards(route: Route) -> Self {
-        Self {
-            route,
-            hazards: Hazards::empty(),
-        }
-    }
-
-    /// Initializes a [`RouteHazards`] with a single [`Hazard`].
-    #[must_use]
-    #[inline]
-    pub fn single_hazard(route: Route, hazard: Hazard) -> Self {
-        Self {
-            route,
-            hazards: Hazards::init(hazard),
-        }
-    }
-
-    /// Initializes a [`RouteHazards`] with some [`Hazard`]s.
-    #[must_use]
-    #[inline]
-    pub fn with_hazards(route: Route, hazards: &'static [Hazard]) -> Self {
-        Self {
-            route,
-            hazards: Hazards::init_with_elements(hazards),
-        }
-    }
-
-    /// Serializes [`RouteHazards`] data.
-    #[must_use]
-    #[inline]
-    pub fn serialize_data(&self) -> RouteConfig {
-        RouteConfig {
-            rest_kind: self.route.rest_kind,
-            hazards: HazardsData::from(&self.hazards),
-            data: RouteData {
-                name: self.route.route(),
-                description: self.route.description,
-                inputs: InputsData::from(&self.route.inputs),
-            },
-        }
-    }
-}
-
 /// A collection of [`RouteHazards`]s.
-pub type RoutesHazards = Collection<RouteHazards>;
+pub type Routes = Collection<Route>;
