@@ -227,10 +227,13 @@ async fn main() -> Result<(), Error> {
         .with_single_hazard(Hazard::FireHazard);
 
     // Turn light on `POST` route.
-    let light_on_post_route = Route::post("/on").description("Turn light on.").inputs([
-        Input::rangef64("brightness", (0., 20., 0.1, 0.)),
-        Input::boolean("save-energy", false),
-    ]);
+    let light_on_post_route = Route::post("/on")
+        .description("Turn light on.")
+        .inputs([
+            Input::rangef64("brightness", (0., 20., 0.1, 0.)),
+            Input::boolean("save-energy", false),
+        ])
+        .with_single_hazard(Hazard::FireHazard);
 
     // Turn light off `PUT` route.
     let light_off_route = Route::put("/off").description("Turn light off.");
