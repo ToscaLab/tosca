@@ -48,12 +48,6 @@ pub struct RouteData<'a> {
     pub name: &'a str,
     /// Description.
     pub description: Option<&'a str>,
-    /// Stateless parameter.
-    ///
-    /// The route does not modify the internal state of a device.
-    ///
-    /// The default value is [`false`].
-    pub stateless: bool,
     /// Inputs associated with a route..
     #[serde(skip_serializing_if = "InputsData::is_empty")]
     pub inputs: InputsData<'a>,
@@ -128,8 +122,6 @@ pub struct Route {
     rest_kind: RestKind,
     // Description.
     description: Option<&'static str>,
-    // Stateless parameter.
-    stateless: bool,
     // Inputs.
     inputs: Inputs,
     // Route with inputs.
@@ -174,13 +166,6 @@ impl Route {
     #[must_use]
     pub const fn description(mut self, description: &'static str) -> Self {
         self.description = Some(description);
-        self
-    }
-
-    /// Sets the route as stateless.
-    #[must_use]
-    pub const fn stateless(mut self) -> Self {
-        self.stateless = true;
         self
     }
 
@@ -257,7 +242,6 @@ impl Route {
             route,
             rest_kind,
             description: None,
-            stateless: false,
             inputs: Inputs::empty(),
             inputs_route: MiniString::empty(),
         }
@@ -333,7 +317,6 @@ impl RouteHazards {
             data: RouteData {
                 name: self.route.route(),
                 description: self.route.description,
-                stateless: self.route.stateless,
                 inputs: InputsData::from(&self.route.inputs),
             },
         }
