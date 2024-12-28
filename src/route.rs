@@ -167,7 +167,7 @@ impl Route {
     /// Adds [`Hazards`] to a [`Route`].
     #[must_use]
     #[inline]
-    pub fn add_hazards(mut self, hazards: Hazards) -> Self {
+    pub fn with_hazards(mut self, hazards: Hazards) -> Self {
         self.hazards = hazards;
         self
     }
@@ -175,7 +175,7 @@ impl Route {
     /// Adds a single [`Hazard`] to a [`Route`].
     #[must_use]
     #[inline]
-    pub fn single_hazard(mut self, hazard: Hazard) -> Self {
+    pub fn with_single_hazard(mut self, hazard: Hazard) -> Self {
         self.hazards = Hazards::init(hazard);
         self
     }
@@ -183,7 +183,7 @@ impl Route {
     /// Adds a slice of [`Hazard`]s to a [`Route`].
     #[must_use]
     #[inline]
-    pub fn add_hazards_slice(mut self, hazards: &'static [Hazard]) -> Self {
+    pub fn with_slice_hazards(mut self, hazards: &'static [Hazard]) -> Self {
         self.hazards = Hazards::init_with_elements(hazards);
         self
     }
