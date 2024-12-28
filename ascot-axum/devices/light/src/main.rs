@@ -14,7 +14,7 @@ use ascot_library::device::DeviceInfo;
 use ascot_library::energy::{EnergyClass, EnergyEfficiencies, EnergyEfficiency};
 use ascot_library::hazards::Hazard;
 use ascot_library::input::Input;
-use ascot_library::route::{Route, RouteHazards};
+use ascot_library::route::Route;
 
 // Ascot axum device.
 use ascot_axum::actions::error::ErrorPayload;
@@ -218,37 +218,32 @@ async fn main() -> Result<(), Error> {
     let state = LightState::new(LightMockup::default(), DeviceInfo::empty());
 
     // Turn light on `PUT` route.
-    let light_on_route = RouteHazards::single_hazard(
-        Route::put("/on").description("Turn light on.").inputs([
+    let light_on_route = Route::put("/on")
+        .description("Turn light on.")
+        .inputs([
             Input::rangef64("brightness", (0., 20., 0.1, 0.)),
             Input::boolean("save-energy", false),
-        ]),
-        Hazard::FireHazard,
-    );
+        ])
+        .with_single_hazard(Hazard::FireHazard);
 
     // Turn light on `POST` route.
-    let light_on_post_route =
-        RouteHazards::no_hazards(Route::post("/on").description("Turn light on.").inputs([
-            Input::rangef64("brightness", (0., 20., 0.1, 0.)),
-            Input::boolean("save-energy", false),
-        ]));
+    let light_on_post_route = Route::post("/on").description("Turn light on.").inputs([
+        Input::rangef64("brightness", (0., 20., 0.1, 0.)),
+        Input::boolean("save-energy", false),
+    ]);
 
     // Turn light off `PUT` route.
-    let light_off_route =
-        RouteHazards::no_hazards(Route::put("/off").description("Turn light off."));
+    let light_off_route = Route::put("/off").description("Turn light off.");
 
     // Toggle `PUT` route.
-    let toggle_route =
-        RouteHazards::no_hazards(Route::put("/toggle").description("Toggle a light."));
+    let toggle_route = Route::put("/toggle").description("Toggle a light.");
 
     // Device info `GET` route.
-    let info_route =
-        RouteHazards::no_hazards(Route::get("/info").description("Get info about a light."));
+    let info_route = Route::get("/info").description("Get info about a light.");
 
     // Update energy efficiency `GET` route.
-    let update_energy_efficiency_route = RouteHazards::no_hazards(
-        Route::get("/update-energy").description("Update energy efficiency."),
-    );
+    let update_energy_efficiency_route =
+        Route::get("/update-energy").description("Update energy efficiency.");
 
     // A light device which is going to be run on the server.
     let device = Light::with_state(state)

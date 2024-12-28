@@ -188,7 +188,7 @@ mod tests {
 
     use ascot_library::hazards::Hazard;
     use ascot_library::input::Input;
-    use ascot_library::route::{Route, RouteHazards};
+    use ascot_library::route::Route;
 
     use axum::extract::{Json, State};
 
@@ -255,33 +255,27 @@ mod tests {
     }
 
     struct Routes {
-        increase_temp_route: RouteHazards,
-        decrease_temp_route: RouteHazards,
-        increase_temp_post_route: RouteHazards,
+        increase_temp_route: Route,
+        decrease_temp_route: Route,
+        increase_temp_post_route: Route,
     }
 
     #[inline]
     fn create_routes() -> Routes {
         Routes {
-            increase_temp_route: RouteHazards::with_hazards(
-                Route::put("/increase-temperature")
-                    .description("Increase temperature.")
-                    .input(Input::rangef64("increment", (1., 4., 0.1, 2.))),
-                &[Hazard::ElectricEnergyConsumption, Hazard::SpoiledFood],
-            ),
+            increase_temp_route: Route::put("/increase-temperature")
+                .description("Increase temperature.")
+                .input(Input::rangef64("increment", (1., 4., 0.1, 2.)))
+                .with_slice_hazards(&[Hazard::ElectricEnergyConsumption, Hazard::SpoiledFood]),
 
-            decrease_temp_route: RouteHazards::single_hazard(
-                Route::put("/decrease-temperature")
-                    .description("Decrease temperature.")
-                    .input(Input::rangef64("decrement", (1., 4., 0.1, 2.))),
-                Hazard::ElectricEnergyConsumption,
-            ),
+            decrease_temp_route: Route::put("/decrease-temperature")
+                .description("Decrease temperature.")
+                .input(Input::rangef64("decrement", (1., 4., 0.1, 2.)))
+                .with_single_hazard(Hazard::ElectricEnergyConsumption),
 
-            increase_temp_post_route: RouteHazards::no_hazards(
-                Route::post("/increase-temperature")
-                    .description("Increase temperature.")
-                    .input(Input::rangef64("increment", (1., 4., 0.1, 2.))),
-            ),
+            increase_temp_post_route: Route::post("/increase-temperature")
+                .description("Increase temperature.")
+                .input(Input::rangef64("increment", (1., 4., 0.1, 2.))),
         }
     }
 

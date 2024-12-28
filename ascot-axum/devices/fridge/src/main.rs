@@ -14,7 +14,7 @@ use ascot_library::device::DeviceInfo;
 use ascot_library::energy::{EnergyClass, EnergyEfficiencies, EnergyEfficiency};
 use ascot_library::hazards::Hazard;
 use ascot_library::input::Input;
-use ascot_library::route::{Route, RouteHazards};
+use ascot_library::route::Route;
 
 // Ascot axum.
 use ascot_axum::actions::error::ErrorPayload;
@@ -219,36 +219,28 @@ async fn main() -> Result<(), Error> {
     let state = FridgeState::new(FridgeMockup::default(), DeviceInfo::empty());
 
     // Increase temperature `PUT` route.
-    let increase_temp_route = RouteHazards::with_hazards(
-        Route::put("/increase-temperature")
-            .description("Increase temperature.")
-            .input(Input::rangef64("increment", (1., 4., 0.1, 2.))),
-        &[Hazard::ElectricEnergyConsumption, Hazard::SpoiledFood],
-    );
+    let increase_temp_route = Route::put("/increase-temperature")
+        .description("Increase temperature.")
+        .input(Input::rangef64("increment", (1., 4., 0.1, 2.)))
+        .with_slice_hazards(&[Hazard::ElectricEnergyConsumption, Hazard::SpoiledFood]);
 
     // Decrease temperature `PUT` route.
-    let decrease_temp_route = RouteHazards::single_hazard(
-        Route::put("/decrease-temperature")
-            .description("Decrease temperature.")
-            .input(Input::rangef64("decrement", (1., 4., 0.1, 2.))),
-        Hazard::ElectricEnergyConsumption,
-    );
+    let decrease_temp_route = Route::put("/decrease-temperature")
+        .description("Decrease temperature.")
+        .input(Input::rangef64("decrement", (1., 4., 0.1, 2.)))
+        .with_single_hazard(Hazard::ElectricEnergyConsumption);
 
     // Increase temperature `POST` route.
-    let increase_temp_post_route = RouteHazards::no_hazards(
-        Route::post("/increase-temperature")
-            .description("Increase temperature.")
-            .input(Input::rangef64("increment", (1., 4., 0.1, 2.))),
-    );
+    let increase_temp_post_route = Route::post("/increase-temperature")
+        .description("Increase temperature.")
+        .input(Input::rangef64("increment", (1., 4., 0.1, 2.)));
 
     // Device info `GET` route.
-    let info_route =
-        RouteHazards::no_hazards(Route::get("/info").description("Get info about a fridge."));
+    let info_route = Route::get("/info").description("Get info about a fridge.");
 
     // Update energy efficiency `GET` route.
-    let update_energy_efficiency_route = RouteHazards::no_hazards(
-        Route::get("/update-energy").description("Update energy efficiency."),
-    );
+    let update_energy_efficiency_route =
+        Route::get("/update-energy").description("Update energy efficiency.");
 
     // A fridge device which is going to be run on the server.
     let device = Fridge::with_state(state)

@@ -4,7 +4,7 @@ pub mod ok;
 pub mod serial;
 
 use ascot_library::hazards::{Hazard, Hazards};
-use ascot_library::route::{RestKind, Route, RouteHazards};
+use ascot_library::route::{RestKind, Route};
 
 use axum::{handler::Handler, Router};
 
@@ -37,15 +37,15 @@ pub(super) use all_the_tuples;
 pub struct DeviceAction {
     // Router.
     pub(crate) router: Router,
-    // Route - Hazards
-    pub(crate) route_hazards: RouteHazards,
+    // Route
+    pub(crate) route: Route,
 }
 
 impl DeviceAction {
     /// Checks whether an action does not define the given [`Hazard`].
     #[inline]
     pub fn miss_hazard(&self, hazard: Hazard) -> bool {
-        !self.route_hazards.hazards.contains(hazard)
+        !self.route.hazards().contains(hazard)
     }
 
     /// Checks whether an action does not define the given [`Hazard`]s.
@@ -53,54 +53,44 @@ impl DeviceAction {
     pub fn miss_hazards(&self, hazards: &'static [Hazard]) -> bool {
         !hazards
             .iter()
-            .all(|hazard| self.route_hazards.hazards.contains(*hazard))
+            .all(|hazard| self.route.hazards().contains(*hazard))
     }
 
     /// Returns the [`Hazards`] collection associated with an action.
     #[inline]
     pub fn hazards(&self) -> &Hazards {
-        &self.route_hazards.hazards
+        &self.route.hazards()
     }
 
     #[inline]
-    pub(crate) fn stateless<H, T>(route_hazards: RouteHazards, handler: H) -> Self
+    pub(crate) fn stateless<H, T>(route: Route, handler: H) -> Self
     where
         H: Handler<T, ()>,
         T: 'static,
     {
         Self {
-            router: Self::create_router(
-                route_hazards.route.route(),
-                route_hazards.route.kind(),
-                handler,
-                (),
-            ),
-            route_hazards,
+            router: Self::create_router(route.route(), route.kind(), handler, ()),
+            route,
         }
     }
 
     #[inline]
-    pub(crate) fn stateful<H, T, S>(route_hazards: RouteHazards, handler: H, state: S) -> Self
+    pub(crate) fn stateful<H, T, S>(route: Route, handler: H, state: S) -> Self
     where
         H: Handler<T, S>,
         T: 'static,
         S: Clone + Send + Sync + 'static,
     {
         Self {
-            router: Self::create_router(
-                route_hazards.route.route(),
-                route_hazards.route.kind(),
-                handler,
-                state,
-            ),
-            route_hazards,
+            router: Self::create_router(route.route(), route.kind(), handler, state),
+            route,
         }
     }
 
     pub(crate) fn empty() -> Self {
         Self {
             router: Router::new(),
-            route_hazards: RouteHazards::new(Route::get(""), Hazards::empty()),
+            route: Route::get(""),
         }
     }
 
