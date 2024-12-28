@@ -8,8 +8,10 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize)]
 pub enum ActionError {
     /// Data needed for an action is not correct because invalid or malformed.
+    #[serde(rename = "Invalid Data")]
     InvalidData,
     /// An internal error occurred on a device during the execution of an
     /// action.
+    #[serde(rename = "Internal")]
     Internal,
 }
