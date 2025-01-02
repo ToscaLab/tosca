@@ -68,7 +68,7 @@ impl AscotServer {
         let device_description = serde_json::to_string_pretty(&self.device.serialize_data())?;
 
         for route in self.device.routes_data {
-            let method = match route.route_hazards.route.kind() {
+            let method = match route.route.kind() {
                 RestKind::Get => Method::Get,
                 RestKind::Post => Method::Post,
                 RestKind::Put => Method::Put,
@@ -76,11 +76,7 @@ impl AscotServer {
             };
             if let Some(body) = route.body {
                 server.fn_handler(
-                    &format!(
-                        "{}{}",
-                        self.device.main_route,
-                        route.route_hazards.route.route()
-                    ),
+                    &format!("{}{}", self.device.main_route, route.route.route()),
                     method,
                     move |req| {
                         // Run body.
@@ -91,7 +87,7 @@ impl AscotServer {
                     },
                 )?;
             } else {
-                server.fn_handler(route.route_hazards.route.route(), method, move |req| {
+                server.fn_handler(route.route.route(), method, move |req| {
                     // Write only response.
                     (route.response)(req)?.write_all(route.content.as_bytes())
                 })?;

@@ -2,7 +2,7 @@ use core::result::Result;
 
 use ascot_library::device::{DeviceData, DeviceKind, DeviceSerializer};
 use ascot_library::hazards::Hazard;
-use ascot_library::route::{RouteConfigs, RouteHazards};
+use ascot_library::route::{Route, RouteConfigs};
 
 use esp_idf_svc::http::server::{EspHttpConnection, Request, Response};
 use esp_idf_svc::io::EspIOError;
@@ -48,7 +48,7 @@ pub struct ResponseBuilder<R: internal::ResponseTrait>(
 /// optionally, with every possible hazards associated with the handler.
 pub struct DeviceAction {
     // Route and hazards.
-    pub(crate) route_hazards: RouteHazards,
+    pub(crate) route: Route,
     // Body.
     pub(crate) body: Option<Box<dyn Fn() -> Result<(), EspIOError> + Send + 'static>>,
     // Response-
@@ -60,12 +60,9 @@ pub struct DeviceAction {
 impl DeviceAction {
     /// Creates a new [`DeviceAction`].
     #[inline(always)]
-    pub fn new<R: internal::ResponseTrait>(
-        route_hazards: RouteHazards,
-        response: ResponseBuilder<R>,
-    ) -> Self {
+    pub fn new<R: internal::ResponseTrait>(route: Route, response: ResponseBuilder<R>) -> Self {
         Self {
-            route_hazards,
+            route,
             body: None,
             response: Box::new(response.0),
             content: response.1,
@@ -75,7 +72,7 @@ impl DeviceAction {
     /// Checks whether a [`DeviceAction`] misses a specific [`Hazard`].
     #[inline(always)]
     pub fn miss_hazard(&self, hazard: Hazard) -> bool {
-        !self.route_hazards.hazards.contains(hazard)
+        !self.route.hazards().contains(hazard)
     }
 
     /// Checks whether a [`DeviceAction`] misses the given [`Hazard`]s.
@@ -83,7 +80,7 @@ impl DeviceAction {
     pub fn miss_hazards(&self, hazards: &'static [Hazard]) -> bool {
         !hazards
             .iter()
-            .all(|hazard| self.route_hazards.hazards.contains(*hazard))
+            .all(|hazard| self.route.hazards().contains(*hazard))
     }
 
     /// Adds the body necessary to construct the response of an action.
@@ -116,12 +113,12 @@ impl DeviceSerializer for Device {
     fn serialize_data(&self) -> DeviceData {
         let mut route_configs = RouteConfigs::empty();
         for route_data in self.routes_data.iter() {
-            route_configs.add(route_data.route_hazards.serialize_data());
+            route_configs.add(route_data.route.serialize_data());
         }
 
         DeviceData {
             kind: self.kind,
-            main_route: self.main_route,
+            main_route: self.main_route.into(),
             route_configs,
         }
     }
