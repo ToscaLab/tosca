@@ -2,7 +2,6 @@ use serde::{Deserialize, Serialize};
 
 use crate::economy::Economy;
 use crate::energy::Energy;
-use crate::route::RouteConfigs;
 
 /// A device kind.
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
@@ -70,18 +69,45 @@ impl DeviceInfo {
     }
 }
 
-/// Device data.
-#[derive(Debug, Serialize, Deserialize)]
-pub struct DeviceData<'a> {
-    /// Device kind.
-    pub kind: DeviceKind,
-    /// Device main route.
-    #[serde(rename = "main route")]
-    pub main_route: &'a str,
-    #[serde(borrow)]
-    /// All device route configurations.
-    pub route_configs: RouteConfigs<'a>,
+#[cfg(feature = "std")]
+mod device_data {
+    use crate::route::RouteConfigs;
+
+    use super::{Deserialize, DeviceKind, Serialize};
+
+    /// Device data.
+    #[derive(Debug, Serialize, Deserialize)]
+    pub struct DeviceData {
+        /// Device kind.
+        pub kind: DeviceKind,
+        /// Device main route.
+        #[serde(rename = "main route")]
+        pub main_route: alloc::string::String,
+        /// All device route configurations.
+        pub route_configs: RouteConfigs,
+    }
 }
+
+#[cfg(not(feature = "std"))]
+mod device_data {
+    use crate::route::RouteConfigs;
+
+    use super::{DeviceKind, Serialize};
+
+    /// Device data.
+    #[derive(Debug, Serialize)]
+    pub struct DeviceData {
+        /// Device kind.
+        pub kind: DeviceKind,
+        /// Device main route.
+        #[serde(rename = "main route")]
+        pub main_route: &'static str,
+        /// All device route configurations.
+        pub route_configs: RouteConfigs,
+    }
+}
+
+pub use device_data::DeviceData;
 
 /// A trait to serialize device data.
 pub trait DeviceSerializer {
