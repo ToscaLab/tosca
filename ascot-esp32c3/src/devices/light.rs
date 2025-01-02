@@ -67,7 +67,7 @@ impl Light {
     /// Adds an additional action for a [`Light`].
     pub fn add_action(mut self, light_action: DeviceAction) -> Result<Self> {
         // Return an error if action hazards are not a subset of allowed hazards.
-        for hazard in light_action.route_hazards.hazards.iter() {
+        for hazard in light_action.route.hazards().iter() {
             if !self.allowed_hazards.contains(hazard) {
                 return Err(Error::new(
                     ErrorKind::Light,
