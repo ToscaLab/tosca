@@ -8,7 +8,7 @@ use crate::MAXIMUM_ELEMENTS;
 
 #[cfg(feature = "std")]
 mod route_data {
-    use alloc::string::String;
+    use alloc::borrow::Cow;
 
     use super::{Deserialize, InputsData, Route, Serialize};
 
@@ -16,9 +16,9 @@ mod route_data {
     #[derive(Debug, Clone, Serialize, Deserialize)]
     pub struct RouteData {
         /// Name.
-        pub name: String,
+        pub name: Cow<'static, str>,
         /// Description.
-        pub description: Option<String>,
+        pub description: Option<Cow<'static, str>>,
         /// Inputs associated with a route..
         #[serde(skip_serializing_if = "InputsData::is_empty")]
         pub inputs: InputsData,
@@ -27,8 +27,8 @@ mod route_data {
     impl RouteData {
         pub(super) fn new(route: &Route) -> Self {
             Self {
-                name: String::from(route.route()),
-                description: route.description.map(|s| String::from(s)),
+                name: route.route.into(),
+                description: route.description.map(|s| s.into()),
                 inputs: InputsData::from(&route.inputs),
             }
         }

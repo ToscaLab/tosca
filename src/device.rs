@@ -82,7 +82,7 @@ mod device_data {
         pub kind: DeviceKind,
         /// Device main route.
         #[serde(rename = "main route")]
-        pub main_route: alloc::string::String,
+        pub main_route: alloc::borrow::Cow<'static, str>,
         /// All device route configurations.
         pub route_configs: RouteConfigs,
     }
