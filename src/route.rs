@@ -24,6 +24,12 @@ mod route_data {
         pub inputs: InputsData,
     }
 
+    impl PartialEq for RouteData {
+        fn eq(&self, other: &Self) -> bool {
+            self.name.eq(&other.name)
+        }
+    }
+
     impl RouteData {
         pub(super) fn new(route: &Route) -> Self {
             Self {
@@ -49,6 +55,12 @@ mod route_data {
         /// Inputs associated with a route..
         #[serde(skip_serializing_if = "InputsData::is_empty")]
         pub inputs: InputsData,
+    }
+
+    impl PartialEq for RouteData {
+        fn eq(&self, other: &Self) -> bool {
+            self.name.eq(other.name)
+        }
     }
 
     impl RouteData {
@@ -107,12 +119,6 @@ mod route_config {
         pub hazards: Hazards,
     }
 
-    impl PartialEq for RouteConfig {
-        fn eq(&self, other: &Self) -> bool {
-            self.data.name.eq(&other.data.name) && self.rest_kind == other.rest_kind
-        }
-    }
-
     /// A collection of [`RouteConfig`]s.
     pub type RouteConfigs = crate::collections::OutputCollection<RouteConfig>;
 }
@@ -135,14 +141,14 @@ mod route_config {
         pub hazards: Hazards,
     }
 
-    impl PartialEq for RouteConfig {
-        fn eq(&self, other: &Self) -> bool {
-            self.data.name.eq(other.data.name) && self.rest_kind == other.rest_kind
-        }
-    }
-
     /// A collection of [`RouteConfig`]s.
     pub type RouteConfigs = crate::collections::SerialCollection<RouteConfig>;
+}
+
+impl PartialEq for route_config::RouteConfig {
+    fn eq(&self, other: &Self) -> bool {
+        self.data.eq(&other.data) && self.rest_kind == other.rest_kind
+    }
 }
 
 impl Eq for route_config::RouteConfig {}
