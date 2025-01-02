@@ -251,9 +251,9 @@ impl Category {
     #[must_use]
     pub const fn description(&self) -> &'static str {
         match self {
-            Self::Financial => "Category which includes all the financial-related hazards.",
-            Self::Privacy => "Category which includes all the privacy-related hazards.",
-            Self::Safety => "Category which includes all the safety-related hazards.",
+            Self::Financial => "Category which includes all financial-related hazards.",
+            Self::Privacy => "Category which includes all privacy-related hazards.",
+            Self::Safety => "Category which includes all safety-related hazards.",
         }
     }
 
