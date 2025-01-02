@@ -161,11 +161,11 @@ impl core::hash::Hash for route_config::RouteConfig {
 }
 
 impl route_config::RouteConfig {
-    fn new(route: Route) -> Self {
+    fn new(route: &Route) -> Self {
         Self {
             rest_kind: route.rest_kind,
+            hazards: route.hazards.clone(),
             data: RouteData::new(&route),
-            hazards: route.hazards,
         }
     }
 }
@@ -297,8 +297,8 @@ impl Route {
     /// It consumes the data.
     #[must_use]
     #[inline]
-    pub fn serialize_data(self) -> RouteConfig {
-        RouteConfig::new(self)
+    pub fn serialize_data(&self) -> RouteConfig {
+        RouteConfig::new(&self)
     }
 
     const fn init(rest_kind: RestKind, route: &'static str) -> Self {
