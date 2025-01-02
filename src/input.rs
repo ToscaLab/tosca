@@ -28,15 +28,13 @@ pub enum InputType {
 
 #[cfg(feature = "std")]
 mod input_data {
-    use alloc::string::String;
-
     use super::*;
 
     /// Input data.
     #[derive(Debug, Clone, Serialize, Deserialize)]
     pub struct InputData {
         /// Name.
-        pub name: String,
+        pub name: alloc::borrow::Cow<'static, str>,
         /// Type.
         #[serde(rename = "type")]
         pub datatype: InputType,
@@ -45,7 +43,7 @@ mod input_data {
     impl InputData {
         pub(super) fn new(input: Input) -> Self {
             Self {
-                name: String::from(input.name),
+                name: input.name.into(),
                 datatype: input.datatype,
             }
         }
