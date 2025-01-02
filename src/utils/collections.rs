@@ -16,8 +16,7 @@ pub struct Collection<T: PartialEq + Eq + Hash>(FnvIndexSet<T, MAXIMUM_ELEMENTS>
 #[derive(Debug, Clone, Serialize)]
 pub struct SerialCollection<T: PartialEq + Eq + Hash>(FnvIndexSet<T, MAXIMUM_ELEMENTS>);
 
-/// A collection of elements which need to be serialized and deserialized on
-/// a support.
+/// A serializable and deserializable collection of elements.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OutputCollection<T: PartialEq + Eq + Hash>(FnvIndexSet<T, MAXIMUM_ELEMENTS>);
 
