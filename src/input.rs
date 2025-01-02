@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::collections::{Collection, OutputCollection};
+use crate::collections::Collection;
 
 /// An [`InputType`] range defined as an interval.
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
@@ -26,47 +26,84 @@ pub enum InputType {
     Bool(bool),
 }
 
-/// Input data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InputData<'a> {
-    /// Name.
-    pub name: &'a str,
-    /// Type.
-    #[serde(rename = "type")]
-    pub datatype: InputType,
-}
+#[cfg(feature = "std")]
+mod input_data {
+    use alloc::string::String;
 
-impl InputData<'_> {
-    const fn new(input: Input) -> Self {
-        Self {
-            name: input.name,
-            datatype: input.datatype,
+    use super::*;
+
+    /// Input data.
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    pub struct InputData {
+        /// Name.
+        pub name: String,
+        /// Type.
+        #[serde(rename = "type")]
+        pub datatype: InputType,
+    }
+
+    impl InputData {
+        pub(super) fn new(input: Input) -> Self {
+            Self {
+                name: String::from(input.name),
+                datatype: input.datatype,
+            }
         }
     }
+
+    /// A collection of [`InputData`]s.
+    pub type InputsData = crate::collections::OutputCollection<InputData>;
 }
 
-impl core::cmp::PartialEq for InputData<'_> {
+#[cfg(not(feature = "std"))]
+mod input_data {
+    use super::*;
+
+    /// Input data.
+    #[derive(Debug, Clone, Serialize)]
+    pub struct InputData {
+        /// Name.
+        pub name: &'static str,
+        /// Type.
+        #[serde(rename = "type")]
+        pub datatype: InputType,
+    }
+
+    impl InputData {
+        pub(super) fn new(input: Input) -> Self {
+            Self {
+                name: input.name,
+                datatype: input.datatype,
+            }
+        }
+    }
+
+    /// A collection of [`InputData`]s.
+    pub type InputsData = crate::collections::SerialCollection<InputData>;
+}
+
+impl core::cmp::PartialEq for input_data::InputData {
     fn eq(&self, other: &Self) -> bool {
         self.name == other.name
     }
 }
 
-impl core::cmp::Eq for InputData<'_> {}
+impl core::cmp::Eq for input_data::InputData {}
 
-impl core::hash::Hash for InputData<'_> {
+impl core::hash::Hash for input_data::InputData {
     fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
         self.name.hash(state);
     }
 }
 
-impl From<Input> for InputData<'_> {
+impl From<Input> for input_data::InputData {
     fn from(input: Input) -> Self {
         Self::new(input)
     }
 }
 
-/// A collection of [`InputData`]s.
-pub type InputsData<'a> = OutputCollection<InputData<'a>>;
+pub use input_data::InputData;
+pub use input_data::InputsData;
 
 /// All supported inputs.
 #[derive(Debug, Clone, Copy)]
