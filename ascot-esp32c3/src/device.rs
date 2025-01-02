@@ -118,7 +118,7 @@ impl DeviceSerializer for Device {
 
         DeviceData {
             kind: self.kind,
-            main_route: self.main_route.into(),
+            main_route: self.main_route,
             route_configs,
         }
     }
