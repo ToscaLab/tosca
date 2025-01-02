@@ -61,7 +61,7 @@ where
 
         DeviceData {
             kind: self.kind,
-            main_route: self.main_route,
+            main_route: self.main_route.into(),
             route_configs,
         }
     }
