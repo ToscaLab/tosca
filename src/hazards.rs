@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use crate::collections::OutputCollection;
 
 /// All possible hazards for a device task.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Hazard {
     /// The execution may release toxic gases.
     AirPoisoning,
@@ -54,6 +54,12 @@ pub enum Hazard {
 impl core::convert::AsRef<Self> for Hazard {
     fn as_ref(&self) -> &Self {
         self
+    }
+}
+
+impl core::fmt::Debug for Hazard {
+    fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+        self.name().fmt(f)
     }
 }
 
@@ -220,7 +226,7 @@ impl Hazard {
 pub type Hazards = OutputCollection<Hazard>;
 
 /// Hazard categories.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Category {
     /// Category which includes all the financial-related hazards.
     Financial,
@@ -228,6 +234,12 @@ pub enum Category {
     Privacy,
     /// Category which includes all the safety-related hazards.
     Safety,
+}
+
+impl core::fmt::Debug for Category {
+    fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+        self.name().fmt(f)
+    }
 }
 
 impl core::fmt::Display for Category {
