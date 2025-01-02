@@ -12,6 +12,10 @@ use crate::MAXIMUM_ELEMENTS;
 #[derive(Debug, Clone)]
 pub struct Collection<T: PartialEq + Eq + Hash>(FnvIndexSet<T, MAXIMUM_ELEMENTS>);
 
+/// A serializable collection of elements.
+#[derive(Debug, Clone, Serialize)]
+pub struct SerialCollection<T: PartialEq + Eq + Hash>(FnvIndexSet<T, MAXIMUM_ELEMENTS>);
+
 /// A collection of elements which need to be serialized and deserialized on
 /// a support.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -108,12 +112,17 @@ macro_rules! implementation {
     };
 }
 
-// From macro traits.
-from!(Collection, OutputCollection);
-from!(OutputCollection, OutputCollection);
+// Collection implementation.
+implementation!(Collection);
 
-// Implementation macro.
+// Serial collection implementation.
+implementation!(SerialCollection);
+
+// Output collection implementation.
 implementation!(OutputCollection);
 
-// Implementation macro.
-implementation!(Collection);
+// From macro traits.
+from!(Collection, OutputCollection);
+from!(Collection, SerialCollection);
+from!(OutputCollection, OutputCollection);
+from!(SerialCollection, SerialCollection);
