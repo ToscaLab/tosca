@@ -220,5 +220,5 @@ impl Route {
     }
 }
 
-/// A collection of [`RouteHazards`]s.
+/// A collection of [`Route`]s.
 pub type Routes = Collection<Route>;
