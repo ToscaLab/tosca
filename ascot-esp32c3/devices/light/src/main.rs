@@ -6,7 +6,7 @@ use std::sync::{Arc, Mutex};
 
 // Ascot library
 use ascot_library::hazards::Hazard;
-use ascot_library::route::{Route, RouteHazards};
+use ascot_library::route::Route;
 
 // Ascot Esp32
 use ascot_esp32c3::device::{DeviceAction, ResponseBuilder};
@@ -72,10 +72,9 @@ fn main() -> ascot_esp32c3::error::Result<()> {
     let temp_led_on = temp_led_main.clone();
     let light_on_action = DeviceAction::new(
         // Configuration for the `PUT` turn light on route.
-        RouteHazards::single_hazard(
-            Route::put("/on").description("Turn light on."),
-            Hazard::FireHazard,
-        ),
+        Route::put("/on")
+            .description("Turn light on.")
+            .with_single_hazard(Hazard::FireHazard),
         ResponseBuilder(|req| req.into_ok_response(), "Turning led on went well!"),
     )
     .body(move || {
@@ -91,7 +90,7 @@ fn main() -> ascot_esp32c3::error::Result<()> {
     let temp_led_off = temp_led_main.clone();
     let light_off_action = DeviceAction::new(
         // Configuration for the `PUT` turn light off route.
-        RouteHazards::no_hazards(Route::put("/off").description("Turn light off.")),
+        Route::put("/off").description("Turn light off."),
         ResponseBuilder(|req| req.into_ok_response(), "Turning led off went well!"),
     )
     .body(move || {
