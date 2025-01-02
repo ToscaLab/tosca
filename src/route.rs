@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::collections::{Collection, OutputCollection};
-use crate::hazards::{Hazard, Hazards, HazardsData};
+use crate::hazards::{Hazard, Hazards};
 use crate::input::{Input, Inputs, InputsData};
 
 use crate::MAXIMUM_ELEMENTS;
@@ -53,8 +53,8 @@ pub struct RouteConfig<'a> {
     #[serde(rename = "REST kind")]
     pub rest_kind: RestKind,
     /// Hazards data.
-    #[serde(skip_serializing_if = "HazardsData::is_empty")]
-    pub hazards: HazardsData<'a>,
+    #[serde(skip_serializing_if = "Hazards::is_empty")]
+    pub hazards: Hazards,
 }
 
 impl PartialEq for RouteConfig<'_> {
@@ -200,7 +200,7 @@ impl Route {
     pub fn serialize_data(&self) -> RouteConfig {
         RouteConfig {
             rest_kind: self.rest_kind,
-            hazards: HazardsData::from(&self.hazards),
+            hazards: self.hazards.clone(),
             data: RouteData {
                 name: self.route(),
                 description: self.description,

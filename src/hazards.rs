@@ -1,62 +1,9 @@
 use serde::{Deserialize, Serialize};
 
-use crate::collections::{Collection, OutputCollection};
-
-/// Hazard data.
-#[derive(Debug, Clone, Eq, Serialize, Deserialize)]
-pub struct HazardData<'a> {
-    /// Identifier.
-    pub id: u16,
-    /// Name.
-    pub name: &'a str,
-    /// Description.
-    pub description: &'a str,
-    /// Category.
-    pub category: CategoryData<'a>,
-}
-
-impl<'a> HazardData<'a> {
-    const fn new(id: u16, name: &'a str, description: &'a str, category: CategoryData<'a>) -> Self {
-        Self {
-            id,
-            name,
-            description,
-            category,
-        }
-    }
-}
-
-impl core::cmp::PartialEq for HazardData<'_> {
-    fn eq(&self, other: &Self) -> bool {
-        self.id == other.id
-    }
-}
-
-impl core::hash::Hash for HazardData<'_> {
-    fn hash<H>(&self, state: &mut H)
-    where
-        H: core::hash::Hasher,
-    {
-        self.id.hash(state);
-    }
-}
-
-impl From<Hazard> for HazardData<'_> {
-    fn from(hazard: Hazard) -> Self {
-        Self::new(
-            hazard.id(),
-            hazard.name(),
-            hazard.description(),
-            CategoryData::new(hazard),
-        )
-    }
-}
-
-/// A collection of [`HazardData`]s.
-pub type HazardsData<'a> = OutputCollection<HazardData<'a>>;
+use crate::collections::OutputCollection;
 
 /// All possible hazards for a device task.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Hazard {
     /// The execution may release toxic gases.
     AirPoisoning,
@@ -270,43 +217,10 @@ impl Hazard {
 }
 
 /// A collection of [`Hazard`]s.
-pub type Hazards = Collection<Hazard>;
-
-/// Hazard category data.
-#[derive(Debug, Clone, Eq, Serialize, Deserialize)]
-pub struct CategoryData<'a> {
-    /// Name.
-    pub name: &'a str,
-    /// Description.
-    pub description: &'a str,
-}
-
-impl CategoryData<'_> {
-    const fn new(hazard: Hazard) -> Self {
-        Self {
-            name: hazard.category().name(),
-            description: hazard.category().description(),
-        }
-    }
-}
-
-impl core::cmp::PartialEq for CategoryData<'_> {
-    fn eq(&self, other: &Self) -> bool {
-        self.name == other.name
-    }
-}
-
-impl core::hash::Hash for CategoryData<'_> {
-    fn hash<H>(&self, state: &mut H)
-    where
-        H: core::hash::Hasher,
-    {
-        self.name.hash(state);
-    }
-}
+pub type Hazards = OutputCollection<Hazard>;
 
 /// Hazard categories.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Category {
     /// Category which includes all the financial-related hazards.
     Financial,
