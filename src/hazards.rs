@@ -304,3 +304,19 @@ impl Category {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+
+    use serde_json::json;
+
+    use super::*;
+
+    #[test]
+    fn test_hazard() {
+        assert_eq!(
+            serde_json::to_value(Hazard::AirPoisoning).unwrap(),
+            json!("AirPoisoning")
+        );
+    }
+}
