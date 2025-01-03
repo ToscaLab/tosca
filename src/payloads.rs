@@ -168,19 +168,16 @@ impl ErrorPayload {
 #[cfg(test)]
 mod tests {
 
-    use serde_json::{json, Value};
+    use serde_json::json;
 
     use crate::energy::{Energy, WaterUseEfficiency};
+    use crate::serialize;
 
     use super::*;
 
     #[derive(Debug, Serialize, Deserialize)]
     struct Serial {
         value: u32,
-    }
-
-    fn serialize<T: Serialize>(value: T) -> Value {
-        serde_json::to_value(value).unwrap()
     }
 
     #[test]
