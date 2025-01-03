@@ -2,28 +2,42 @@ use serde::{Deserialize, Serialize};
 
 use crate::collections::Collection;
 
-/// An [`InputType`] range defined as an interval.
+/// All supported [`Input`] kinds.
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-pub struct Range<T> {
-    /// Minimum.
-    pub minimum: T,
-    /// Maximum.
-    pub maximum: T,
-    /// Step.
-    pub step: T,
-    /// Default.
-    pub default: T,
+pub enum InputKind {
+    /// A [`bool`].
+    Bool,
+    /// A [`u8`].
+    U8,
+    /// A [`u64`] range.
+    RangeU64,
+    /// A [`f64`] range.
+    RangeF64,
 }
 
-/// All supported [`Input`] types.
+/// The structure of an [`InputKind`].
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-pub enum InputType {
-    /// A [`u64`] type with a specific **[minimum, maximum, step]** range.
-    RangeU64(Range<u64>),
-    /// A [`f64`] type with a specific **[minimum, maximum, step]** range.
-    RangeF64(Range<f64>),
-    /// A [`bool`] type.
-    Bool(bool),
+pub enum InputStructure {
+    /// A [`bool`] default value.
+    Bool { default: bool },
+    /// A [`u8`] default value.
+    U8 { default: u8 },
+    /// A [`u64`] range with a **[minimum, maximum, step, default]**
+    /// set of values.
+    RangeU64 {
+        min: u64,
+        max: u64,
+        step: u64,
+        default: u64,
+    },
+    /// A [`f64`] range with a **[minimum, maximum, step, default]**
+    /// set of values.
+    RangeF64 {
+        min: f64,
+        max: f64,
+        step: f64,
+        default: f64,
+    },
 }
 
 #[cfg(feature = "std")]
@@ -35,16 +49,20 @@ mod input_data {
     pub struct InputData {
         /// Name.
         pub name: alloc::borrow::Cow<'static, str>,
-        /// Type.
-        #[serde(rename = "type")]
-        pub datatype: InputType,
+        /// Input kind.
+        #[serde(rename = "kind")]
+        pub kind: InputKind,
+        /// Input structure.
+        #[serde(rename = "structure")]
+        pub structure: InputStructure,
     }
 
     impl InputData {
         pub(super) fn new(input: Input) -> Self {
             Self {
                 name: input.name.into(),
-                datatype: input.datatype,
+                kind: input.kind,
+                structure: input.structure,
             }
         }
     }
@@ -62,16 +80,20 @@ mod input_data {
     pub struct InputData {
         /// Name.
         pub name: &'static str,
-        /// Type.
-        #[serde(rename = "type")]
-        pub datatype: InputType,
+        /// Input kind.
+        #[serde(rename = "kind")]
+        pub kind: InputKind,
+        /// Input structure.
+        #[serde(rename = "structure")]
+        pub structure: InputStructure,
     }
 
     impl InputData {
         pub(super) fn new(input: Input) -> Self {
             Self {
-                name: input.name,
-                datatype: input.datatype,
+                name: input.name.into(),
+                kind: input.kind,
+                structure: input.structure,
             }
         }
     }
@@ -108,8 +130,10 @@ pub use input_data::InputsData;
 pub struct Input {
     // Name.
     pub(crate) name: &'static str,
-    // Type.
-    datatype: InputType,
+    // Input kind.
+    kind: InputKind,
+    // Input structure.
+    structure: InputStructure,
 }
 
 impl core::cmp::PartialEq for Input {
@@ -127,42 +151,71 @@ impl core::hash::Hash for Input {
 }
 
 impl Input {
-    /// Creates a new [`u64`] range.
+    /// Creates a [`bool`] input.
     #[must_use]
     #[inline]
-    pub fn rangeu64(name: &'static str, range: (u64, u64, u64, u64)) -> Self {
+    pub fn bool(name: &'static str, default: bool) -> Self {
         Self {
             name,
-            datatype: InputType::RangeU64(Self::range(range)),
+            kind: InputKind::Bool,
+            structure: InputStructure::Bool { default },
         }
     }
 
-    /// Creates a new [`f64`] range.
+    /// Creates an [`u8`] input.
     #[must_use]
     #[inline]
-    pub fn rangef64(name: &'static str, range: (f64, f64, f64, f64)) -> Self {
+    pub fn u8(name: &'static str, default: u8) -> Self {
         Self {
             name,
-            datatype: InputType::RangeF64(Self::range(range)),
+            kind: InputKind::U8,
+            structure: InputStructure::U8 { default },
         }
     }
 
-    /// Creates a new [`bool`] range.
+    /// Creates an [`u64`] range without a default value.
     #[must_use]
     #[inline]
-    pub fn boolean(name: &'static str, default: bool) -> Self {
+    pub fn rangeu64(name: &'static str, range: (u64, u64, u64)) -> Self {
+        Self::rangeu64_with_default(name, range, 0)
+    }
+
+    /// Creates an [`u64`] range with a default value.
+    #[must_use]
+    #[inline]
+    pub fn rangeu64_with_default(name: &'static str, range: (u64, u64, u64), default: u64) -> Self {
         Self {
             name,
-            datatype: InputType::Bool(default),
+            kind: InputKind::RangeU64,
+            structure: InputStructure::RangeU64 {
+                min: range.0,
+                max: range.1,
+                step: range.2,
+                default,
+            },
         }
     }
 
-    fn range<T>(range: (T, T, T, T)) -> Range<T> {
-        Range {
-            minimum: range.0,
-            maximum: range.1,
-            step: range.2,
-            default: range.3,
+    /// Creates an [`f64`] range without a default value.
+    #[must_use]
+    #[inline]
+    pub fn rangef64(name: &'static str, range: (f64, f64, f64)) -> Self {
+        Self::rangef64_with_default(name, range, 0.0)
+    }
+
+    /// Creates an [`f64`] range with a default value.
+    #[must_use]
+    #[inline]
+    pub fn rangef64_with_default(name: &'static str, range: (f64, f64, f64), default: f64) -> Self {
+        Self {
+            name,
+            kind: InputKind::RangeF64,
+            structure: InputStructure::RangeF64 {
+                min: range.0,
+                max: range.1,
+                step: range.2,
+                default,
+            },
         }
     }
 }
