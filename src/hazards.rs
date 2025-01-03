@@ -310,13 +310,35 @@ mod tests {
 
     use serde_json::json;
 
-    use super::*;
+    use super::{Category, Hazard};
 
     #[test]
     fn test_hazard() {
+        let hazard = Hazard::AirPoisoning;
+
+        assert_eq!(hazard.name(), "Air Poisoning");
         assert_eq!(
-            serde_json::to_value(Hazard::AirPoisoning).unwrap(),
-            json!("AirPoisoning")
+            hazard.description(),
+            "The execution may release toxic gases."
         );
+        assert_eq!(hazard.category(), Category::Safety);
+        assert_eq!(hazard.id(), 0);
+        assert_eq!(Hazard::from_id(0), Some(hazard));
+
+        assert_eq!(serde_json::to_value(hazard).unwrap(), json!("AirPoisoning"));
+    }
+
+    #[test]
+    fn test_category() {
+        let category = Hazard::AirPoisoning.category();
+
+        assert_eq!(category.name(), "Safety");
+        assert_eq!(
+            category.description(),
+            "Category which includes all safety-related hazards.",
+        );
+        assert!(category.hazards().contains(&Hazard::AirPoisoning));
+
+        assert_eq!(serde_json::to_value(category).unwrap(), json!("Safety"));
     }
 }
