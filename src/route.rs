@@ -34,7 +34,7 @@ mod route_data {
         pub(super) fn new(route: &Route) -> Self {
             Self {
                 name: route.route.into(),
-                description: route.description.map(|s| s.into()),
+                description: route.description.map(core::convert::Into::into),
                 inputs: InputsData::from(&route.inputs),
             }
         }
@@ -165,7 +165,7 @@ impl route_config::RouteConfig {
         Self {
             rest_kind: route.rest_kind,
             hazards: route.hazards.clone(),
-            data: RouteData::new(&route),
+            data: RouteData::new(route),
         }
     }
 }
@@ -298,7 +298,7 @@ impl Route {
     #[must_use]
     #[inline]
     pub fn serialize_data(&self) -> RouteConfig {
-        RouteConfig::new(&self)
+        RouteConfig::new(self)
     }
 
     const fn init(rest_kind: RestKind, route: &'static str) -> Self {

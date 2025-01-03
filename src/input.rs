@@ -91,7 +91,7 @@ mod input_data {
     impl InputData {
         pub(super) fn new(input: Input) -> Self {
             Self {
-                name: input.name.into(),
+                name: input.name,
                 kind: input.kind,
                 structure: input.structure,
             }
