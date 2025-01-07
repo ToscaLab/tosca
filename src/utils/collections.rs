@@ -58,6 +58,13 @@ macro_rules! implementation {
                 elements
             }
 
+            #[doc = concat!("Inserts an element to a [`", stringify!($impl), "`].")]
+            #[inline]
+            pub fn insert(mut self, element: T) -> Self {
+                let _ = self.0.insert(element);
+                self
+            }
+
             #[doc = concat!("Adds an element to a [`", stringify!($impl), "`].")]
             #[inline]
             pub fn add(&mut self, element: T) {
