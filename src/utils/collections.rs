@@ -51,6 +51,7 @@ macro_rules! implementation {
             }
 
             #[doc = concat!("Initializes a [`", stringify!($impl), "`] with a determined element.")]
+            #[must_use]
             #[inline]
             pub fn init(element: T) -> Self {
                 let mut elements = Self::empty();
@@ -59,6 +60,7 @@ macro_rules! implementation {
             }
 
             #[doc = concat!("Inserts an element to a [`", stringify!($impl), "`].")]
+            #[must_use]
             #[inline]
             pub fn insert(mut self, element: T) -> Self {
                 let _ = self.0.insert(element);
