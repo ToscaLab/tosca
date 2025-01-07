@@ -21,6 +21,7 @@ mod route_data {
         pub description: Option<Cow<'static, str>>,
         /// Inputs associated with a route..
         #[serde(skip_serializing_if = "InputsData::is_empty")]
+        #[serde(default = "InputsData::empty")]
         pub inputs: InputsData,
     }
 
@@ -116,6 +117,7 @@ mod route_config {
         pub rest_kind: RestKind,
         /// Hazards data.
         #[serde(skip_serializing_if = "Hazards::is_empty")]
+        #[serde(default = "Hazards::empty")]
         pub hazards: Hazards,
     }
 
@@ -321,6 +323,175 @@ impl Route {
 /// A collection of [`Route`]s.
 pub type Routes = Collection<Route>;
 
+#[cfg(feature = "std")]
+#[cfg(test)]
+mod tests {
+    use crate::input::InputData;
+    use crate::{deserialize, serialize};
+
+    use super::{Hazard, Hazards, Input, InputsData, RestKind, Route, RouteConfig, RouteData};
+
+    fn route_config_empty(rest_kind: RestKind, desc: &'static str) -> RouteConfig {
+        route_config_hazards(rest_kind, Hazards::empty(), desc)
+    }
+
+    fn route_config_hazards(
+        rest_kind: RestKind,
+        hazards: Hazards,
+        desc: &'static str,
+    ) -> RouteConfig {
+        route_config_inputs(rest_kind, hazards, desc, InputsData::empty())
+    }
+
+    fn route_config_inputs(
+        rest_kind: RestKind,
+        hazards: Hazards,
+        desc: &'static str,
+        inputs: InputsData,
+    ) -> RouteConfig {
+        RouteConfig {
+            rest_kind,
+            hazards,
+            data: RouteData {
+                name: "/route".into(),
+                description: Some(desc.into()),
+                inputs,
+            },
+        }
+    }
+
+    #[test]
+    fn test_all_routes() {
+        assert_eq!(
+            deserialize::<RouteConfig>(serialize(
+                Route::get("/route")
+                    .description("A GET route")
+                    .serialize_data()
+            )),
+            route_config_empty(RestKind::Get, "A GET route",)
+        );
+
+        assert_eq!(
+            deserialize::<RouteConfig>(serialize(
+                Route::put("/route")
+                    .description("A PUT route")
+                    .serialize_data()
+            )),
+            route_config_empty(RestKind::Put, "A PUT route",)
+        );
+
+        assert_eq!(
+            deserialize::<RouteConfig>(serialize(
+                Route::post("/route")
+                    .description("A POST route")
+                    .serialize_data()
+            )),
+            route_config_empty(RestKind::Post, "A POST route",)
+        );
+
+        assert_eq!(
+            deserialize::<RouteConfig>(serialize(
+                Route::delete("/route")
+                    .description("A DELETE route")
+                    .serialize_data()
+            )),
+            route_config_empty(RestKind::Delete, "A DELETE route",)
+        );
+    }
+
+    #[test]
+    fn test_all_hazards() {
+        assert_eq!(
+            deserialize::<RouteConfig>(serialize(
+                Route::get("/route")
+                    .description("A GET route")
+                    .with_single_hazard(Hazard::FireHazard)
+                    .serialize_data()
+            )),
+            route_config_hazards(
+                RestKind::Get,
+                Hazards::empty().insert(Hazard::FireHazard),
+                "A GET route"
+            )
+        );
+
+        assert_eq!(
+            deserialize::<RouteConfig>(serialize(
+                Route::get("/route")
+                    .description("A GET route")
+                    .with_hazards(
+                        Hazards::empty()
+                            .insert(Hazard::FireHazard)
+                            .insert(Hazard::AirPoisoning)
+                    )
+                    .serialize_data()
+            )),
+            route_config_hazards(
+                RestKind::Get,
+                Hazards::empty()
+                    .insert(Hazard::FireHazard)
+                    .insert(Hazard::AirPoisoning),
+                "A GET route"
+            )
+        );
+
+        assert_eq!(
+            deserialize::<RouteConfig>(serialize(
+                Route::get("/route")
+                    .description("A GET route")
+                    .with_slice_hazards(&[Hazard::FireHazard, Hazard::AirPoisoning])
+                    .serialize_data()
+            )),
+            route_config_hazards(
+                RestKind::Get,
+                Hazards::empty()
+                    .insert(Hazard::FireHazard)
+                    .insert(Hazard::AirPoisoning),
+                "A GET route"
+            )
+        );
+    }
+
+    #[test]
+    fn test_all_inputs() {
+        let expected = route_config_inputs(
+            RestKind::Get,
+            Hazards::empty(),
+            "A GET route",
+            InputsData::empty().insert(InputData::from(Input::rangeu64_with_default(
+                "rangeu64",
+                (0, 20, 1),
+                5,
+            ))),
+        );
+
+        assert_eq!(
+            deserialize::<RouteConfig>(serialize(
+                Route::get("/route")
+                    .description("A GET route")
+                    .input(Input::rangeu64_with_default("rangeu64", (0, 20, 1), 5))
+                    .input(Input::rangef64("rangef64", (0., 20., 0.1)))
+                    .serialize_data()
+            )),
+            expected
+        );
+
+        assert_eq!(
+            deserialize::<RouteConfig>(serialize(
+                Route::get("/route")
+                    .description("A GET route")
+                    .inputs([
+                        Input::rangeu64_with_default("rangeu64", (0, 20, 1), 5),
+                        Input::rangef64("rangef64", (0., 20., 0.1))
+                    ])
+                    .serialize_data()
+            )),
+            expected
+        );
+    }
+}
+
+#[cfg(not(feature = "std"))]
 #[cfg(test)]
 mod tests {
     use serde_json::json;
@@ -403,15 +574,15 @@ mod tests {
             })
         );
 
-        let mut hazards = Hazards::empty();
-        hazards.add(Hazard::FireHazard);
-        hazards.add(Hazard::AirPoisoning);
-
         assert_eq!(
             serialize(
                 Route::get("/route")
                     .description("A GET route")
-                    .with_hazards(hazards)
+                    .with_hazards(
+                        Hazards::empty()
+                            .insert(Hazard::FireHazard)
+                            .insert(Hazard::AirPoisoning)
+                    )
                     .serialize_data()
             ),
             json!({
