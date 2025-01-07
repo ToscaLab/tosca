@@ -83,8 +83,14 @@ pub struct ErrorPayload {
     /// Action error type.
     pub error: ActionError,
     /// Error description.
+    // This field is not a String in the `std` variant because we want to know
+    // in advance its size in bytes with the objective of controlling the amount
+    // of data returned by this structure.
     pub description: ShortString,
     /// Information about an error.
+    // This field is not a String in the `std` variant because we want to know
+    // in advance its size in bytes with the objective of controlling the amount
+    // of data returned by this structure.
     pub info: Option<ShortString>,
 }
 
