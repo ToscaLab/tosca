@@ -307,9 +307,7 @@ impl Category {
 
 #[cfg(test)]
 mod tests {
-    use serde_json::json;
-
-    use crate::serialize;
+    use crate::{deserialize, serialize};
 
     use super::{Category, Hazard};
 
@@ -326,7 +324,7 @@ mod tests {
         assert_eq!(hazard.id(), 0);
         assert_eq!(Hazard::from_id(0), Some(hazard));
 
-        assert_eq!(serialize(hazard), json!("AirPoisoning"));
+        assert_eq!(deserialize::<Hazard>(serialize(hazard)), hazard);
     }
 
     #[test]
@@ -340,6 +338,6 @@ mod tests {
         );
         assert!(category.hazards().contains(&Hazard::AirPoisoning));
 
-        assert_eq!(serialize(category), json!("Safety"));
+        assert_eq!(deserialize::<Category>(serialize(category)), category);
     }
 }

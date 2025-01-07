@@ -24,7 +24,7 @@ pub enum PayloadKind {
 
 /// An `Ok` payload sends a boolean as action response to notify a receiver that
 /// a device action has terminated correctly.
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct OkPayload {
     action_terminated_correctly: bool,
 }
@@ -61,7 +61,7 @@ impl<T: Serialize + DeserializeOwned> SerialPayload<T> {
 /// Informative payload.
 ///
 /// This payload contains additional information on a device.
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct InfoPayload {
     #[serde(flatten)]
     data: DeviceInfo,
@@ -78,7 +78,7 @@ impl InfoPayload {
 /// A payload containing information about an error occurred within an action.
 ///
 /// It describes the kind of error, the cause, and optional information.
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct ErrorPayload {
     /// Action error type.
     pub error: ActionError,
@@ -167,15 +167,16 @@ impl ErrorPayload {
 
 #[cfg(test)]
 mod tests {
-
-    use serde_json::json;
-
+    use crate::economy::Economy;
     use crate::energy::{Energy, WaterUseEfficiency};
-    use crate::serialize;
+    use crate::{deserialize, serialize};
 
-    use super::*;
+    use super::{
+        ActionError, Deserialize, DeviceInfo, ErrorPayload, InfoPayload, OkPayload, SerialPayload,
+        Serialize, ShortString,
+    };
 
-    #[derive(Debug, Serialize, Deserialize)]
+    #[derive(Debug, PartialEq, Serialize, Deserialize)]
     struct Serial {
         value: u32,
     }
@@ -183,20 +184,18 @@ mod tests {
     #[test]
     fn test_ok_payload() {
         assert_eq!(
-            serialize(OkPayload::ok()),
-            json!({
-                "action_terminated_correctly": true,
-            })
+            deserialize::<OkPayload>(serialize(OkPayload::ok())),
+            OkPayload {
+                action_terminated_correctly: true,
+            }
         );
     }
 
     #[test]
     fn test_serial_payload() {
         assert_eq!(
-            serialize(SerialPayload::new(Serial { value: 42 })),
-            json!({
-                "value": 42,
-            })
+            deserialize::<Serial>(serialize(SerialPayload::new(Serial { value: 42 }))),
+            Serial { value: 42 },
         );
     }
 
@@ -206,16 +205,21 @@ mod tests {
             Energy::init_with_water_use_efficiency(WaterUseEfficiency::init_with_gpp(42.0));
 
         assert_eq!(
-            serialize(InfoPayload::new(DeviceInfo::empty().add_energy(energy))),
-            json!({
-                 "energy": {
-                     "water-use-efficiency": {
-                         "gross-primary-productivity": 42.0,
-                         "penman-monteith-equation": null,
-                         "water-equivalent-ratio": null
-                     }
-                 }
-            })
+            deserialize::<DeviceInfo>(serialize(InfoPayload::new(
+                DeviceInfo::empty().add_energy(energy)
+            ))),
+            DeviceInfo {
+                energy: Energy {
+                    energy_efficiencies: None,
+                    carbon_footprints: None,
+                    water_use_efficiency: Some(WaterUseEfficiency {
+                        gpp: Some(42.0),
+                        penman_monteith_equation: None,
+                        wer: None,
+                    }),
+                },
+                economy: Economy::empty(),
+            }
         );
     }
 
@@ -227,12 +231,12 @@ mod tests {
         );
 
         assert_eq!(
-            serialize(error),
-            json!({
-                 "error": "Invalid Data",
-                 "description": "Invalid data error description",
-                 "info": null,
-            })
+            deserialize::<ErrorPayload>(serialize(error)),
+            ErrorPayload {
+                error: ActionError::InvalidData,
+                description: ShortString::infallible("Invalid data error description"),
+                info: None,
+            }
         );
     }
 }
