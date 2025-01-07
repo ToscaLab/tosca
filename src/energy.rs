@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use crate::collections::OutputCollection;
 
 /// Energy efficiency class.
-#[derive(Serialize, Deserialize, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy, Serialize, Deserialize)]
 pub enum EnergyClass {
     /// A+++
     #[serde(rename = "A+++")]
@@ -58,7 +58,7 @@ const fn decimal_percentage(percentage: i8) -> f64 {
 }
 
 /// Energy efficiency.
-#[derive(Serialize, Deserialize, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy, Serialize, Deserialize)]
 pub struct EnergyEfficiency {
     /// Energy efficiency savings or consumes for the relevant [`EnergyClass`].
     pub percentage: i8,
@@ -114,7 +114,7 @@ impl EnergyEfficiency {
 pub type EnergyEfficiencies = OutputCollection<EnergyEfficiency>;
 
 /// Carbon footprint.
-#[derive(Serialize, Deserialize, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy, Serialize, Deserialize)]
 pub struct CarbonFootprint {
     /// The percentage of greenhouse gases added or removed from the atmosphere
     /// for the relevant [`EnergyClass`].
@@ -174,7 +174,7 @@ pub type CarbonFootprints = OutputCollection<CarbonFootprint>;
 ///
 /// Metrics taken from:
 /// <https://www.frontiersin.org/journals/plant-science/articles/10.3389/fpls.2019.00103/full>
-#[derive(Serialize, Deserialize, Clone, Copy)]
+#[derive(Debug, PartialEq, Clone, Copy, Serialize, Deserialize)]
 pub struct WaterUseEfficiency {
     /// Gross Primary Productivity (GPP).
     ///
@@ -250,7 +250,7 @@ impl WaterUseEfficiency {
 }
 
 /// Energy information of a device.
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Energy {
     /// Energy efficiencies.
     #[serde(rename = "energy-efficiencies")]

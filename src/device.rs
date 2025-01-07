@@ -34,13 +34,15 @@ impl core::fmt::Display for DeviceKind {
 }
 
 /// Device information.
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct DeviceInfo {
     /// Energy information.
     #[serde(skip_serializing_if = "Energy::is_empty")]
+    #[serde(default = "Energy::empty")]
     pub energy: Energy,
     /// Economy information.
     #[serde(skip_serializing_if = "Economy::is_empty")]
+    #[serde(default = "Economy::empty")]
     pub economy: Economy,
 }
 

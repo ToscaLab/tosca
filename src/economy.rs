@@ -4,7 +4,7 @@ use crate::collections::OutputCollection;
 use crate::energy::EnergyClass;
 
 /// Timespan for a cost computation.
-#[derive(Serialize, Deserialize, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy, Serialize, Deserialize)]
 pub enum CostTimespan {
     /// Week
     Week,
@@ -31,7 +31,7 @@ impl core::fmt::Display for CostTimespan {
 }
 
 /// A device cost in terms of expenses/savings.
-#[derive(Serialize, Deserialize, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy, Serialize, Deserialize)]
 pub struct Cost {
     /// Amount of money in USD currency.
     #[serde(rename = "usd")]
@@ -71,7 +71,7 @@ impl Cost {
 pub type Costs = OutputCollection<Cost>;
 
 /// Return on investments (ROI).
-#[derive(Serialize, Deserialize, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy, Serialize, Deserialize)]
 pub struct Roi {
     /// Years timespan to calculate the ROI.
     pub years: u8,
@@ -118,7 +118,7 @@ impl Roi {
 pub type Rois = OutputCollection<Roi>;
 
 /// Economy data for a device.
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Economy {
     /// Costs.
     #[serde(skip_serializing_if = "Option::is_none")]
