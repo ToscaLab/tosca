@@ -92,7 +92,7 @@ macro_rules! impl_string {
 /// Minimal string data structure.
 ///
 /// It can be used to save very short texts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct MiniString(String<32>);
 
 impl_string!(MiniString, 32);
@@ -100,7 +100,7 @@ impl_string!(MiniString, 32);
 /// Short string data structure.
 ///
 /// It can be used to save short texts such as names.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct ShortString(String<64>);
 
 impl_string!(ShortString, 64);
@@ -108,7 +108,7 @@ impl_string!(ShortString, 64);
 /// Long string data structure.
 ///
 /// It can be used to save long texts such as descriptions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct LongString(String<128>);
 
 impl_string!(LongString, 128);

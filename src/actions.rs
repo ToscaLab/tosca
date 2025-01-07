@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 // 2. If it is not an error, evaluate the respective payload.
 
 /// All possible action errors which led a device action to fail.
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub enum ActionError {
     /// Data needed for an action is not correct because invalid or malformed.
     #[serde(rename = "Invalid Data")]
