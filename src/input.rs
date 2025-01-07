@@ -196,6 +196,46 @@ impl Input {
 /// A collection of [`Input`]s.
 pub type Inputs = Collection<Input>;
 
+#[cfg(feature = "std")]
+#[cfg(test)]
+mod tests {
+    use crate::{deserialize, serialize};
+
+    use super::{Input, InputData};
+
+    #[test]
+    fn test_all_inputs() {
+        assert_eq!(
+            deserialize::<InputData>(serialize(InputData::from(Input::bool("bool", true)))),
+            InputData::from(Input::bool("bool", true))
+        );
+
+        assert_eq!(
+            deserialize::<InputData>(serialize(InputData::from(Input::u8("u8", 0)))),
+            InputData::from(Input::u8("u8", 0))
+        );
+
+        assert_eq!(
+            deserialize::<InputData>(serialize(InputData::from(Input::rangeu64_with_default(
+                "rangeu64",
+                (0, 20, 1),
+                5
+            )))),
+            InputData::from(Input::rangeu64_with_default("rangeu64", (0, 20, 1), 5))
+        );
+
+        assert_eq!(
+            deserialize::<InputData>(serialize(InputData::from(Input::rangef64_with_default(
+                "rangef64",
+                (0., 20., 0.1),
+                5.
+            )))),
+            InputData::from(Input::rangef64_with_default("rangef64", (0., 20., 0.1), 5.))
+        );
+    }
+}
+
+#[cfg(not(feature = "std"))]
 #[cfg(test)]
 mod tests {
     use serde_json::json;
