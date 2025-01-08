@@ -2,6 +2,32 @@ use serde::{Deserialize, Serialize};
 
 use crate::collections::OutputCollection;
 
+/// All [`Hazard`]s.
+pub const ALL_HAZARDS: &[Hazard] = &[
+    Hazard::ElectricEnergyConsumption,
+    Hazard::GasConsumption,
+    Hazard::PaySubscriptionFee,
+    Hazard::SpendMoney,
+    Hazard::WaterConsumption,
+    Hazard::AudioVideoRecordAndStore,
+    Hazard::AudioVideoStream,
+    Hazard::LogEnergyConsumption,
+    Hazard::LogUsageTime,
+    Hazard::RecordIssuedCommands,
+    Hazard::RecordUserPreferences,
+    Hazard::TakeDeviceScreenshots,
+    Hazard::TakePictures,
+    Hazard::AirPoisoning,
+    Hazard::Asphyxia,
+    Hazard::Explosion,
+    Hazard::FireHazard,
+    Hazard::PowerOutage,
+    Hazard::PowerSurge,
+    Hazard::SpoiledFood,
+    Hazard::UnauthorisedPhysicalAccess,
+    Hazard::WaterFlooding,
+];
+
 /// All possible hazards for a device action.
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Hazard {
@@ -338,36 +364,31 @@ impl Category {
 mod tests {
     use crate::{deserialize, serialize};
 
-    use super::{Category, Hazard};
+    use super::{Category, Hazard, ALL_HAZARDS};
 
     #[test]
     fn test_hazard() {
-        let hazard = Hazard::AirPoisoning;
+        // Check wrong id. 1000 will be always a big value.
+        assert_eq!(Hazard::from_id(1000), None);
 
-        assert_eq!(hazard.name(), "Air Poisoning");
-        assert_eq!(
-            hazard.description(),
-            "The execution may release toxic gases."
-        );
-        assert_eq!(hazard.category(), Category::Safety);
-        assert_eq!(hazard.id(), 0);
-        assert_eq!(Hazard::from_id(0), Some(hazard));
-
-        assert_eq!(
-            serialize(hazard.data()),
-            serde_json::json!({
-                    "id": 0,
-                    "name": "Air Poisoning",
-                    "description": "The execution may release toxic gases.",
-                    "category name": "Safety",
-                    "category description": "Category which includes all safety-related hazards.",
-                }
+        // Compare all hazards.
+        for hazard in ALL_HAZARDS {
+            assert_eq!(Hazard::from_id(hazard.id()), Some(*hazard));
+            assert_eq!(
+                serialize(hazard.data()),
+                serde_json::json!({
+                        "id": hazard.id(),
+                        "name": hazard.name(),
+                        "description": hazard.description(),
+                        "category name": hazard.category().name(),
+                        "category description": hazard.category().description(),
+                    }
 
 
-            )
-        );
-
-        assert_eq!(deserialize::<Hazard>(serialize(hazard)), hazard);
+                )
+            );
+            assert_eq!(deserialize::<Hazard>(serialize(hazard)), *hazard);
+        }
     }
 
     #[test]
