@@ -221,19 +221,19 @@ async fn main() -> Result<(), Error> {
     // Increase temperature `PUT` route.
     let increase_temp_route = Route::put("/increase-temperature")
         .description("Increase temperature.")
-        .input(Input::rangef64("increment", (1., 4., 0.1, 2.)))
+        .input(Input::rangef64_with_default("increment", (1., 4., 0.1), 2.))
         .with_slice_hazards(&[Hazard::ElectricEnergyConsumption, Hazard::SpoiledFood]);
 
     // Decrease temperature `PUT` route.
     let decrease_temp_route = Route::put("/decrease-temperature")
         .description("Decrease temperature.")
-        .input(Input::rangef64("decrement", (1., 4., 0.1, 2.)))
+        .input(Input::rangef64_with_default("decrement", (1., 4., 0.1), 2.))
         .with_single_hazard(Hazard::ElectricEnergyConsumption);
 
     // Increase temperature `POST` route.
     let increase_temp_post_route = Route::post("/increase-temperature")
         .description("Increase temperature.")
-        .input(Input::rangef64("increment", (1., 4., 0.1, 2.)));
+        .input(Input::rangef64_with_default("increment", (1., 4., 0.1), 2.));
 
     // Device info `GET` route.
     let info_route = Route::get("/info").description("Get info about a fridge.");
