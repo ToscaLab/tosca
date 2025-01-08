@@ -105,13 +105,6 @@ impl DeviceAction {
         }
     }
 
-    pub(crate) fn empty() -> Self {
-        Self {
-            router: Router::new(),
-            route: Route::get(""),
-        }
-    }
-
     #[inline]
     fn create_router<H, T, S>(
         route: &str,
@@ -154,7 +147,10 @@ pub struct MandatoryAction<const SET: bool> {
 impl MandatoryAction<false> {
     pub(crate) fn empty() -> Self {
         Self {
-            device_action: DeviceAction::empty(),
+            device_action: DeviceAction {
+                router: Router::new(),
+                route: Route::get(""),
+            },
         }
     }
 
