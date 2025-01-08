@@ -243,7 +243,7 @@ impl Route {
     /// Adds a single [`Input`] to a [`Route`].
     #[must_use]
     #[inline]
-    pub fn input(mut self, input: Input) -> Self {
+    pub fn with_input(mut self, input: Input) -> Self {
         self.inputs.add(input);
         self
     }
@@ -251,7 +251,7 @@ impl Route {
     /// Adds [`Input`] array to a [`Route`].
     #[must_use]
     #[inline]
-    pub fn inputs<const N: usize>(mut self, inputs: [Input; N]) -> Self {
+    pub fn with_inputs<const N: usize>(mut self, inputs: [Input; N]) -> Self {
         inputs.into_iter().take(MAXIMUM_ELEMENTS).for_each(|input| {
             self.inputs.add(input);
         });
@@ -266,10 +266,10 @@ impl Route {
         self
     }
 
-    /// Adds a single [`Hazard`] to a [`Route`].
+    /// Adds an [`Hazard`] to a [`Route`].
     #[must_use]
     #[inline]
-    pub fn with_single_hazard(mut self, hazard: Hazard) -> Self {
+    pub fn with_hazard(mut self, hazard: Hazard) -> Self {
         self.hazards = Hazards::init(hazard);
         self
     }
@@ -302,7 +302,7 @@ impl Route {
 
     /// Returns [`Inputs`].
     #[must_use]
-    pub const fn inputs_ref(&self) -> &Inputs {
+    pub const fn inputs(&self) -> &Inputs {
         &self.inputs
     }
 
@@ -411,7 +411,7 @@ mod tests {
             deserialize::<RouteConfig>(serialize(
                 Route::get("/route")
                     .description("A GET route")
-                    .with_single_hazard(Hazard::FireHazard)
+                    .with_hazard(Hazard::FireHazard)
                     .serialize_data()
             )),
             route_config_hazards(
@@ -475,8 +475,8 @@ mod tests {
             deserialize::<RouteConfig>(serialize(
                 Route::get("/route")
                     .description("A GET route")
-                    .input(Input::rangeu64_with_default("rangeu64", (0, 20, 1), 5))
-                    .input(Input::rangef64("rangef64", (0., 20., 0.1)))
+                    .with_input(Input::rangeu64_with_default("rangeu64", (0, 20, 1), 5))
+                    .with_input(Input::rangef64("rangef64", (0., 20., 0.1)))
                     .serialize_data()
             )),
             expected
@@ -486,7 +486,7 @@ mod tests {
             deserialize::<RouteConfig>(serialize(
                 Route::get("/route")
                     .description("A GET route")
-                    .inputs([
+                    .with_inputs([
                         Input::rangeu64_with_default("rangeu64", (0, 20, 1), 5),
                         Input::rangef64("rangef64", (0., 20., 0.1))
                     ])
@@ -567,7 +567,7 @@ mod tests {
             serialize(
                 Route::get("/route")
                     .description("A GET route")
-                    .with_single_hazard(Hazard::FireHazard)
+                    .with_hazard(Hazard::FireHazard)
                     .serialize_data()
             ),
             json!({
@@ -658,8 +658,8 @@ mod tests {
             serialize(
                 Route::get("/route")
                     .description("A GET route")
-                    .input(Input::rangeu64_with_default("rangeu64", (0, 20, 1), 5))
-                    .input(Input::rangef64("rangef64", (0., 20., 0.1)))
+                    .with_input(Input::rangeu64_with_default("rangeu64", (0, 20, 1), 5))
+                    .with_input(Input::rangef64("rangef64", (0., 20., 0.1)))
                     .serialize_data()
             ),
             expected
@@ -669,7 +669,7 @@ mod tests {
             serialize(
                 Route::get("/route")
                     .description("A GET route")
-                    .inputs([
+                    .with_inputs([
                         Input::rangeu64_with_default("rangeu64", (0, 20, 1), 5),
                         Input::rangef64("rangef64", (0., 20., 0.1))
                     ])
