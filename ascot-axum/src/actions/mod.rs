@@ -4,9 +4,12 @@ pub mod ok;
 pub mod serial;
 
 use ascot_library::hazards::{Hazard, Hazards};
+use ascot_library::input::Inputs;
 use ascot_library::route::{RestKind, Route};
 
 use axum::{handler::Handler, Router};
+
+use tracing::info;
 
 #[rustfmt::skip]
 macro_rules! all_the_tuples {
@@ -32,6 +35,15 @@ macro_rules! all_the_tuples {
 }
 
 pub(super) use all_the_tuples;
+
+fn build_get_route(route: &str, inputs: &Inputs) -> String {
+    let mut route = String::from(route);
+    for input in inputs.iter() {
+        route.push_str(&format!("/{{{}}}", input.name()));
+    }
+    info!("Build GET route: {}", route);
+    route
+}
 
 #[derive(Debug)]
 pub struct DeviceAction {
@@ -69,7 +81,13 @@ impl DeviceAction {
         T: 'static,
     {
         Self {
-            router: Self::create_router(route.route(), route.kind(), handler, ()),
+            router: Self::create_router(
+                route.route(),
+                route.kind(),
+                route.inputs_ref(),
+                handler,
+                (),
+            ),
             route,
         }
     }
@@ -82,7 +100,13 @@ impl DeviceAction {
         S: Clone + Send + Sync + 'static,
     {
         Self {
-            router: Self::create_router(route.route(), route.kind(), handler, state),
+            router: Self::create_router(
+                route.route(),
+                route.kind(),
+                route.inputs_ref(),
+                handler,
+                state,
+            ),
             route,
         }
     }
@@ -95,12 +119,25 @@ impl DeviceAction {
     }
 
     #[inline]
-    fn create_router<H, T, S>(route: &str, route_kind: RestKind, handler: H, state: S) -> Router
+    fn create_router<H, T, S>(
+        route: &str,
+        route_kind: RestKind,
+        inputs: &Inputs,
+        handler: H,
+        state: S,
+    ) -> Router
     where
         H: Handler<T, S>,
         T: 'static,
         S: Clone + Send + Sync + 'static,
     {
+        // Create the GET route for the axum architecture.
+        let route = if let RestKind::Get = route_kind {
+            &build_get_route(route, inputs)
+        } else {
+            route
+        };
+
         Router::new()
             .route(
                 route,
@@ -141,5 +178,25 @@ impl MandatoryAction<true> {
 
     pub(crate) const fn init(device_action: DeviceAction) -> Self {
         Self { device_action }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use ascot_library::input::Input;
+
+    use super::{build_get_route, Route};
+
+    #[test]
+    fn test_build_get_route() {
+        let route = Route::get("/route").description("A GET route.").inputs([
+            Input::rangeu64_with_default("rangeu64", (0, 20, 1), 5),
+            Input::rangef64("rangef64", (0., 20., 0.1)),
+        ]);
+
+        assert_eq!(
+            &build_get_route(route.route(), route.inputs_ref()),
+            "/route/{rangeu64}/{rangef64}"
+        );
     }
 }
