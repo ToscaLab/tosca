@@ -1,10 +1,8 @@
-extern crate alloc;
-
 mod fridge_mockup;
 
 use core::net::Ipv4Addr;
 
-use alloc::sync::Arc;
+use std::sync::Arc;
 
 use async_lock::Mutex;
 use serde::{Deserialize, Serialize};
