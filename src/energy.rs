@@ -1,3 +1,5 @@
+#![allow(clippy::module_name_repetitions)]
+
 use serde::{Deserialize, Serialize};
 
 use crate::collections::OutputCollection;
