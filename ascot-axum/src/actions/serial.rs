@@ -61,7 +61,7 @@ macro_rules! impl_serial_type_name {
 super::all_the_tuples!(impl_serial_type_name);
 
 /// Creates a mandatory stateful [`DeviceAction`] with a [`SerialPayload`].
-#[inline(always)]
+#[inline]
 pub fn mandatory_serial_stateful<H, T, S>(
     route: Route,
     handler: H,
@@ -75,7 +75,7 @@ where
 }
 
 /// Creates a stateful [`DeviceAction`] with a [`SerialPayload`].
-#[inline(always)]
+#[inline]
 pub fn serial_stateful<H, T, S>(route: Route, handler: H) -> impl FnOnce(S) -> DeviceAction
 where
     H: Handler<T, S> + private::SerialTypeName<T>,
@@ -86,7 +86,7 @@ where
 }
 
 /// Creates a mandatory stateless [`DeviceAction`] with a [`SerialPayload`].
-#[inline(always)]
+#[inline]
 pub fn mandatory_serial_stateless<H, T, S>(
     route: Route,
     handler: H,
@@ -100,7 +100,7 @@ where
 }
 
 /// Creates a stateless [`DeviceAction`] with a [`SerialPayload`].
-#[inline(always)]
+#[inline]
 pub fn serial_stateless<H, T, S>(route: Route, handler: H) -> impl FnOnce(S) -> DeviceAction
 where
     H: Handler<T, ()> + private::SerialTypeName<T>,
