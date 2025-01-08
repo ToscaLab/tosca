@@ -86,6 +86,8 @@ macro_rules! implementation {
             }
 
             #[doc = concat!("Returns an iterator over the [`", stringify!($impl), "`].")]
+            #[doc = ""]
+            #[doc = "**It iterates in the insertion order.**"]
             #[inline]
             pub fn iter(&self) -> IndexSetIter<'_, T> {
                 self.0.iter()
