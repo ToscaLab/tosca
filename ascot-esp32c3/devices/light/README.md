@@ -1,5 +1,7 @@
 # Light Ascot Firmware
 
+[![LICENSE][license badge]][license]
+
 A light `Ascot` firmware to turn on and off the built-in LED of
 an `ESP32-C3` board.
 
@@ -75,3 +77,8 @@ during a `cargo run` instance. Their values have been later copied into the
 to delete old partitions configurations which might be present on the
 `ESP32-C3` board.
 
+<!-- Links -->
+[license]: https://github.com/SoftengPoliTo/ascot-firmware/blob/master/LICENSE-MIT
+
+<!-- Badges -->
+[license badge]: https://img.shields.io/badge/license-MIT-blue.svg
