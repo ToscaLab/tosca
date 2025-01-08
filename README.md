@@ -1,5 +1,7 @@
 # Ascot Library
 
+[![LICENSE][license badge]][license]
+
 This Rust library contains a series of APIs and interfaces to:
 
 - Create and manage HTTP `Rest` routes
@@ -36,3 +38,9 @@ memory optimizations run:
 ```console
 cargo build --release
 ```
+
+<!-- Links -->
+[license]: https://github.com/SoftengPoliTo/ascot-firmware/blob/master/LICENSE-MIT
+
+<!-- Badges -->
+[license badge]: https://img.shields.io/badge/license-MIT-blue.svg

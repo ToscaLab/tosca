@@ -1,4 +1,6 @@
-# ascot-axum
+# `ascot-axum`
+
+[![LICENSE][license badge]][license]
 
 This library crate provides a series of APIs to build an `axum` server which
 represents the firmware of an IoT device.
@@ -64,3 +66,9 @@ will be copied.
 
 Since `scp` is deprecated, and the version on a PC might use SFTP by default,
 the `-O` flag reverts to the deprecated protocol.
+
+<!-- Links -->
+[license]: https://github.com/SoftengPoliTo/ascot-firmware/blob/master/LICENSE-MIT
+
+<!-- Badges -->
+[license badge]: https://img.shields.io/badge/license-MIT-blue.svg

@@ -1,4 +1,6 @@
-# An Ascot `ESP32-C3` firmware library
+# `ascot-esp32c3`
+
+[![LICENSE][license badge]][license]
 
 A Rust library to create an `Ascot` firmware for an `ESP32-C3` board.
 
@@ -74,3 +76,9 @@ cargo run [--release]
 
 The optional `--release` parameter enables all optimizations and makes the
 final firmware smaller.
+
+<!-- Links -->
+[license]: https://github.com/SoftengPoliTo/ascot-firmware/blob/master/LICENSE-MIT
+
+<!-- Badges -->
+[license badge]: https://img.shields.io/badge/license-MIT-blue.svg

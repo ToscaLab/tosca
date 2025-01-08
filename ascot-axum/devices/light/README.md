@@ -1,5 +1,7 @@
 # Light
 
+[![LICENSE][license badge]][license]
+
 ## Building
 
 Run the command
@@ -49,3 +51,9 @@ port number is printed.
 ```
 Starting the Ascot server at 0.0.0.0:3000
 ```
+
+<!-- Links -->
+[license]: https://github.com/SoftengPoliTo/ascot-firmware/blob/master/LICENSE-MIT
+
+<!-- Badges -->
+[license badge]: https://img.shields.io/badge/license-MIT-blue.svg
