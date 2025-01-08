@@ -240,7 +240,7 @@ impl Route {
         self
     }
 
-    /// Sets a single [`Input`].
+    /// Adds a single [`Input`] to a [`Route`].
     #[must_use]
     #[inline]
     pub fn input(mut self, input: Input) -> Self {
@@ -248,7 +248,7 @@ impl Route {
         self
     }
 
-    /// Sets more [`Input`]s.
+    /// Adds [`Input`] array to a [`Route`].
     #[must_use]
     #[inline]
     pub fn inputs<const N: usize>(mut self, inputs: [Input; N]) -> Self {
