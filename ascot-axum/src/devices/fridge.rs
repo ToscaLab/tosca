@@ -8,10 +8,6 @@ use crate::error::{Error, Result};
 // The default main route for a fridge.
 const FRIDGE_MAIN_ROUTE: &str = "/fridge";
 
-// Mandatory actions hazards.
-const INCREASE_TEMPERATURE: &[Hazard] = &[Hazard::ElectricEnergyConsumption, Hazard::SpoiledFood];
-const DECREASE_TEMPERATURE: Hazard = Hazard::ElectricEnergyConsumption;
-
 // Allowed hazards.
 const ALLOWED_HAZARDS: &[Hazard] = &[Hazard::ElectricEnergyConsumption, Hazard::SpoiledFood];
 
@@ -75,27 +71,15 @@ where
     pub fn increase_temperature(
         self,
         increase_temperature: impl FnOnce(S) -> MandatoryAction<false>,
-    ) -> Result<Fridge<true, false, S>> {
+    ) -> Fridge<true, false, S> {
         let increase_temperature = increase_temperature(self.device.state.clone());
 
-        // Raise an error whether increase_temperature does not contain
-        // electric energy consumption or spoiled food hazards.
-        if increase_temperature
-            .device_action
-            .miss_hazards(INCREASE_TEMPERATURE)
-        {
-            return Err(Error::device(
-                DeviceKind::Fridge,
-                "No electric energy consumption or spoiled food hazards for the `increase_temperature` route",
-            ));
-        }
-
-        Ok(Fridge {
+        Fridge {
             device: self.device,
             increase_temperature: MandatoryAction::init(increase_temperature.device_action),
             decrease_temperature: self.decrease_temperature,
             allowed_hazards: ALLOWED_HAZARDS,
-        })
+        }
     }
 }
 
@@ -110,27 +94,15 @@ where
     pub fn decrease_temperature(
         self,
         decrease_temperature: impl FnOnce(S) -> MandatoryAction<false>,
-    ) -> Result<Fridge<true, true, S>> {
+    ) -> Fridge<true, true, S> {
         let decrease_temperature = decrease_temperature(self.device.state.clone());
 
-        // Raise an error whether decrease_temperature does not contain
-        // electric energy consumption hazard.
-        if decrease_temperature
-            .device_action
-            .miss_hazard(DECREASE_TEMPERATURE)
-        {
-            return Err(Error::device(
-                DeviceKind::Fridge,
-                "No electric energy consumption hazard for the `decrease_temperature` route",
-            ));
-        }
-
-        Ok(Fridge {
+        Fridge {
             device: self.device,
             increase_temperature: self.increase_temperature,
             decrease_temperature: MandatoryAction::init(decrease_temperature.device_action),
             allowed_hazards: ALLOWED_HAZARDS,
-        })
+        }
     }
 }
 
@@ -296,12 +268,10 @@ mod tests {
                 routes.increase_temp,
                 increase_temperature,
             ))
-            .unwrap()
             .decrease_temperature(mandatory_serial_stateful(
                 routes.decrease_temp,
                 decrease_temperature,
             ))
-            .unwrap()
             .add_action(serial_stateful(
                 routes.increase_temp_post,
                 increase_temperature,
@@ -319,12 +289,10 @@ mod tests {
                 routes.increase_temp,
                 increase_temperature,
             ))
-            .unwrap()
             .decrease_temperature(mandatory_serial_stateful(
                 routes.decrease_temp,
                 decrease_temperature,
             ))
-            .unwrap()
             .into_device();
     }
 
@@ -337,12 +305,10 @@ mod tests {
                 routes.increase_temp,
                 increase_temperature,
             ))
-            .unwrap()
             .decrease_temperature(mandatory_serial_stateful(
                 routes.decrease_temp,
                 decrease_temperature,
             ))
-            .unwrap()
             .add_action(serial_stateless(
                 routes.increase_temp_post,
                 increase_temperature_without_state,
@@ -360,12 +326,10 @@ mod tests {
                 routes.increase_temp,
                 increase_temperature_without_state,
             ))
-            .unwrap()
             .decrease_temperature(mandatory_serial_stateless(
                 routes.decrease_temp,
                 decrease_temperature_without_state,
             ))
-            .unwrap()
             .add_action(serial_stateless(
                 routes.increase_temp_post,
                 increase_temperature_without_state,
@@ -383,12 +347,10 @@ mod tests {
                 routes.increase_temp,
                 increase_temperature_without_state,
             ))
-            .unwrap()
             .decrease_temperature(mandatory_serial_stateless(
                 routes.decrease_temp,
                 decrease_temperature_without_state,
             ))
-            .unwrap()
             .into_device();
     }
 }
