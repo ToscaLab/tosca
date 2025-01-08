@@ -246,12 +246,12 @@ async fn main() -> Result<(), Error> {
         .increase_temperature(mandatory_serial_stateful(
             increase_temp_route,
             increase_temperature,
-        ))?
+        ))
         // This method is mandatory, if not called, a compiler error is raised.
         .decrease_temperature(mandatory_serial_stateful(
             decrease_temp_route,
             decrease_temperature,
-        ))?
+        ))
         .add_action(serial_stateful(
             increase_temp_post_route,
             increase_temperature,
