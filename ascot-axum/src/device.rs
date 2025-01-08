@@ -117,9 +117,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    extern crate alloc;
-
-    use alloc::sync::Arc;
+    use std::sync::Arc;
 
     use core::ops::{Deref, DerefMut};
 

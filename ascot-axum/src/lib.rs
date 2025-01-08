@@ -1,5 +1,3 @@
-extern crate alloc;
-
 pub mod devices;
 
 pub mod actions;
