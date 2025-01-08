@@ -81,13 +81,7 @@ impl DeviceAction {
         T: 'static,
     {
         Self {
-            router: Self::create_router(
-                route.route(),
-                route.kind(),
-                route.inputs_ref(),
-                handler,
-                (),
-            ),
+            router: Self::create_router(route.route(), route.kind(), route.inputs(), handler, ()),
             route,
         }
     }
@@ -103,7 +97,7 @@ impl DeviceAction {
             router: Self::create_router(
                 route.route(),
                 route.kind(),
-                route.inputs_ref(),
+                route.inputs(),
                 handler,
                 state,
             ),
@@ -189,13 +183,15 @@ mod tests {
 
     #[test]
     fn test_build_get_route() {
-        let route = Route::get("/route").description("A GET route.").inputs([
-            Input::rangeu64_with_default("rangeu64", (0, 20, 1), 5),
-            Input::rangef64("rangef64", (0., 20., 0.1)),
-        ]);
+        let route = Route::get("/route")
+            .description("A GET route.")
+            .with_inputs([
+                Input::rangeu64_with_default("rangeu64", (0, 20, 1), 5),
+                Input::rangef64("rangef64", (0., 20., 0.1)),
+            ]);
 
         assert_eq!(
-            &build_get_route(route.route(), route.inputs_ref()),
+            &build_get_route(route.route(), route.inputs()),
             "/route/{rangeu64}/{rangef64}"
         );
     }
