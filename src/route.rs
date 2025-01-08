@@ -258,30 +258,6 @@ impl Route {
         self
     }
 
-    /// Returns route.
-    #[must_use]
-    pub fn route(&self) -> &str {
-        self.route
-    }
-
-    /// Returns [`RestKind`].
-    #[must_use]
-    pub const fn kind(&self) -> RestKind {
-        self.rest_kind
-    }
-
-    /// Returns [`Hazards`].
-    #[must_use]
-    pub const fn hazards(&self) -> &Hazards {
-        &self.hazards
-    }
-
-    /// Returns [`Inputs`].
-    #[must_use]
-    pub const fn inputs_ref(&self) -> &Inputs {
-        &self.inputs
-    }
-
     /// Adds [`Hazards`] to a [`Route`].
     #[must_use]
     #[inline]
@@ -304,6 +280,30 @@ impl Route {
     pub fn with_slice_hazards(mut self, hazards: &'static [Hazard]) -> Self {
         self.hazards = Hazards::init_with_elements(hazards);
         self
+    }
+
+    /// Returns route.
+    #[must_use]
+    pub fn route(&self) -> &str {
+        self.route
+    }
+
+    /// Returns [`RestKind`].
+    #[must_use]
+    pub const fn kind(&self) -> RestKind {
+        self.rest_kind
+    }
+
+    /// Returns [`Hazards`].
+    #[must_use]
+    pub const fn hazards(&self) -> &Hazards {
+        &self.hazards
+    }
+
+    /// Returns [`Inputs`].
+    #[must_use]
+    pub const fn inputs_ref(&self) -> &Inputs {
+        &self.inputs
     }
 
     /// Serializes [`Route`] data.
