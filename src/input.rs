@@ -108,7 +108,7 @@ pub use input_data::InputsData;
 #[derive(Debug, Clone, Copy)]
 pub struct Input {
     // Name.
-    pub(crate) name: &'static str,
+    name: &'static str,
     // Input structure.
     structure: InputStructure,
 }
@@ -190,6 +190,13 @@ impl Input {
                 default,
             },
         }
+    }
+
+    /// Returns [`Input`] name.
+    #[must_use]
+    #[inline]
+    pub const fn name(&self) -> &str {
+        self.name
     }
 }
 
