@@ -276,6 +276,12 @@ impl Route {
         &self.hazards
     }
 
+    /// Returns [`Inputs`].
+    #[must_use]
+    pub const fn inputs_ref(&self) -> &Inputs {
+        &self.inputs
+    }
+
     /// Adds [`Hazards`] to a [`Route`].
     #[must_use]
     #[inline]
