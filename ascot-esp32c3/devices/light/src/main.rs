@@ -74,7 +74,7 @@ fn main() -> ascot_esp32c3::error::Result<()> {
         // Configuration for the `PUT` turn light on route.
         Route::put("/on")
             .description("Turn light on.")
-            .with_single_hazard(Hazard::FireHazard),
+            .with_hazard(Hazard::FireHazard),
         ResponseBuilder(|req| req.into_ok_response(), "Turning led on went well!"),
     )
     .body(move || {
