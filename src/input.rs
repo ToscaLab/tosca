@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::collections::Collection;
 
-/// The structure of an [`InputKind`].
+/// An [`Input`] structure.
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum InputStructure {
     /// A [`bool`] default value.
