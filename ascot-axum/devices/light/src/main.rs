@@ -249,7 +249,7 @@ async fn main() -> Result<(), Error> {
     // A light device which is going to be run on the server.
     let device = Light::with_state(state)
         // This method is mandatory, if not called, a compiler error is raised.
-        .turn_light_on(mandatory_serial_stateful(light_on_route, turn_light_on))?
+        .turn_light_on(mandatory_serial_stateful(light_on_route, turn_light_on))
         // This method is mandatory, if not called, a compiler error is raised.
         .turn_light_off(mandatory_ok_stateful(light_off_route, turn_light_off))
         .add_action(serial_stateful(light_on_post_route, turn_light_on))?

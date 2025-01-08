@@ -8,9 +8,6 @@ use crate::error::{Error, Result};
 // The default main route for a light.
 const LIGHT_MAIN_ROUTE: &str = "/light";
 
-// Mandatory actions hazards.
-const TURN_LIGHT_ON: Hazard = Hazard::FireHazard;
-
 // Allowed hazards.
 const ALLOWED_HAZARDS: &[Hazard] = &[Hazard::FireHazard, Hazard::ElectricEnergyConsumption];
 
@@ -74,24 +71,15 @@ where
     pub fn turn_light_on(
         self,
         turn_light_on: impl FnOnce(S) -> MandatoryAction<false>,
-    ) -> Result<Light<true, false, S>> {
+    ) -> Light<true, false, S> {
         let turn_light_on = turn_light_on(self.device.state.clone());
 
-        // Raise an error whether turn light_on does not contain a
-        // fire hazard.
-        if turn_light_on.device_action.miss_hazard(TURN_LIGHT_ON) {
-            return Err(Error::device(
-                DeviceKind::Light,
-                "No fire hazard for the `turn_light_on` route",
-            ));
-        }
-
-        Ok(Light {
+        Light {
             device: self.device,
             turn_light_on: MandatoryAction::init(turn_light_on.device_action),
             turn_light_off: self.turn_light_off,
             allowed_hazards: ALLOWED_HAZARDS,
-        })
+        }
     }
 }
 
@@ -287,7 +275,6 @@ mod tests {
 
         Light::with_state(LightState {})
             .turn_light_on(mandatory_serial_stateful(routes.light_on, turn_light_on))
-            .unwrap()
             .turn_light_off(mandatory_ok_stateful(routes.light_off, turn_light_off))
             .add_action(serial_stateful(routes.light_on_post, turn_light_on))
             .unwrap()
@@ -302,7 +289,6 @@ mod tests {
 
         Light::with_state(LightState {})
             .turn_light_on(mandatory_serial_stateful(routes.light_on, turn_light_on))
-            .unwrap()
             .turn_light_off(mandatory_ok_stateful(routes.light_off, turn_light_off))
             .into_device();
     }
@@ -313,7 +299,6 @@ mod tests {
 
         Light::with_state(LightState {})
             .turn_light_on(mandatory_serial_stateful(routes.light_on, turn_light_on))
-            .unwrap()
             .turn_light_off(mandatory_ok_stateful(routes.light_off, turn_light_off))
             .add_action(serial_stateful(routes.light_on_post, turn_light_on))
             .unwrap()
@@ -331,7 +316,6 @@ mod tests {
                 routes.light_on,
                 turn_light_on_stateless,
             ))
-            .unwrap()
             .turn_light_off(mandatory_ok_stateless(
                 routes.light_off,
                 turn_light_off_stateless,
@@ -355,7 +339,6 @@ mod tests {
                 routes.light_on,
                 turn_light_on_stateless,
             ))
-            .unwrap()
             .turn_light_off(mandatory_ok_stateless(
                 routes.light_off,
                 turn_light_off_stateless,
