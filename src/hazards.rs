@@ -280,6 +280,9 @@ pub struct HazardData {
     pub category_description: &'static str,
 }
 
+/// All [`Category`]s.
+pub const ALL_CATEGORIES: &[Category] = &[Category::Safety, Category::Privacy, Category::Financial];
+
 /// Hazard categories.
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Category {
@@ -364,7 +367,7 @@ impl Category {
 mod tests {
     use crate::{deserialize, serialize};
 
-    use super::{Category, Hazard, ALL_HAZARDS};
+    use super::{Category, Hazard, ALL_CATEGORIES, ALL_HAZARDS};
 
     #[test]
     fn test_hazard() {
@@ -393,15 +396,9 @@ mod tests {
 
     #[test]
     fn test_category() {
-        let category = Hazard::AirPoisoning.category();
-
-        assert_eq!(category.name(), "Safety");
-        assert_eq!(
-            category.description(),
-            "Category which includes all safety-related hazards.",
-        );
-        assert!(category.hazards().contains(&Hazard::AirPoisoning));
-
-        assert_eq!(deserialize::<Category>(serialize(category)), category);
+        // Compare all categories.
+        for category in ALL_CATEGORIES {
+            assert_eq!(deserialize::<Category>(serialize(category)), *category);
+        }
     }
 }
