@@ -43,7 +43,7 @@ impl Default for Fridge<false, false, ()> {
 
 impl Fridge<false, false, ()> {
     /// Creates a [`Fridge`] instance without a state.
-    #[inline(always)]
+    #[inline]
     pub fn new() -> Self {
         Self::with_state(())
     }

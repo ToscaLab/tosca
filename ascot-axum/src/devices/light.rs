@@ -42,7 +42,7 @@ impl Default for Light<false, false, ()> {
 
 impl Light<false, false, ()> {
     /// Creates a [`Light`] instance without a state.
-    #[inline(always)]
+    #[inline]
     pub fn new() -> Self {
         Self::with_state(())
     }

@@ -76,7 +76,7 @@ impl ErrorPayload {
     ///
     /// If this method fails for some internal reasons, empty description and
     /// information are returned.
-    #[inline(always)]
+    #[inline]
     pub fn internal_with_error(description: &'static str, error: impl std::error::Error) -> Self {
         Self::with_description_error(ActionError::Internal, description, error)
     }

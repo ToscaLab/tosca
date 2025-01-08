@@ -20,7 +20,7 @@ pub struct OkPayload(AscotOkPayload);
 
 impl OkPayload {
     /// Creates an [`OkPayload`].
-    #[inline(always)]
+    #[inline]
     pub fn ok() -> Self {
         Self(AscotOkPayload::ok())
     }
@@ -58,7 +58,7 @@ macro_rules! impl_ok_type_name {
 super::all_the_tuples!(impl_ok_type_name);
 
 /// Creates a mandatory stateful [`DeviceAction`] with an [`OkPayload`].
-#[inline(always)]
+#[inline]
 pub fn mandatory_ok_stateful<H, T, S>(
     route: Route,
     handler: H,
@@ -72,6 +72,7 @@ where
 }
 
 /// Creates a stateful [`DeviceAction`] with an [`OkPayload`].
+#[inline]
 pub fn ok_stateful<H, T, S>(route: Route, handler: H) -> impl FnOnce(S) -> DeviceAction
 where
     H: Handler<T, S> + private::OkTypeName<T>,
@@ -82,7 +83,7 @@ where
 }
 
 /// Creates a mandatory stateless [`DeviceAction`] with an [`OkPayload`].
-#[inline(always)]
+#[inline]
 pub fn mandatory_ok_stateless<H, T, S>(
     route: Route,
     handler: H,
@@ -96,6 +97,7 @@ where
 }
 
 /// Creates a stateless [`DeviceAction`] with an [`OkPayload`].
+#[inline]
 pub fn ok_stateless<H, T, S>(route: Route, handler: H) -> impl FnOnce(S) -> DeviceAction
 where
     H: Handler<T, ()> + private::OkTypeName<T>,
