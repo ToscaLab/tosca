@@ -220,10 +220,39 @@ impl Hazard {
             _ => None,
         }
     }
+
+    /// Returns the [`HazardData`] of an [`Hazard`].
+    #[must_use]
+    pub const fn data(&self) -> HazardData {
+        HazardData {
+            id: self.id(),
+            name: self.name(),
+            description: self.description(),
+            category_name: self.category().name(),
+            category_description: self.category().description(),
+        }
+    }
 }
 
 /// A collection of [`Hazard`]s.
 pub type Hazards = OutputCollection<Hazard>;
+
+/// All [`Hazard`] data.
+#[derive(Debug, PartialEq, Clone, Copy, Serialize)]
+pub struct HazardData {
+    /// Identifier.
+    pub id: u16,
+    /// Name.
+    pub name: &'static str,
+    /// Description.
+    pub description: &'static str,
+    /// Category name.
+    #[serde(rename = "category name")]
+    pub category_name: &'static str,
+    /// Category description.
+    #[serde(rename = "category description")]
+    pub category_description: &'static str,
+}
 
 /// Hazard categories.
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -323,6 +352,20 @@ mod tests {
         assert_eq!(hazard.category(), Category::Safety);
         assert_eq!(hazard.id(), 0);
         assert_eq!(Hazard::from_id(0), Some(hazard));
+
+        assert_eq!(
+            serialize(hazard.data()),
+            serde_json::json!({
+                    "id": 0,
+                    "name": "Air Poisoning",
+                    "description": "The execution may release toxic gases.",
+                    "category name": "Safety",
+                    "category description": "Category which includes all safety-related hazards.",
+                }
+
+
+            )
+        );
 
         assert_eq!(deserialize::<Hazard>(serialize(hazard)), hazard);
     }
