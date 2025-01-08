@@ -36,7 +36,8 @@ impl Default for Device<()> {
 
 impl Device<()> {
     /// Creates an unknown [`Device`] without a state.
-    #[inline(always)]
+    #[must_use]
+    #[inline]
     pub fn new() -> Self {
         Self::with_state(())
     }
@@ -72,18 +73,21 @@ where
     S: Clone + Send + Sync + 'static,
 {
     /// Creates an unknown [`Device`] with state.
+    #[must_use]
     #[inline]
     pub fn with_state(state: S) -> Self {
         Self::init(DeviceKind::Unknown, state)
     }
 
     /// Sets a new main route.
+    #[must_use]
     pub const fn main_route(mut self, main_route: &'static str) -> Self {
         self.main_route = main_route;
         self
     }
 
     /// Adds an action to the [`Device`].
+    #[must_use]
     #[inline]
     pub fn add_action(self, device_action: impl FnOnce(S) -> DeviceAction) -> Self {
         let device_action = device_action(self.state.clone());
@@ -91,12 +95,12 @@ where
     }
 
     /// Adds an informative action to the [`Device`].
+    #[must_use]
     pub fn add_info_action(self, device_info_action: impl FnOnce(S, ()) -> DeviceAction) -> Self {
         let device_info_action = device_info_action(self.state.clone(), ());
         self.add_device_action(device_info_action)
     }
 
-    #[inline]
     pub(crate) fn init(kind: DeviceKind, state: S) -> Self {
         Self {
             main_route: DEFAULT_MAIN_ROUTE,
@@ -107,7 +111,6 @@ where
         }
     }
 
-    #[inline]
     pub(crate) fn add_device_action(mut self, device_action: DeviceAction) -> Self {
         self.router = self.router.merge(device_action.router);
         self.routes.add(device_action.route);
@@ -308,7 +311,7 @@ mod tests {
 
         let state = DeviceState::empty().add_device_info(DeviceInfo::empty());
 
-        Device::with_state(state)
+        let _ = Device::with_state(state)
             .add_action(serial_stateful(
                 routes.with_state_route,
                 serial_action_with_state,
@@ -317,8 +320,6 @@ mod tests {
                 routes.without_state_route,
                 serial_action_without_state,
             ));
-
-        assert!(true);
     }
 
     #[test]
@@ -327,7 +328,7 @@ mod tests {
 
         let state = DeviceState::new(SubState {}).add_device_info(DeviceInfo::empty());
 
-        Device::with_state(state)
+        let _ = Device::with_state(state)
             .add_action(serial_stateful(
                 routes.with_state_route,
                 serial_action_with_substate1,
@@ -345,19 +346,15 @@ mod tests {
                 routes.without_state_route,
                 serial_action_without_state,
             ));
-
-        assert!(true);
     }
 
     #[test]
     fn without_state() {
         let routes = create_routes();
 
-        Device::new().add_action(serial_stateless(
+        let _ = Device::new().add_action(serial_stateless(
             routes.without_state_route,
             serial_action_without_state,
         ));
-
-        assert!(true);
     }
 }

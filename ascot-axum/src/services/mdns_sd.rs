@@ -28,7 +28,7 @@ impl From<std::io::Error> for Error {
 }
 
 pub(crate) fn run(
-    service_config: ServiceConfig,
+    service_config: &ServiceConfig,
     server_address: Ipv4Addr,
     server_port: u16,
 ) -> std::result::Result<(), Error> {
@@ -49,10 +49,10 @@ pub(crate) fn run(
     //
     // .local is a special domain name for hostnames in local area networks
     // which can be resolved via the Multicast DNS name resolution protocol.
-    let hostname = if !service_config.hostname.ends_with(".local.") {
-        &format!("{}.local.", service_config.hostname)
-    } else {
+    let hostname = if service_config.hostname.ends_with(".local.") {
         service_config.hostname
+    } else {
+        &format!("{}.local.", service_config.hostname)
     };
 
     // Allocates properties on heap

@@ -1,3 +1,5 @@
+#![allow(clippy::module_name_repetitions)]
+
 use core::future::Future;
 
 use ascot_library::payloads::SerialPayload as AscotSerialPayload;
@@ -21,6 +23,7 @@ pub struct SerialPayload<T: DeserializeOwned>(AscotSerialPayload<T>);
 
 impl<T: Serialize + DeserializeOwned> SerialPayload<T> {
     /// Creates a new [`SerialPayload`].
+    #[must_use]
     pub const fn new(data: T) -> Self {
         Self(AscotSerialPayload::new(data))
     }

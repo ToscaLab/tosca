@@ -1,3 +1,5 @@
+#![allow(clippy::module_name_repetitions)]
+
 use core::future::Future;
 
 use ascot_library::device::DeviceInfo;
@@ -21,6 +23,7 @@ pub struct InfoPayload(LibraryInfoPayload);
 
 impl InfoPayload {
     /// Creates a [`InfoPayload`].
+    #[must_use]
     pub const fn new(info: DeviceInfo) -> Self {
         Self(LibraryInfoPayload::new(info))
     }
