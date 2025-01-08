@@ -55,12 +55,14 @@ pub struct DeviceAction {
 
 impl DeviceAction {
     /// Checks whether an action does not define the given [`Hazard`].
+    #[must_use]
     #[inline]
     pub fn miss_hazard(&self, hazard: Hazard) -> bool {
         !self.route.hazards().contains(hazard)
     }
 
     /// Checks whether an action does not define the given [`Hazard`]s.
+    #[must_use]
     #[inline]
     pub fn miss_hazards(&self, hazards: &'static [Hazard]) -> bool {
         !hazards
@@ -69,9 +71,10 @@ impl DeviceAction {
     }
 
     /// Returns the [`Hazards`] collection associated with an action.
+    #[must_use]
     #[inline]
     pub fn hazards(&self) -> &Hazards {
-        &self.route.hazards()
+        self.route.hazards()
     }
 
     #[inline]
@@ -161,6 +164,7 @@ impl MandatoryAction<false> {
 
 impl MandatoryAction<true> {
     /// Returns a [`DeviceAction`] reference.
+    #[must_use]
     pub const fn action_as_ref(&self) -> &DeviceAction {
         &self.device_action
     }

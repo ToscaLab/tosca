@@ -43,6 +43,7 @@ impl Default for Fridge<false, false, ()> {
 
 impl Fridge<false, false, ()> {
     /// Creates a [`Fridge`] instance without a state.
+    #[must_use]
     #[inline]
     pub fn new() -> Self {
         Self::with_state(())
@@ -138,6 +139,7 @@ where
     S: Clone + Send + Sync + 'static,
 {
     /// Sets a new main route.
+    #[must_use]
     #[inline]
     pub fn main_route(mut self, main_route: &'static str) -> Self {
         self.device = self.device.main_route(main_route);
@@ -145,6 +147,11 @@ where
     }
 
     /// Adds an additional action for a [`Fridge`].
+    ///
+    /// # Errors
+    ///
+    /// It returns an error whether one or more hazards are not allowed for
+    /// the [`Fridge`] device.
     pub fn add_action(mut self, fridge_action: impl FnOnce(S) -> DeviceAction) -> Result<Self> {
         let fridge_action = fridge_action(self.device.state.clone());
 
@@ -164,6 +171,7 @@ where
     }
 
     /// Adds an informative action for [`Fridge`].
+    #[must_use]
     pub fn add_info_action(
         mut self,
         fridge_info_action: impl FnOnce(S, ()) -> DeviceAction,
@@ -255,25 +263,25 @@ mod tests {
     }
 
     struct Routes {
-        increase_temp_route: Route,
-        decrease_temp_route: Route,
-        increase_temp_post_route: Route,
+        increase_temp: Route,
+        decrease_temp: Route,
+        increase_temp_post: Route,
     }
 
     #[inline]
     fn create_routes() -> Routes {
         Routes {
-            increase_temp_route: Route::put("/increase-temperature")
+            increase_temp: Route::put("/increase-temperature")
                 .description("Increase temperature.")
                 .with_slice_hazards(&[Hazard::ElectricEnergyConsumption, Hazard::SpoiledFood])
                 .with_input(Input::rangef64_with_default("increment", (1., 4., 0.1), 2.)),
 
-            decrease_temp_route: Route::put("/decrease-temperature")
+            decrease_temp: Route::put("/decrease-temperature")
                 .description("Decrease temperature.")
                 .with_hazard(Hazard::ElectricEnergyConsumption)
                 .with_input(Input::rangef64_with_default("decrement", (1., 4., 0.1), 2.)),
 
-            increase_temp_post_route: Route::post("/increase-temperature")
+            increase_temp_post: Route::post("/increase-temperature")
                 .description("Increase temperature.")
                 .with_input(Input::rangef64_with_default("increment", (1., 4., 0.1), 2.)),
         }
@@ -285,23 +293,21 @@ mod tests {
 
         Fridge::with_state(FridgeState {})
             .increase_temperature(mandatory_serial_stateful(
-                routes.increase_temp_route,
+                routes.increase_temp,
                 increase_temperature,
             ))
             .unwrap()
             .decrease_temperature(mandatory_serial_stateful(
-                routes.decrease_temp_route,
+                routes.decrease_temp,
                 decrease_temperature,
             ))
             .unwrap()
             .add_action(serial_stateful(
-                routes.increase_temp_post_route,
+                routes.increase_temp_post,
                 increase_temperature,
             ))
             .unwrap()
             .into_device();
-
-        assert!(true);
     }
 
     #[test]
@@ -310,18 +316,16 @@ mod tests {
 
         Fridge::with_state(FridgeState {})
             .increase_temperature(mandatory_serial_stateful(
-                routes.increase_temp_route,
+                routes.increase_temp,
                 increase_temperature,
             ))
             .unwrap()
             .decrease_temperature(mandatory_serial_stateful(
-                routes.decrease_temp_route,
+                routes.decrease_temp,
                 decrease_temperature,
             ))
             .unwrap()
             .into_device();
-
-        assert!(true);
     }
 
     #[test]
@@ -330,23 +334,21 @@ mod tests {
 
         Fridge::with_state(FridgeState {})
             .increase_temperature(mandatory_serial_stateful(
-                routes.increase_temp_route,
+                routes.increase_temp,
                 increase_temperature,
             ))
             .unwrap()
             .decrease_temperature(mandatory_serial_stateful(
-                routes.decrease_temp_route,
+                routes.decrease_temp,
                 decrease_temperature,
             ))
             .unwrap()
             .add_action(serial_stateless(
-                routes.increase_temp_post_route,
+                routes.increase_temp_post,
                 increase_temperature_without_state,
             ))
             .unwrap()
             .into_device();
-
-        assert!(true);
     }
 
     #[test]
@@ -355,23 +357,21 @@ mod tests {
 
         Fridge::new()
             .increase_temperature(mandatory_serial_stateless(
-                routes.increase_temp_route,
+                routes.increase_temp,
                 increase_temperature_without_state,
             ))
             .unwrap()
             .decrease_temperature(mandatory_serial_stateless(
-                routes.decrease_temp_route,
+                routes.decrease_temp,
                 decrease_temperature_without_state,
             ))
             .unwrap()
             .add_action(serial_stateless(
-                routes.increase_temp_post_route,
+                routes.increase_temp_post,
                 increase_temperature_without_state,
             ))
             .unwrap()
             .into_device();
-
-        assert!(true);
     }
 
     #[test]
@@ -380,17 +380,15 @@ mod tests {
 
         Fridge::new()
             .increase_temperature(mandatory_serial_stateless(
-                routes.increase_temp_route,
+                routes.increase_temp,
                 increase_temperature_without_state,
             ))
             .unwrap()
             .decrease_temperature(mandatory_serial_stateless(
-                routes.decrease_temp_route,
+                routes.decrease_temp,
                 decrease_temperature_without_state,
             ))
             .unwrap()
             .into_device();
-
-        assert!(true);
     }
 }

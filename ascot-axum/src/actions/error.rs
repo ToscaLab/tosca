@@ -10,6 +10,7 @@ use axum::{
 /// A payload containing information about an error occurred within an action.
 ///
 /// It describes the kind of error, the cause, and optional information.
+#[allow(clippy::module_name_repetitions)]
 pub struct ErrorPayload(AscotErrorPayload);
 
 impl ErrorPayload {
@@ -17,6 +18,7 @@ impl ErrorPayload {
     /// a description.
     ///
     /// If an error occurs, an empty description is returned.
+    #[must_use]
     #[inline]
     pub fn with_description(error: ActionError, description: &'static str) -> Self {
         Self(AscotErrorPayload::with_description(error, description))
@@ -27,6 +29,7 @@ impl ErrorPayload {
     ///
     /// If this method fails for some internal reasons, empty description and
     /// information are returned.
+    #[must_use]
     #[inline]
     pub fn with_description_error(
         error: ActionError,
@@ -44,6 +47,7 @@ impl ErrorPayload {
     ///
     /// If this method fails for some internal reasons, an empty description
     /// is returned.
+    #[must_use]
     #[inline]
     pub fn invalid_data(description: &'static str) -> Self {
         Self::with_description(ActionError::InvalidData, description)
@@ -54,6 +58,7 @@ impl ErrorPayload {
     ///
     /// If this method fails for some internal reasons, empty description and
     /// information are returned.
+    #[must_use]
     #[inline]
     pub fn invalid_data_with_error(
         description: &'static str,
@@ -66,6 +71,7 @@ impl ErrorPayload {
     ///
     /// If this method fails for some internal reasons, an empty description
     /// is returned.
+    #[must_use]
     #[inline]
     pub fn internal(description: &'static str) -> Self {
         Self::with_description(ActionError::Internal, description)
@@ -76,6 +82,7 @@ impl ErrorPayload {
     ///
     /// If this method fails for some internal reasons, empty description and
     /// information are returned.
+    #[must_use]
     #[inline]
     pub fn internal_with_error(description: &'static str, error: impl std::error::Error) -> Self {
         Self::with_description_error(ActionError::Internal, description, error)

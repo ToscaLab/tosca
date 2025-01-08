@@ -16,6 +16,7 @@ const MAXIMUM_ELEMENTS: usize = 8;
 const SERVICE_TYPE: &str = "General Device";
 
 /// A service configurator.
+#[allow(clippy::module_name_repetitions)]
 #[derive(Debug)]
 pub struct ServiceConfig<'a> {
     // Instance name.
@@ -36,6 +37,7 @@ pub struct ServiceConfig<'a> {
 
 impl<'a> ServiceConfig<'a> {
     /// Creates a new [`ServiceConfig`] for a `mDNS-SD` service.
+    #[must_use]
     pub const fn mdns_sd(instance_name: &'a str) -> Self {
         Self {
             instance_name,
@@ -49,6 +51,7 @@ impl<'a> ServiceConfig<'a> {
     }
 
     /// Sets a service property.
+    #[must_use]
     pub fn property(mut self, property: (impl Into<String>, impl Into<String>)) -> Self {
         // If an equivalent key already exists in the map: the key remains and
         // retains in its place in the order.
@@ -59,12 +62,14 @@ impl<'a> ServiceConfig<'a> {
     }
 
     /// Sets the service host name.
+    #[must_use]
     pub const fn hostname(mut self, hostname: &'a str) -> Self {
         self.hostname = hostname;
         self
     }
 
     /// Sets the service domain name.
+    #[must_use]
     pub const fn domain_name(mut self, domain_name: &'a str) -> Self {
         self.domain_name = Some(domain_name);
         self
@@ -73,18 +78,21 @@ impl<'a> ServiceConfig<'a> {
     /// Sets the service type.
     ///
     /// This allows to detect the type of firmware associated with a service.
+    #[must_use]
     pub const fn service_type(mut self, service_type: &'a str) -> Self {
         self.service_type = service_type;
         self
     }
 
     /// Disables IPv6 addresses.
+    #[must_use]
     pub const fn ipv6(mut self) -> Self {
         self.disable_ipv6 = true;
         self
     }
 
     /// Disables docker bridge.
+    #[must_use]
     pub const fn docker(mut self) -> Self {
         self.disable_docker = true;
         self
@@ -98,7 +106,7 @@ impl Service {
     // Runs a service.
     #[inline]
     pub(crate) fn run(
-        service_config: ServiceConfig,
+        service_config: &ServiceConfig,
         server_address: Ipv4Addr,
         port: u16,
     ) -> Result<()> {

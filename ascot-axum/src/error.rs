@@ -3,6 +3,7 @@ use std::borrow::Cow;
 use ascot_library::device::DeviceKind;
 
 /// All possible error kinds.
+#[allow(clippy::module_name_repetitions)]
 #[derive(Debug, Copy, Clone)]
 pub enum ErrorKind {
     /// Service error.
@@ -116,8 +117,8 @@ mod tests {
         let error = Error::device(DeviceKind::Fridge, "This hazard is not correct");
         assert_eq!(
             error.to_string(),
-            r#"Error: Device
-Cause: This hazard is not correct [Fridge Device]"#
+            r"Error: Device
+Cause: This hazard is not correct [Fridge Device]"
         );
     }
 }

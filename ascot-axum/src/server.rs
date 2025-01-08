@@ -30,6 +30,7 @@ const DEFAULT_SCHEME: &str = "http";
 const WELL_KNOWN_URI: &str = "/.well-known/server";
 
 /// The `Ascot` server.
+#[allow(clippy::module_name_repetitions)]
 #[derive(Debug)]
 pub struct AscotServer<'a, S = ()>
 where
@@ -66,30 +67,35 @@ where
     }
 
     /// Sets server Ipv4 address.
+    #[must_use]
     pub const fn address(mut self, http_address: Ipv4Addr) -> Self {
         self.http_address = http_address;
         self
     }
 
     /// Sets server port.
+    #[must_use]
     pub const fn port(mut self, port: u16) -> Self {
         self.port = port;
         self
     }
 
     /// Sets server scheme.
+    #[must_use]
     pub const fn scheme(mut self, scheme: &'a str) -> Self {
         self.scheme = scheme;
         self
     }
 
     /// Sets well-known URI.
+    #[must_use]
     pub const fn well_known_uri(mut self, well_known_uri: &'a str) -> Self {
         self.well_known_uri = well_known_uri;
         self
     }
 
     /// Sets a service.
+    #[must_use]
     #[inline]
     pub fn service(mut self, service_config: ServiceConfig<'a>) -> Self {
         self.service_config = Some(service_config);
@@ -97,6 +103,10 @@ where
     }
 
     /// Runs a smart home device on the server.
+    ///
+    /// # Errors
+    ///
+    /// It returns an error whether a server fails to start.
     pub async fn run(self) -> Result<()> {
         // Create listener bind.
         let listener_bind = format!("{}:{}", self.http_address, self.port);
@@ -136,7 +146,7 @@ where
                 .property(("path", self.well_known_uri));
 
             // Run service.
-            Service::run(service_config, self.http_address, self.port)?;
+            Service::run(&service_config, self.http_address, self.port)?;
         }
 
         // Create the main router.

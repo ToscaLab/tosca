@@ -1,3 +1,5 @@
+#![allow(clippy::module_name_repetitions)]
+
 use core::future::Future;
 
 use ascot_library::payloads::OkPayload as AscotOkPayload;
@@ -20,6 +22,7 @@ pub struct OkPayload(AscotOkPayload);
 
 impl OkPayload {
     /// Creates an [`OkPayload`].
+    #[must_use]
     #[inline]
     pub fn ok() -> Self {
         Self(AscotOkPayload::ok())

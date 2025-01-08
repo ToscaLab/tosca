@@ -42,6 +42,7 @@ impl Default for Light<false, false, ()> {
 
 impl Light<false, false, ()> {
     /// Creates a [`Light`] instance without a state.
+    #[must_use]
     #[inline]
     pub fn new() -> Self {
         Self::with_state(())
@@ -123,6 +124,7 @@ where
     S: Clone + Send + Sync + 'static,
 {
     /// Sets a new main route.
+    #[must_use]
     #[inline]
     pub fn main_route(mut self, main_route: &'static str) -> Self {
         self.device = self.device.main_route(main_route);
@@ -130,6 +132,11 @@ where
     }
 
     /// Adds an additional action for a [`Light`].
+    ///
+    /// # Errors
+    ///
+    /// It returns an error whether one or more hazards are not allowed for
+    /// the [`Light`] device.
     pub fn add_action(mut self, light_action: impl FnOnce(S) -> DeviceAction) -> Result<Self> {
         let light_action = light_action(self.device.state.clone());
 
@@ -149,6 +156,7 @@ where
     }
 
     /// Adds an informative action for [`Light`].
+    #[must_use]
     pub fn add_info_action(
         mut self,
         light_info_action: impl FnOnce(S, ()) -> DeviceAction,
@@ -243,16 +251,16 @@ mod tests {
     }
 
     struct Routes {
-        light_on_route: Route,
-        light_on_post_route: Route,
-        light_off_route: Route,
-        toggle_route: Route,
+        light_on: Route,
+        light_on_post: Route,
+        light_off: Route,
+        toggle: Route,
     }
 
     #[inline]
     fn create_routes() -> Routes {
         Routes {
-            light_on_route: Route::put("/on")
+            light_on: Route::put("/on")
                 .description("Turn light on.")
                 .with_hazard(Hazard::FireHazard)
                 .with_inputs([
@@ -260,16 +268,16 @@ mod tests {
                     Input::bool("save-energy", false),
                 ]),
 
-            light_on_post_route: Route::post("/on")
+            light_on_post: Route::post("/on")
                 .description("Turn light on.")
                 .with_inputs([
                     Input::rangef64("brightness", (0., 20., 0.1)),
                     Input::bool("save-energy", false),
                 ]),
 
-            light_off_route: Route::put("/off").description("Turn light off."),
+            light_off: Route::put("/off").description("Turn light off."),
 
-            toggle_route: Route::put("/toggle").description("Toggle a light."),
+            toggle: Route::put("/toggle").description("Toggle a light."),
         }
     }
 
@@ -278,22 +286,14 @@ mod tests {
         let routes = create_routes();
 
         Light::with_state(LightState {})
-            .turn_light_on(mandatory_serial_stateful(
-                routes.light_on_route,
-                turn_light_on,
-            ))
+            .turn_light_on(mandatory_serial_stateful(routes.light_on, turn_light_on))
             .unwrap()
-            .turn_light_off(mandatory_ok_stateful(
-                routes.light_off_route,
-                turn_light_off,
-            ))
-            .add_action(serial_stateful(routes.light_on_post_route, turn_light_on))
+            .turn_light_off(mandatory_ok_stateful(routes.light_off, turn_light_off))
+            .add_action(serial_stateful(routes.light_on_post, turn_light_on))
             .unwrap()
-            .add_action(ok_stateful(routes.toggle_route, toggle))
+            .add_action(ok_stateful(routes.toggle, toggle))
             .unwrap()
             .into_device();
-
-        assert!(true);
     }
 
     #[test]
@@ -301,18 +301,10 @@ mod tests {
         let routes = create_routes();
 
         Light::with_state(LightState {})
-            .turn_light_on(mandatory_serial_stateful(
-                routes.light_on_route,
-                turn_light_on,
-            ))
+            .turn_light_on(mandatory_serial_stateful(routes.light_on, turn_light_on))
             .unwrap()
-            .turn_light_off(mandatory_ok_stateful(
-                routes.light_off_route,
-                turn_light_off,
-            ))
+            .turn_light_off(mandatory_ok_stateful(routes.light_off, turn_light_off))
             .into_device();
-
-        assert!(true);
     }
 
     #[test]
@@ -320,22 +312,14 @@ mod tests {
         let routes = create_routes();
 
         Light::with_state(LightState {})
-            .turn_light_on(mandatory_serial_stateful(
-                routes.light_on_route,
-                turn_light_on,
-            ))
+            .turn_light_on(mandatory_serial_stateful(routes.light_on, turn_light_on))
             .unwrap()
-            .turn_light_off(mandatory_ok_stateful(
-                routes.light_off_route,
-                turn_light_off,
-            ))
-            .add_action(serial_stateful(routes.light_on_post_route, turn_light_on))
+            .turn_light_off(mandatory_ok_stateful(routes.light_off, turn_light_off))
+            .add_action(serial_stateful(routes.light_on_post, turn_light_on))
             .unwrap()
-            .add_action(ok_stateless(routes.toggle_route, toggle_stateless))
+            .add_action(ok_stateless(routes.toggle, toggle_stateless))
             .unwrap()
             .into_device();
-
-        assert!(true);
     }
 
     #[test]
@@ -344,24 +328,22 @@ mod tests {
 
         Light::new()
             .turn_light_on(mandatory_serial_stateless(
-                routes.light_on_route,
+                routes.light_on,
                 turn_light_on_stateless,
             ))
             .unwrap()
             .turn_light_off(mandatory_ok_stateless(
-                routes.light_off_route,
+                routes.light_off,
                 turn_light_off_stateless,
             ))
             .add_action(serial_stateless(
-                routes.light_on_post_route,
+                routes.light_on_post,
                 turn_light_on_stateless,
             ))
             .unwrap()
-            .add_action(ok_stateless(routes.toggle_route, toggle_stateless))
+            .add_action(ok_stateless(routes.toggle, toggle_stateless))
             .unwrap()
             .into_device();
-
-        assert!(true);
     }
 
     #[test]
@@ -370,16 +352,14 @@ mod tests {
 
         Light::new()
             .turn_light_on(mandatory_serial_stateless(
-                routes.light_on_route,
+                routes.light_on,
                 turn_light_on_stateless,
             ))
             .unwrap()
             .turn_light_off(mandatory_ok_stateless(
-                routes.light_off_route,
+                routes.light_off,
                 turn_light_off_stateless,
             ))
             .into_device();
-
-        assert!(true);
     }
 }
