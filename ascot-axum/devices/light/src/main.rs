@@ -113,14 +113,14 @@ impl FromRef<LightState> for LightInfoState {
 
 #[derive(Serialize, Deserialize)]
 struct LightOnResponse {
-    brightness: f64,
+    brightness: i64,
     #[serde(rename = "save-energy")]
     save_energy: bool,
 }
 
 #[derive(Deserialize)]
 struct Inputs {
-    brightness: f64,
+    brightness: i64,
     #[serde(alias = "save-energy")]
     save_energy: bool,
 }
@@ -165,7 +165,7 @@ async fn update_energy_efficiency(
     let mut light_info = state.info.lock().await;
 
     // Compute a new energy efficiency according to the brightness value
-    let energy_efficiency = if light.brightness as i64 > 15 {
+    let energy_efficiency = if light.brightness > 15 {
         EnergyEfficiency::new(5, EnergyClass::C)
     } else {
         EnergyEfficiency::new(-5, EnergyClass::D)
