@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::collections::OutputCollection;
 
-/// All possible hazards for a device task.
+/// All possible hazards for a device action.
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Hazard {
     /// The execution may release toxic gases.
@@ -130,7 +130,7 @@ impl Hazard {
 
     /// Returns the [`Category`] associated with an [`Hazard`].
     ///
-    /// An hazard **must** be associated with **only** one category.
+    /// An hazard is **always** associated with **only** one category.
     #[must_use]
     pub const fn category(&self) -> Category {
         match self {
@@ -190,8 +190,8 @@ impl Hazard {
 
     /// Returns an [`Hazard`] from an integer identifier.
     ///
-    /// The value is [`None`] whenever the identifier does not exist or
-    /// it is not correct.
+    /// The return value is [`None`] when the identifier is not correct or
+    /// it does not exist.
     #[must_use]
     pub const fn from_id(id: u16) -> Option<Self> {
         match id {
