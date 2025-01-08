@@ -152,7 +152,6 @@ pub struct MandatoryAction<const SET: bool> {
 }
 
 impl MandatoryAction<false> {
-    #[inline(always)]
     pub(crate) fn empty() -> Self {
         Self {
             device_action: DeviceAction::empty(),
