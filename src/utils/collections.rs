@@ -79,6 +79,12 @@ macro_rules! implementation {
                 self.0.is_empty()
             }
 
+            #[doc = concat!("Returns the [`", stringify!($impl), "`] length.")]
+            #[inline]
+            pub fn len(&self) -> usize {
+                self.0.len()
+            }
+
             #[doc = concat!("Checks whether the [`", stringify!($impl), "`] contains the given element.")]
             #[inline]
             pub fn contains(&self, element: impl AsRef<T>) -> bool {
