@@ -1,0 +1,9 @@
+[package]
+name = "ascot-controller"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+ascot-library = { path = "../" }
+indexmap = "2.7.0"
+tracing = "0.1"
