@@ -32,6 +32,7 @@ enum Algorithm {
 }
 
 /// A mDNS-SD service configurator.
+#[allow(clippy::module_name_repetitions)]
 pub struct ServiceConfig {
     algorithm: Algorithm,
     http_address: Ipv4Addr,
@@ -42,6 +43,7 @@ pub struct ServiceConfig {
 
 impl ServiceConfig {
     /// Creates a new [`ServiceConfig`] instance for `mDNS-SD`.
+    #[must_use]
     pub const fn mdns_sd(http_address: Ipv4Addr) -> Self {
         Self {
             algorithm: Algorithm::MdnsSd,
@@ -53,18 +55,21 @@ impl ServiceConfig {
     }
 
     /// Sets a service host name.
+    #[must_use]
     pub const fn hostname(mut self, hostname: &'static str) -> Self {
         self.hostname = hostname;
         self
     }
 
     /// Sets a service domain name.
+    #[must_use]
     pub const fn domain_name(mut self, domain_name: &'static str) -> Self {
         self.domain_name = domain_name;
         self
     }
 
     /// Sets service properties.
+    #[must_use]
     pub const fn properties(mut self, properties: &'static [(&'static str, &'static str)]) -> Self {
         self.properties = properties;
         self
@@ -151,13 +156,13 @@ async fn mdns_sd_service(service_config: ServiceConfig) -> Result<()> {
         &host, &service,
     )))
     .await
-    .map_err(|e| e.into())
+    .map_err(core::convert::Into::into)
 }
 
 pub(crate) struct InternalService;
 
 impl InternalService {
-    #[inline(always)]
+    #[inline]
     pub(crate) fn run(service_config: ServiceConfig) -> Result<()> {
         block_on(match service_config.algorithm {
             Algorithm::MdnsSd => mdns_sd_service(service_config),
