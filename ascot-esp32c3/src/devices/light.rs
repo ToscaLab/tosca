@@ -7,9 +7,6 @@ use crate::error::{Error, ErrorKind, Result};
 // The default main route for a light.
 const LIGHT_MAIN_ROUTE: &str = "/light";
 
-// Mandatory actions hazards.
-const TURN_LIGHT_ON: Hazard = Hazard::FireHazard;
-
 // Allowed hazards.
 const ALLOWED_HAZARDS: &[Hazard] = &[Hazard::FireHazard, Hazard::ElectricEnergyConsumption];
 
@@ -36,26 +33,17 @@ impl DeviceBuilder for Light {
 
 impl Light {
     /// Creates a new [`Light`] instance.
-    pub fn new(turn_light_on: DeviceAction, turn_light_off: DeviceAction) -> Result<Self> {
-        // Raise an error whether turn light_on does not contain a
-        // fire hazard.
-        if turn_light_on.miss_hazard(TURN_LIGHT_ON) {
-            return Err(Error::new(
-                ErrorKind::Light,
-                "No fire hazard for the `turn_light_on` route",
-            ));
-        }
-
+    pub fn new(turn_light_on: DeviceAction, turn_light_off: DeviceAction) -> Self {
         // Create a new device.
         let device = Device::new(DeviceKind::Light)
             .add_action(turn_light_on)
             .add_action(turn_light_off);
 
-        Ok(Self {
+        Self {
             main_route: LIGHT_MAIN_ROUTE,
             device,
             allowed_hazards: ALLOWED_HAZARDS,
-        })
+        }
     }
 
     /// Sets a new main route.

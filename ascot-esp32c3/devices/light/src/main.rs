@@ -103,7 +103,7 @@ fn main() -> ascot_esp32c3::error::Result<()> {
         Ok(())
     });
 
-    let light = Light::new(light_on_action, light_off_action)?.build();
+    let light = Light::new(light_on_action, light_off_action).build();
 
     AscotServer::new(light)
         .service(
