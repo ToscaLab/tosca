@@ -1,6 +1,10 @@
+/// Action and payload to manage errors.
 pub mod error;
+/// Action and payload to manage device information.
 pub mod info;
+/// Action and payload to confirm the correct execution of an action.
 pub mod ok;
+/// Action and payload to manage data serialization.
 pub mod serial;
 
 use ascot_library::hazards::{Hazard, Hazards};
@@ -46,6 +50,9 @@ fn build_get_route(route: &str, inputs: &Inputs) -> String {
 }
 
 #[derive(Debug)]
+/// A generic [`crate::device::Device`] action.
+///
+/// It has been conceived to perform checks on [`Hazard`]s.
 pub struct DeviceAction {
     // Router.
     pub(crate) router: Router,
