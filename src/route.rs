@@ -79,16 +79,16 @@ mod route_data {
 
 pub use route_data::RouteData;
 
-/// Kind of a `REST` API.
+/// `REST` requests kind.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum RestKind {
-    // `GET` API.
+    /// `GET` request.
     Get,
-    // `PUT` API.
+    /// `PUT` request.
     Put,
-    // `POST` API.
+    /// `POST` request.
     Post,
-    // `DELETE` API
+    /// `DELETE` request.
     Delete,
 }
 
