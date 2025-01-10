@@ -7,24 +7,40 @@ use crate::collections::Collection;
 /// An [`Input`] structure.
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum InputStructure {
-    /// A [`bool`] default value.
-    Bool { default: bool },
-    /// A [`u8`] default value.
-    U8 { default: u8 },
-    /// A [`u64`] range with a **[minimum, maximum, step, default]**
-    /// set of values.
+    /// A [`bool`] value.
+    Bool {
+        /// Both the initial [`bool`] value, but also the default one in case of
+        /// missing input.
+        default: bool,
+    },
+    /// A [`u8`] value.
+    U8 {
+        /// Both the initial [`u8`] value, but also the default one in case of
+        /// missing input.
+        default: u8,
+    },
+    /// A range of [`u64`] values.
     RangeU64 {
+        /// Minimum allowed [`u64`] value.
         min: u64,
+        /// Maximum allowed [`u64`] value.
         max: u64,
+        /// The [`u64`] step to pass from one allowed value to another one
+        /// within the range.
         step: u64,
+        /// Initial [`u64`] range value.
         default: u64,
     },
-    /// A [`f64`] range with a **[minimum, maximum, step, default]**
-    /// set of values.
+    /// A range of [`f64`] values.
     RangeF64 {
+        /// Minimum allowed [`f64`] value.
         min: f64,
+        /// Maximum allowed [`u64`] value.
         max: f64,
+        /// The [`f64`] step to pass from one allowed value to another one
+        /// within the range.
         step: f64,
+        /// Initial [`f64`] range value.
         default: f64,
     },
 }
