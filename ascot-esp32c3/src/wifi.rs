@@ -22,6 +22,11 @@ pub struct Wifi {
 
 impl Wifi {
     /// Connects to Wi-Fi given an input SSID and password.
+    ///
+    /// # Errors
+    ///
+    /// It returns an error whether the `ssid` and `password` do not exist or
+    /// when some failures occur during Wi-Fi connection.
     pub fn connect_wifi(
         ssid: &'static str,
         password: &'static str,

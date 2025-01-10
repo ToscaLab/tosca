@@ -46,6 +46,7 @@ pub struct ResponseBuilder<R: internal::ResponseTrait>(
 
 /// A device action connects a server route with a device handler and,
 /// optionally, with every possible hazards associated with the handler.
+#[allow(clippy::module_name_repetitions)]
 pub struct DeviceAction {
     // Route and hazards.
     pub(crate) route: Route,
@@ -59,7 +60,8 @@ pub struct DeviceAction {
 
 impl DeviceAction {
     /// Creates a new [`DeviceAction`].
-    #[inline(always)]
+    #[must_use]
+    #[inline]
     pub fn new<R: internal::ResponseTrait>(route: Route, response: ResponseBuilder<R>) -> Self {
         Self {
             route,
@@ -70,13 +72,15 @@ impl DeviceAction {
     }
 
     /// Checks whether a [`DeviceAction`] misses a specific [`Hazard`].
-    #[inline(always)]
+    #[must_use]
+    #[inline]
     pub fn miss_hazard(&self, hazard: Hazard) -> bool {
         !self.route.hazards().contains(hazard)
     }
 
     /// Checks whether a [`DeviceAction`] misses the given [`Hazard`]s.
-    #[inline(always)]
+    #[must_use]
+    #[inline]
     pub fn miss_hazards(&self, hazards: &'static [Hazard]) -> bool {
         !hazards
             .iter()
@@ -84,7 +88,8 @@ impl DeviceAction {
     }
 
     /// Adds the body necessary to construct the response of an action.
-    #[inline(always)]
+    #[must_use]
+    #[inline]
     pub fn body<B>(mut self, body: B) -> Self
     where
         B: Fn() -> Result<(), EspIOError> + Send + 'static,
@@ -112,7 +117,7 @@ pub struct Device {
 impl DeviceSerializer for Device {
     fn serialize_data(&self) -> DeviceData {
         let mut route_configs = RouteConfigs::empty();
-        for route_data in self.routes_data.iter() {
+        for route_data in &self.routes_data {
             route_configs.add(route_data.route.serialize_data());
         }
 
@@ -126,6 +131,7 @@ impl DeviceSerializer for Device {
 
 impl Device {
     /// Creates a new [`Device`] instance.
+    #[must_use]
     pub const fn new(kind: DeviceKind) -> Self {
         Self {
             kind,
@@ -135,12 +141,14 @@ impl Device {
     }
 
     /// Sets a new main route.
+    #[must_use]
     pub const fn main_route(mut self, main_route: &'static str) -> Self {
         self.main_route = main_route;
         self
     }
 
     /// Adds a [`DeviceAction`].
+    #[must_use]
     pub fn add_action(mut self, device_action: DeviceAction) -> Self {
         self.routes_data.push(device_action);
         self

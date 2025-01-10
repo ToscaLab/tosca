@@ -2,6 +2,7 @@ use alloc::borrow::Cow;
 
 /// All possible error kinds.
 #[derive(Copy, Clone)]
+#[allow(clippy::module_name_repetitions)]
 pub enum ErrorKind {
     /// Wi-Fi connection error.
     WiFi,
@@ -95,7 +96,7 @@ impl From<esp_idf_svc::io::EspIOError> for Error {
 
 impl<E: core::fmt::Debug> From<edge_mdns::io::MdnsIoError<E>> for Error {
     fn from(e: edge_mdns::io::MdnsIoError<E>) -> Self {
-        Self::new(ErrorKind::Service, format!("{:?}", e))
+        Self::new(ErrorKind::Service, format!("{e:?}"))
     }
 }
 

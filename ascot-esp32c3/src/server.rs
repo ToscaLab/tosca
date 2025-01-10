@@ -16,6 +16,7 @@ const DEFAULT_SERVER_PORT: u16 = 3000;
 const DEFAULT_STACK_SIZE: usize = 10240;
 
 /// The `Ascot` server.
+#[allow(clippy::module_name_repetitions)]
 pub struct AscotServer {
     // Server port.
     port: u16,
@@ -29,6 +30,7 @@ pub struct AscotServer {
 
 impl AscotServer {
     /// Creates a new [`AscotServer`] instance.
+    #[must_use]
     pub const fn new(device: Device) -> Self {
         Self {
             port: DEFAULT_SERVER_PORT,
@@ -39,24 +41,31 @@ impl AscotServer {
     }
 
     /// Sets server port.
+    #[must_use]
     pub const fn port(mut self, port: u16) -> Self {
         self.port = port;
         self
     }
 
     /// Sets server stack size.
+    #[must_use]
     pub const fn stack_size(mut self, stack_size: usize) -> Self {
         self.stack_size = stack_size;
         self
     }
 
     /// Sets a server discovery service configuration.
+    #[must_use]
     pub const fn service(mut self, service_config: ServiceConfig) -> Self {
         self.service_config = Some(service_config);
         self
     }
 
     /// Runs the server.
+    ///
+    ///  # Errors
+    ///
+    /// It returns an error whether a server fails to start.
     pub fn run(self) -> Result<()> {
         let mut server = EspHttpServer::new(&Configuration {
             stack_size: self.stack_size,
@@ -105,7 +114,7 @@ impl AscotServer {
             InternalService::run(service_config)
         } else {
             loop {
-                std::thread::sleep(std::time::Duration::from_secs(1))
+                std::thread::sleep(std::time::Duration::from_secs(1));
             }
         }
     }

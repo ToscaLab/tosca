@@ -33,6 +33,7 @@ impl DeviceBuilder for Light {
 
 impl Light {
     /// Creates a new [`Light`] instance.
+    #[must_use]
     pub fn new(turn_light_on: DeviceAction, turn_light_off: DeviceAction) -> Self {
         // Create a new device.
         let device = Device::new(DeviceKind::Light)
@@ -47,12 +48,18 @@ impl Light {
     }
 
     /// Sets a new main route.
+    #[must_use]
     pub const fn main_route(mut self, main_route: &'static str) -> Self {
         self.main_route = main_route;
         self
     }
 
     /// Adds an additional action for a [`Light`].
+    ///
+    /// # Errors
+    ///
+    /// It returns an error whether one or more hazards are not allowed for
+    /// the [`Light`] device.
     pub fn add_action(mut self, light_action: DeviceAction) -> Result<Self> {
         // Return an error if action hazards are not a subset of allowed hazards.
         for hazard in light_action.route.hazards().iter() {
@@ -70,6 +77,7 @@ impl Light {
     }
 
     /// Builds a new [`Device`].
+    #[must_use]
     #[inline]
     pub fn build(self) -> Device {
         self.into_device()
