@@ -52,7 +52,7 @@ pub struct DeviceAction {
     pub(crate) route: Route,
     // Body.
     pub(crate) body: Option<Box<dyn Fn() -> Result<(), EspIOError> + Send + 'static>>,
-    // Response-
+    // Response.
     pub(crate) response: Box<dyn internal::ResponseTrait>,
     // Response content.
     pub(crate) content: &'static str,
