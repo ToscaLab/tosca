@@ -85,7 +85,7 @@ impl DeviceAction {
     }
 
     #[inline]
-    pub(crate) fn stateless<H, T>(route: &Route, handler: H) -> Self
+    pub(crate) fn stateless<H, T>(route: Route, handler: H) -> Self
     where
         H: Handler<T, ()>,
         T: 'static,
@@ -97,7 +97,7 @@ impl DeviceAction {
     }
 
     #[inline]
-    pub(crate) fn stateful<H, T, S>(route: &Route, handler: H, state: S) -> Self
+    pub(crate) fn stateful<H, T, S>(route: Route, handler: H, state: S) -> Self
     where
         H: Handler<T, S>,
         T: 'static,
