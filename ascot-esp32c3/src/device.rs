@@ -1,6 +1,6 @@
 use core::result::Result;
 
-use ascot_library::device::{DeviceData, DeviceKind, DeviceSerializer};
+use ascot_library::device::{DeviceData, DeviceEnvironment, DeviceKind, DeviceSerializer};
 use ascot_library::hazards::Hazard;
 use ascot_library::route::{Route, RouteConfigs};
 
@@ -123,6 +123,7 @@ impl DeviceSerializer for Device {
 
         DeviceData {
             kind: self.kind,
+            environment: DeviceEnvironment::Esp32,
             main_route: self.main_route,
             route_configs,
         }
