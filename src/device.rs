@@ -73,17 +73,35 @@ impl DeviceInfo {
     }
 }
 
+/// Device environment.
+///
+/// Some information about the device environment on which a firmware runs on.
+/// It might be an operating system or the name of the underlying hardware
+/// architecture.
+///
+/// This enumerator allows to discriminate the different implementations among
+/// the supported architectures on a controller side.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+pub enum DeviceEnvironment {
+    /// Operating system.
+    Os,
+    /// Esp32.
+    Esp32,
+}
+
 #[cfg(feature = "std")]
 mod device_data {
     use crate::route::RouteConfigs;
 
-    use super::{Deserialize, DeviceKind, Serialize};
+    use super::{Deserialize, DeviceEnvironment, DeviceKind, Serialize};
 
     /// Device data.
     #[derive(Debug, Serialize, Deserialize)]
     pub struct DeviceData {
         /// Device kind.
         pub kind: DeviceKind,
+        /// Device environment.
+        pub environment: DeviceEnvironment,
         /// Device main route.
         #[serde(rename = "main route")]
         pub main_route: alloc::borrow::Cow<'static, str>,
@@ -96,13 +114,15 @@ mod device_data {
 mod device_data {
     use crate::route::RouteConfigs;
 
-    use super::{DeviceKind, Serialize};
+    use super::{DeviceEnvironment, DeviceKind, Serialize};
 
     /// Device data.
     #[derive(Debug, Serialize)]
     pub struct DeviceData {
         /// Device kind.
         pub kind: DeviceKind,
+        /// Device environment.
+        pub environment: DeviceEnvironment,
         /// Device main route.
         #[serde(rename = "main route")]
         pub main_route: &'static str,
