@@ -50,8 +50,8 @@ pub mod error;
 pub mod hazards;
 /// Route input parameters.
 pub mod input;
-/// All supported payloads returned by a device action.
-pub mod payloads;
+/// All supported responses returned by a device action.
+pub mod response;
 /// Definition of device routes.
 pub mod route;
 
