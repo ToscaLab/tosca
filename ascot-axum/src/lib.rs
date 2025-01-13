@@ -4,7 +4,7 @@
 //! of resources for their execution, in terms of computing times, memory size,
 //! and connected components.
 //!
-//! As of now, only **x86_64** and **ARM** devices have been tested as hardware
+//! As of now, only `x86_64` and `ARM` devices have been tested as hardware
 //! architectures.
 //!
 //! `ascot-axum` models devices firmware on real use cases. Each device is

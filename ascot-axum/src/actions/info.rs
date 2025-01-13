@@ -68,7 +68,7 @@ where
     S: Clone + Send + Sync + 'static,
     I: 'static,
 {
-    move |state: S, _: I| DeviceAction::stateful(route, handler, state)
+    move |state: S, _: I| DeviceAction::stateful(&route, handler, state)
 }
 
 /// Creates a stateless [`DeviceAction`] with a [`InfoPayload`].
@@ -79,5 +79,5 @@ where
     S: Clone + Send + Sync + 'static,
     I: 'static,
 {
-    move |_state: S, _: I| DeviceAction::stateless(route, handler)
+    move |_state: S, _: I| DeviceAction::stateless(&route, handler)
 }
