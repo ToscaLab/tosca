@@ -1,7 +1,5 @@
 use core::net::Ipv4Addr;
 
-use ascot_library::device::DeviceSerializer;
-
 use axum::{response::Redirect, Router};
 
 use tracing::info;
@@ -132,8 +130,11 @@ where
 
     // Build device routing.
     fn build_app(self) -> Result<Router> {
+        // Consume a device returning all server information.
+        let (device_main_route, device_info, device_router) = self.device.finalize();
+
         // Serialize device information returning a json format.
-        let device_info = serde_json::to_value(self.device.serialize_data())?;
+        let device_info = serde_json::to_value(device_info)?;
 
         info!("Server route: [GET, \"/\"]");
         info!("Server route: [GET, \"{}\"]", self.well_known_uri);
@@ -163,6 +164,6 @@ where
                 self.well_known_uri,
                 axum::routing::get(move || async { Redirect::to("/") }),
             )
-            .nest(self.device.main_route, self.device.router))
+            .nest(device_main_route, device_router))
     }
 }

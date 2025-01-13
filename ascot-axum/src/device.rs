@@ -1,5 +1,5 @@
-use ascot_library::device::{DeviceData, DeviceEnvironment, DeviceKind, DeviceSerializer};
-use ascot_library::route::{RouteConfigs, Routes};
+use ascot_library::device::{DeviceData, DeviceEnvironment, DeviceKind};
+use ascot_library::route::RouteConfigs;
 
 use axum::Router;
 
@@ -17,15 +17,15 @@ where
     S: Clone + Send + Sync + 'static,
 {
     // Main device route.
-    pub(crate) main_route: &'static str,
+    main_route: &'static str,
     // Router.
-    pub(crate) router: Router,
+    router: Router,
     // State.
     pub(crate) state: S,
     // Kind.
     kind: DeviceKind,
     // All device routes and their hazards.
-    routes: Routes,
+    route_configs: RouteConfigs,
 }
 
 impl Default for Device<()> {
@@ -40,32 +40,6 @@ impl Device<()> {
     #[inline]
     pub fn new() -> Self {
         Self::with_state(())
-    }
-}
-
-impl<S> DeviceSerializer for Device<S>
-where
-    S: Clone + Send + Sync + 'static,
-{
-    fn serialize_data(&self) -> DeviceData {
-        let mut route_configs = RouteConfigs::empty();
-        for route in self.routes.iter() {
-            info!(
-                "Device route: [{}, \"{}{}\"]",
-                route.kind(),
-                self.main_route,
-                route.route()
-            );
-
-            route_configs.add(route.serialize_data());
-        }
-
-        DeviceData {
-            kind: self.kind,
-            environment: DeviceEnvironment::Os,
-            main_route: self.main_route.into(),
-            route_configs,
-        }
     }
 }
 
@@ -107,15 +81,35 @@ where
             main_route: DEFAULT_MAIN_ROUTE,
             router: Router::new(),
             kind,
-            routes: Routes::empty(),
+            route_configs: RouteConfigs::empty(),
             state,
         }
     }
 
     pub(crate) fn add_device_action(mut self, device_action: DeviceAction) -> Self {
         self.router = self.router.merge(device_action.router);
-        self.routes.add(device_action.route);
+        self.route_configs.add(device_action.route_config);
         self
+    }
+
+    pub(crate) fn finalize(self) -> (&'static str, DeviceData, Router) {
+        for route in self.route_configs.iter() {
+            info!(
+                "Device route: [{}, \"{}{}\"]",
+                route.rest_kind, self.main_route, route.data.name,
+            );
+        }
+
+        (
+            self.main_route,
+            DeviceData {
+                kind: self.kind,
+                environment: DeviceEnvironment::Os,
+                main_route: self.main_route.into(),
+                route_configs: self.route_configs,
+            },
+            self.router,
+        )
     }
 }
 

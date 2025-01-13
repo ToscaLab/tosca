@@ -9,7 +9,7 @@ pub mod serial;
 
 use ascot_library::hazards::{Hazard, Hazards};
 use ascot_library::input::Inputs;
-use ascot_library::route::{RestKind, Route};
+use ascot_library::route::{RestKind, Route, RouteConfig};
 
 use axum::{handler::Handler, Router};
 
@@ -57,7 +57,7 @@ pub struct DeviceAction {
     // Router.
     pub(crate) router: Router,
     // Route
-    pub(crate) route: Route,
+    pub(crate) route_config: RouteConfig,
 }
 
 impl DeviceAction {
@@ -65,7 +65,7 @@ impl DeviceAction {
     #[must_use]
     #[inline]
     pub fn miss_hazard(&self, hazard: Hazard) -> bool {
-        !self.route.hazards().contains(hazard)
+        !self.route_config.hazards.contains(hazard)
     }
 
     /// Checks whether an action does not define the given [`Hazard`]s.
@@ -74,14 +74,14 @@ impl DeviceAction {
     pub fn miss_hazards(&self, hazards: &'static [Hazard]) -> bool {
         !hazards
             .iter()
-            .all(|hazard| self.route.hazards().contains(*hazard))
+            .all(|hazard| self.route_config.hazards.contains(*hazard))
     }
 
     /// Returns the [`Hazards`] collection associated with an action.
     #[must_use]
     #[inline]
     pub fn hazards(&self) -> &Hazards {
-        self.route.hazards()
+        &self.route_config.hazards
     }
 
     #[inline]
@@ -92,7 +92,7 @@ impl DeviceAction {
     {
         Self {
             router: Self::create_router(route.route(), route.kind(), route.inputs(), handler, ()),
-            route,
+            route_config: route.serialize_data(),
         }
     }
 
@@ -111,7 +111,7 @@ impl DeviceAction {
                 handler,
                 state,
             ),
-            route,
+            route_config: route.serialize_data(),
         }
     }
 
@@ -159,7 +159,7 @@ impl MandatoryAction<false> {
         Self {
             device_action: DeviceAction {
                 router: Router::new(),
-                route: Route::get(""),
+                route_config: Route::get("").serialize_data(),
             },
         }
     }
