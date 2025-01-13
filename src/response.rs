@@ -4,33 +4,33 @@ use crate::actions::ActionError;
 use crate::device::DeviceInfo;
 use crate::strings::ShortString;
 
-/// Payload kinds for an action response.
-#[derive(Serialize, Deserialize)]
-pub enum PayloadKind {
-    /// A short message to notify a receiver that an action terminated
+/// Action response kinds.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+pub enum ResponseKind {
+    /// A short message to notify a receiver that an action has terminated
     /// correctly.
     Ok,
     /// Serial data (i.e. JSON).
     ///
-    /// This payload adds further information to an action response.
+    /// This response provides more detailed information about an action.
     Serial,
     /// Informative data to describe a device (i.e. JSON).
     ///
-    /// This payload contains additional information on a device.
+    /// This response provides economy and energy information of a device.
     Info,
     /// Stream of data expressed as a sequence of bytes.
     Stream,
 }
 
-/// An `Ok` payload sends a boolean as action response to notify a receiver that
-/// a device action has terminated correctly.
+/// An `Ok` response sends a boolean to notify a receiver that a device action
+/// has terminated correctly.
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct OkPayload {
+pub struct OkResponse {
     action_terminated_correctly: bool,
 }
 
-impl OkPayload {
-    /// Creates an [`OkPayload`].
+impl OkResponse {
+    /// Creates an [`OkResponse`].
     #[must_use]
     #[inline]
     pub fn ok() -> Self {
@@ -40,62 +40,63 @@ impl OkPayload {
     }
 }
 
-/// Serial payload.
+/// Serial response.
 ///
-/// This payload adds further information to an action response.
+/// This response provides more detailed information about an action.
 #[derive(Serialize, Deserialize)]
 #[serde(bound = "T: Serialize + DeserializeOwned")]
-pub struct SerialPayload<T: DeserializeOwned> {
+pub struct SerialResponse<T: DeserializeOwned> {
     #[serde(flatten)]
     data: T,
 }
 
-impl<T: Serialize + DeserializeOwned> SerialPayload<T> {
-    /// Creates a [`SerialPayload`].
+impl<T: Serialize + DeserializeOwned> SerialResponse<T> {
+    /// Creates a [`SerialResponse`].
     #[must_use]
     pub const fn new(data: T) -> Self {
         Self { data }
     }
 }
 
-/// Informative payload.
+/// Informative response.
 ///
-/// This payload contains additional information on a device.
+/// This response provides economy and energy information of a device.
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct InfoPayload {
+pub struct InfoResponse {
     #[serde(flatten)]
     data: DeviceInfo,
 }
 
-impl InfoPayload {
-    /// Creates a [`InfoPayload`].
+impl InfoResponse {
+    /// Creates a [`InfoResponse`].
     #[must_use]
     pub const fn new(data: DeviceInfo) -> Self {
         Self { data }
     }
 }
 
-/// A payload containing information about an error occurred within an action.
+/// A response containing structured information about an error occurred during
+/// the execution of an action.
 ///
 /// It describes the kind of error, the cause, and optional information.
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct ErrorPayload {
+pub struct ErrorResponse {
     /// Action error type.
     pub error: ActionError,
     /// Error description.
     // This field is not a String in the `std` variant because we want to know
-    // in advance its size in bytes with the objective of controlling the amount
-    // of data returned by this structure.
+    // in advance its size in bytes in order to control the amount of data
+    // returned by this structure.
     pub description: ShortString,
     /// Information about an error.
     // This field is not a String in the `std` variant because we want to know
-    // in advance its size in bytes with the objective of controlling the amount
-    // of data returned by this structure.
+    // in advance its size in bytes in order to control the amount of data
+    // returned by this structure.
     pub info: Option<ShortString>,
 }
 
-impl ErrorPayload {
-    /// Creates an [`ErrorPayload`] with a specific [`ActionError`] and
+impl ErrorResponse {
+    /// Creates an [`ErrorResponse`] with a specific [`ActionError`] and
     /// a description.
     ///
     /// If an error occurs, an empty description is returned.
@@ -109,11 +110,11 @@ impl ErrorPayload {
         }
     }
 
-    /// Creates an [`ErrorPayload`] with a specific [`ActionError`], an
+    /// Creates an [`ErrorResponse`] with a specific [`ActionError`], an
     /// error description, and additional information about the error.
     ///
-    /// If this method fails for some internal reasons, empty description and
-    /// information are returned.
+    /// If this method fails for some internal reasons, both an empty
+    /// description and information are returned.
     #[must_use]
     #[inline]
     pub fn with_description_error(
@@ -128,7 +129,7 @@ impl ErrorPayload {
         }
     }
 
-    /// Creates an [`ErrorPayload`] for invalid data with a description.
+    /// Creates an [`ErrorResponse`] for invalid data with a description.
     ///
     /// If this method fails for some internal reasons, an empty description
     /// is returned.
@@ -138,7 +139,7 @@ impl ErrorPayload {
         Self::with_description(ActionError::InvalidData, description)
     }
 
-    /// Creates an [`ErrorPayload`] for invalid data with a description and
+    /// Creates an [`ErrorResponse`] for invalid data with a description and
     /// additional information about the error.
     ///
     /// If this method fails for some internal reasons, empty description and
@@ -149,7 +150,7 @@ impl ErrorPayload {
         Self::with_description_error(ActionError::InvalidData, description, info)
     }
 
-    /// Creates an [`ErrorPayload`] for an internal error with a description.
+    /// Creates an [`ErrorResponse`] for an internal error with a description.
     ///
     /// If this method fails for some internal reasons, an empty description
     /// is returned.
@@ -159,8 +160,8 @@ impl ErrorPayload {
         Self::with_description(ActionError::Internal, description)
     }
 
-    /// Creates an [`ErrorPayload`] for an internal error with a description and
-    /// additional information about the error.
+    /// Creates an [`ErrorResponse`] for an internal error with a description
+    /// and additional information about the error.
     ///
     /// If this method fails for some internal reasons, empty description and
     /// information are returned.
@@ -178,8 +179,8 @@ mod tests {
     use crate::{deserialize, serialize};
 
     use super::{
-        ActionError, Deserialize, DeviceInfo, ErrorPayload, InfoPayload, OkPayload, SerialPayload,
-        Serialize, ShortString,
+        ActionError, Deserialize, DeviceInfo, ErrorResponse, InfoResponse, OkResponse,
+        SerialResponse, Serialize, ShortString,
     };
 
     #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -190,8 +191,8 @@ mod tests {
     #[test]
     fn test_ok_payload() {
         assert_eq!(
-            deserialize::<OkPayload>(serialize(OkPayload::ok())),
-            OkPayload {
+            deserialize::<OkResponse>(serialize(OkResponse::ok())),
+            OkResponse {
                 action_terminated_correctly: true,
             }
         );
@@ -200,7 +201,7 @@ mod tests {
     #[test]
     fn test_serial_payload() {
         assert_eq!(
-            deserialize::<Serial>(serialize(SerialPayload::new(Serial { value: 42 }))),
+            deserialize::<Serial>(serialize(SerialResponse::new(Serial { value: 42 }))),
             Serial { value: 42 },
         );
     }
@@ -211,7 +212,7 @@ mod tests {
             Energy::init_with_water_use_efficiency(WaterUseEfficiency::init_with_gpp(42.0));
 
         assert_eq!(
-            deserialize::<DeviceInfo>(serialize(InfoPayload::new(
+            deserialize::<DeviceInfo>(serialize(InfoResponse::new(
                 DeviceInfo::empty().add_energy(energy)
             ))),
             DeviceInfo {
@@ -231,14 +232,14 @@ mod tests {
 
     #[test]
     fn test_error_payload() {
-        let error = ErrorPayload::with_description(
+        let error = ErrorResponse::with_description(
             ActionError::InvalidData,
             "Invalid data error description",
         );
 
         assert_eq!(
-            deserialize::<ErrorPayload>(serialize(error)),
-            ErrorPayload {
+            deserialize::<ErrorResponse>(serialize(error)),
+            ErrorResponse {
                 error: ActionError::InvalidData,
                 description: ShortString::infallible("Invalid data error description"),
                 info: None,
