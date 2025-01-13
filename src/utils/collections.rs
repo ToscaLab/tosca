@@ -22,12 +22,12 @@ pub struct OutputCollection<T: PartialEq + Eq + Hash>(FnvIndexSet<T, MAXIMUM_ELE
 
 macro_rules! from {
     ($from:ident, $for:ident) => {
-        impl<T, K> From<&$from<K>> for $for<T>
+        impl<T, K> From<$from<K>> for $for<T>
         where
             T: Clone + PartialEq + Eq + Hash + From<K>,
             K: Clone + Copy + PartialEq + Eq + Hash,
         {
-            fn from(other_collection: &$from<K>) -> Self {
+            fn from(other_collection: $from<K>) -> Self {
                 let mut elements = Self::empty();
                 for other_element in other_collection.iter() {
                     let _ = elements.0.insert(T::from(*other_element));
@@ -140,5 +140,3 @@ implementation!(OutputCollection);
 // From macro traits.
 from!(Collection, OutputCollection);
 from!(Collection, SerialCollection);
-from!(OutputCollection, OutputCollection);
-from!(SerialCollection, SerialCollection);
