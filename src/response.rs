@@ -189,7 +189,7 @@ mod tests {
     }
 
     #[test]
-    fn test_ok_payload() {
+    fn test_ok_response() {
         assert_eq!(
             deserialize::<OkResponse>(serialize(OkResponse::ok())),
             OkResponse {
@@ -199,7 +199,7 @@ mod tests {
     }
 
     #[test]
-    fn test_serial_payload() {
+    fn test_serial_response() {
         assert_eq!(
             deserialize::<Serial>(serialize(SerialResponse::new(Serial { value: 42 }))),
             Serial { value: 42 },
@@ -207,7 +207,7 @@ mod tests {
     }
 
     #[test]
-    fn test_info_payload() {
+    fn test_info_response() {
         let energy =
             Energy::init_with_water_use_efficiency(WaterUseEfficiency::init_with_gpp(42.0));
 
@@ -231,7 +231,7 @@ mod tests {
     }
 
     #[test]
-    fn test_error_payload() {
+    fn test_error_response() {
         let error = ErrorResponse::with_description(
             ActionError::InvalidData,
             "Invalid data error description",
