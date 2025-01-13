@@ -2,7 +2,7 @@ use core::result::Result;
 
 use ascot_library::device::{DeviceData, DeviceEnvironment, DeviceKind};
 use ascot_library::hazards::Hazard;
-use ascot_library::route::{Route, RouteConfigs};
+use ascot_library::route::{Route, RouteConfig, RouteConfigs};
 
 use esp_idf_svc::http::server::{EspHttpConnection, Request, Response};
 use esp_idf_svc::io::EspIOError;
@@ -49,7 +49,7 @@ pub struct ResponseBuilder<R: internal::ResponseTrait>(
 #[allow(clippy::module_name_repetitions)]
 pub struct DeviceAction {
     // Route and hazards.
-    pub(crate) route: Route,
+    pub(crate) route_config: RouteConfig,
     // Body.
     pub(crate) body: Option<Box<dyn Fn() -> Result<(), EspIOError> + Send + 'static>>,
     // Response.
@@ -64,7 +64,7 @@ impl DeviceAction {
     #[inline]
     pub fn new<R: internal::ResponseTrait>(route: Route, response: ResponseBuilder<R>) -> Self {
         Self {
-            route,
+            route_config: route.serialize_data(),
             body: None,
             response: Box::new(response.0),
             content: response.1,
@@ -75,7 +75,7 @@ impl DeviceAction {
     #[must_use]
     #[inline]
     pub fn miss_hazard(&self, hazard: Hazard) -> bool {
-        !self.route.hazards().contains(hazard)
+        !self.route_config.hazards.contains(hazard)
     }
 
     /// Checks whether a [`DeviceAction`] misses the given [`Hazard`]s.
@@ -84,7 +84,7 @@ impl DeviceAction {
     pub fn miss_hazards(&self, hazards: &'static [Hazard]) -> bool {
         !hazards
             .iter()
-            .all(|hazard| self.route.hazards().contains(*hazard))
+            .all(|hazard| self.route_config.hazards.contains(*hazard))
     }
 
     /// Adds the body necessary to construct the response of an action.
@@ -140,9 +140,10 @@ impl Device {
     }
 
     pub(crate) fn finalize(self) -> (&'static str, DeviceData, Vec<DeviceAction>) {
+        // TODO: Decouple Router and action information.
         let mut route_configs = RouteConfigs::empty();
         for route_data in &self.routes_data {
-            route_configs.add(route_data.route.serialize_data());
+            route_configs.add(route_data.route_config.clone());
         }
 
         (
