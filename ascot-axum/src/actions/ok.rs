@@ -71,7 +71,7 @@ where
     T: 'static,
     S: Clone + Send + Sync + 'static,
 {
-    move |state: S| MandatoryAction::new(DeviceAction::stateful(&route, handler, state))
+    move |state: S| MandatoryAction::new(DeviceAction::stateful(route, handler, state))
 }
 
 /// Creates a stateful [`DeviceAction`] with an [`OkPayload`].
@@ -82,7 +82,7 @@ where
     T: 'static,
     S: Clone + Send + Sync + 'static,
 {
-    move |state: S| DeviceAction::stateful(&route, handler, state)
+    move |state: S| DeviceAction::stateful(route, handler, state)
 }
 
 /// Creates a mandatory stateless [`DeviceAction`] with an [`OkPayload`].
@@ -96,7 +96,7 @@ where
     T: 'static,
     S: Clone + Send + Sync + 'static,
 {
-    move |_state: S| MandatoryAction::new(DeviceAction::stateless(&route, handler))
+    move |_state: S| MandatoryAction::new(DeviceAction::stateless(route, handler))
 }
 
 /// Creates a stateless [`DeviceAction`] with an [`OkPayload`].
@@ -107,5 +107,5 @@ where
     T: 'static,
     S: Clone + Send + Sync + 'static,
 {
-    move |_state: S| DeviceAction::stateless(&route, handler)
+    move |_state: S| DeviceAction::stateless(route, handler)
 }
