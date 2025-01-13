@@ -15,10 +15,10 @@ use ascot_library::input::Input;
 use ascot_library::route::Route;
 
 // Ascot axum device.
-use ascot_axum::actions::error::ErrorPayload;
-use ascot_axum::actions::info::{info_stateful, InfoPayload};
-use ascot_axum::actions::ok::{mandatory_ok_stateful, ok_stateful, OkPayload};
-use ascot_axum::actions::serial::{mandatory_serial_stateful, serial_stateful, SerialPayload};
+use ascot_axum::actions::error::ErrorResponse;
+use ascot_axum::actions::info::{info_stateful, InfoResponse};
+use ascot_axum::actions::ok::{mandatory_ok_stateful, ok_stateful, OkResponse};
+use ascot_axum::actions::serial::{mandatory_serial_stateful, serial_stateful, SerialResponse};
 use ascot_axum::devices::light::Light;
 use ascot_axum::error::Error;
 use ascot_axum::extract::{FromRef, Json, State};
@@ -128,36 +128,36 @@ struct Inputs {
 async fn turn_light_on(
     State(state): State<InternalState>,
     Json(inputs): Json<Inputs>,
-) -> Result<SerialPayload<LightOnResponse>, ErrorPayload> {
+) -> Result<SerialResponse<LightOnResponse>, ErrorResponse> {
     let mut light = state.lock().await;
     light.turn_light_on(inputs.brightness, inputs.save_energy);
 
-    Ok(SerialPayload::new(LightOnResponse {
+    Ok(SerialResponse::new(LightOnResponse {
         brightness: light.brightness,
         save_energy: light.save_energy,
     }))
 }
 
-async fn turn_light_off(State(state): State<InternalState>) -> Result<OkPayload, ErrorPayload> {
+async fn turn_light_off(State(state): State<InternalState>) -> Result<OkResponse, ErrorResponse> {
     state.lock().await.turn_light_off();
-    Ok(OkPayload::ok())
+    Ok(OkResponse::ok())
 }
 
-async fn toggle(State(state): State<InternalState>) -> Result<OkPayload, ErrorPayload> {
+async fn toggle(State(state): State<InternalState>) -> Result<OkResponse, ErrorResponse> {
     state.lock().await.toggle();
-    Ok(OkPayload::ok())
+    Ok(OkResponse::ok())
 }
 
-async fn info(State(state): State<LightInfoState>) -> Result<InfoPayload, ErrorPayload> {
+async fn info(State(state): State<LightInfoState>) -> Result<InfoResponse, ErrorResponse> {
     // Retrieve light information state.
     let light_info = state.lock().await.clone();
 
-    Ok(InfoPayload::new(light_info))
+    Ok(InfoResponse::new(light_info))
 }
 
 async fn update_energy_efficiency(
     State(state): State<LightState>,
-) -> Result<InfoPayload, ErrorPayload> {
+) -> Result<InfoResponse, ErrorResponse> {
     // Retrieve internal state.
     let light = state.state.lock().await;
 
@@ -174,7 +174,7 @@ async fn update_energy_efficiency(
     // Change energy efficiencies information replacing the old ones.
     light_info.energy.energy_efficiencies = Some(EnergyEfficiencies::init(energy_efficiency));
 
-    Ok(InfoPayload::new(light_info.clone()))
+    Ok(InfoResponse::new(light_info.clone()))
 }
 
 #[derive(Parser)]

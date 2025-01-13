@@ -2,7 +2,7 @@
 
 use core::future::Future;
 
-use ascot_library::payloads::SerialPayload as AscotSerialPayload;
+use ascot_library::response::SerialResponse as AscotSerialResponse;
 use ascot_library::route::Route;
 
 use axum::{
@@ -14,22 +14,24 @@ use axum::{
 
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
-use super::{error::ErrorPayload, DeviceAction, MandatoryAction};
+use super::{error::ErrorResponse, DeviceAction, MandatoryAction};
 
-/// Serial payload structure.
+/// Serial response.
+///
+/// This response provides more detailed information about an action.
 #[derive(Serialize, Deserialize)]
 #[serde(bound = "T: Serialize + DeserializeOwned")]
-pub struct SerialPayload<T: DeserializeOwned>(AscotSerialPayload<T>);
+pub struct SerialResponse<T: DeserializeOwned>(AscotSerialResponse<T>);
 
-impl<T: Serialize + DeserializeOwned> SerialPayload<T> {
-    /// Creates a new [`SerialPayload`].
+impl<T: Serialize + DeserializeOwned> SerialResponse<T> {
+    /// Creates a new [`SerialResponse`].
     #[must_use]
     pub const fn new(data: T) -> Self {
-        Self(AscotSerialPayload::new(data))
+        Self(AscotSerialResponse::new(data))
     }
 }
 
-impl<T: Serialize + DeserializeOwned> IntoResponse for SerialPayload<T> {
+impl<T: Serialize + DeserializeOwned> IntoResponse for SerialResponse<T> {
     fn into_response(self) -> Response {
         (StatusCode::OK, Json(self.0)).into_response()
     }
@@ -43,7 +45,7 @@ impl<T, F, Fut> private::SerialTypeName<()> for F
 where
     T: Serialize + DeserializeOwned,
     F: FnOnce() -> Fut,
-    Fut: Future<Output = Result<SerialPayload<T>, ErrorPayload>> + Send,
+    Fut: Future<Output = Result<SerialResponse<T>, ErrorResponse>> + Send,
 {
 }
 
@@ -55,7 +57,7 @@ macro_rules! impl_serial_type_name {
         where
             T: Serialize + DeserializeOwned,
             F: FnOnce($($ty,)* $($last)?) -> Fut,
-            Fut: Future<Output = Result<SerialPayload<T>, ErrorPayload>> + Send,
+            Fut: Future<Output = Result<SerialResponse<T>, ErrorResponse>> + Send,
             {
             }
     };
@@ -63,7 +65,7 @@ macro_rules! impl_serial_type_name {
 
 super::all_the_tuples!(impl_serial_type_name);
 
-/// Creates a mandatory stateful [`DeviceAction`] with a [`SerialPayload`].
+/// Creates a mandatory stateful [`DeviceAction`] with a [`SerialResponse`].
 #[inline]
 pub fn mandatory_serial_stateful<H, T, S>(
     route: Route,
@@ -77,7 +79,7 @@ where
     move |state: S| MandatoryAction::new(DeviceAction::stateful(route, handler, state))
 }
 
-/// Creates a stateful [`DeviceAction`] with a [`SerialPayload`].
+/// Creates a stateful [`DeviceAction`] with a [`SerialResponse`].
 #[inline]
 pub fn serial_stateful<H, T, S>(route: Route, handler: H) -> impl FnOnce(S) -> DeviceAction
 where
@@ -88,7 +90,7 @@ where
     move |state: S| DeviceAction::stateful(route, handler, state)
 }
 
-/// Creates a mandatory stateless [`DeviceAction`] with a [`SerialPayload`].
+/// Creates a mandatory stateless [`DeviceAction`] with a [`SerialResponse`].
 #[inline]
 pub fn mandatory_serial_stateless<H, T, S>(
     route: Route,
@@ -102,7 +104,7 @@ where
     move |_state: S| MandatoryAction::new(DeviceAction::stateless(route, handler))
 }
 
-/// Creates a stateless [`DeviceAction`] with a [`SerialPayload`].
+/// Creates a stateless [`DeviceAction`] with a [`SerialResponse`].
 #[inline]
 pub fn serial_stateless<H, T, S>(route: Route, handler: H) -> impl FnOnce(S) -> DeviceAction
 where

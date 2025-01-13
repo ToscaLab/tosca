@@ -1,5 +1,5 @@
 use ascot_library::actions::ActionError;
-use ascot_library::payloads::ErrorPayload as AscotErrorPayload;
+use ascot_library::response::ErrorResponse as AscotErrorResponse;
 
 use axum::{
     extract::Json,
@@ -7,24 +7,25 @@ use axum::{
     response::{IntoResponse, Response},
 };
 
-/// A payload containing information about an error occurred within an action.
+/// A response containing structured information about an error occurred during
+/// the execution of an action.
 ///
 /// It describes the kind of error, the cause, and optional information.
 #[allow(clippy::module_name_repetitions)]
-pub struct ErrorPayload(AscotErrorPayload);
+pub struct ErrorResponse(AscotErrorResponse);
 
-impl ErrorPayload {
-    /// Creates an [`ErrorPayload`] with a specific [`ActionError`] and
+impl ErrorResponse {
+    /// Creates an [`ErrorResponse`] with a specific [`ActionError`] and
     /// a description.
     ///
     /// If an error occurs, an empty description is returned.
     #[must_use]
     #[inline]
     pub fn with_description(error: ActionError, description: &'static str) -> Self {
-        Self(AscotErrorPayload::with_description(error, description))
+        Self(AscotErrorResponse::with_description(error, description))
     }
 
-    /// Creates an [`ErrorPayload`] with a specific [`ActionError`], an
+    /// Creates an [`ErrorResponse`] with a specific [`ActionError`], an
     /// error description, and additional information about the error.
     ///
     /// If this method fails for some internal reasons, empty description and
@@ -36,14 +37,14 @@ impl ErrorPayload {
         description: &'static str,
         info: impl std::error::Error,
     ) -> Self {
-        Self(AscotErrorPayload::with_description_error(
+        Self(AscotErrorResponse::with_description_error(
             error,
             description,
             &info.to_string(),
         ))
     }
 
-    /// Creates an [`ErrorPayload`] for invalid data with a description.
+    /// Creates an [`ErrorResponse`] for invalid data with a description.
     ///
     /// If this method fails for some internal reasons, an empty description
     /// is returned.
@@ -53,7 +54,7 @@ impl ErrorPayload {
         Self::with_description(ActionError::InvalidData, description)
     }
 
-    /// Creates an [`ErrorPayload`] for invalid data with a description and
+    /// Creates an [`ErrorResponse`] for invalid data with a description and
     /// additional information about the error.
     ///
     /// If this method fails for some internal reasons, empty description and
@@ -67,7 +68,7 @@ impl ErrorPayload {
         Self::with_description_error(ActionError::InvalidData, description, error)
     }
 
-    /// Creates an [`ErrorPayload`] for an internal error with a description.
+    /// Creates an [`ErrorResponse`] for an internal error with a description.
     ///
     /// If this method fails for some internal reasons, an empty description
     /// is returned.
@@ -77,7 +78,7 @@ impl ErrorPayload {
         Self::with_description(ActionError::Internal, description)
     }
 
-    /// Creates an [`ErrorPayload`] for an internal error with a description and
+    /// Creates an [`ErrorResponse`] for an internal error with a description and
     /// additional information about the error.
     ///
     /// If this method fails for some internal reasons, empty description and
@@ -89,7 +90,7 @@ impl ErrorPayload {
     }
 }
 
-impl IntoResponse for ErrorPayload {
+impl IntoResponse for ErrorResponse {
     fn into_response(self) -> Response {
         (StatusCode::INTERNAL_SERVER_ERROR, Json(self.0)).into_response()
     }

@@ -175,13 +175,13 @@ mod tests {
 
     use serde::{Deserialize, Serialize};
 
-    use crate::actions::error::ErrorPayload;
+    use crate::actions::error::ErrorResponse;
     use crate::actions::ok::{
-        mandatory_ok_stateful, mandatory_ok_stateless, ok_stateful, ok_stateless, OkPayload,
+        mandatory_ok_stateful, mandatory_ok_stateless, ok_stateful, ok_stateless, OkResponse,
     };
     use crate::actions::serial::{
         mandatory_serial_stateful, mandatory_serial_stateless, serial_stateful, serial_stateless,
-        SerialPayload,
+        SerialResponse,
     };
 
     use super::Light;
@@ -206,8 +206,8 @@ mod tests {
     async fn turn_light_on(
         State(_state): State<LightState>,
         Json(inputs): Json<Inputs>,
-    ) -> Result<SerialPayload<LightOnResponse>, ErrorPayload> {
-        Ok(SerialPayload::new(LightOnResponse {
+    ) -> Result<SerialResponse<LightOnResponse>, ErrorResponse> {
+        Ok(SerialResponse::new(LightOnResponse {
             brightness: inputs.brightness,
             save_energy: inputs.save_energy,
         }))
@@ -215,27 +215,27 @@ mod tests {
 
     async fn turn_light_on_stateless(
         Json(inputs): Json<Inputs>,
-    ) -> Result<SerialPayload<LightOnResponse>, ErrorPayload> {
-        Ok(SerialPayload::new(LightOnResponse {
+    ) -> Result<SerialResponse<LightOnResponse>, ErrorResponse> {
+        Ok(SerialResponse::new(LightOnResponse {
             brightness: inputs.brightness,
             save_energy: inputs.save_energy,
         }))
     }
 
-    async fn turn_light_off(State(_state): State<LightState>) -> Result<OkPayload, ErrorPayload> {
-        Ok(OkPayload::ok())
+    async fn turn_light_off(State(_state): State<LightState>) -> Result<OkResponse, ErrorResponse> {
+        Ok(OkResponse::ok())
     }
 
-    async fn turn_light_off_stateless() -> Result<OkPayload, ErrorPayload> {
-        Ok(OkPayload::ok())
+    async fn turn_light_off_stateless() -> Result<OkResponse, ErrorResponse> {
+        Ok(OkResponse::ok())
     }
 
-    async fn toggle(State(_state): State<LightState>) -> Result<OkPayload, ErrorPayload> {
-        Ok(OkPayload::ok())
+    async fn toggle(State(_state): State<LightState>) -> Result<OkResponse, ErrorResponse> {
+        Ok(OkResponse::ok())
     }
 
-    async fn toggle_stateless() -> Result<OkPayload, ErrorPayload> {
-        Ok(OkPayload::ok())
+    async fn toggle_stateless() -> Result<OkResponse, ErrorResponse> {
+        Ok(OkResponse::ok())
     }
 
     struct Routes {

@@ -2,7 +2,7 @@
 
 use core::future::Future;
 
-use ascot_library::payloads::OkPayload as AscotOkPayload;
+use ascot_library::response::OkResponse as AscotOkResponse;
 use ascot_library::route::Route;
 
 use axum::{
@@ -14,22 +14,23 @@ use axum::{
 
 use serde::{Deserialize, Serialize};
 
-use super::{error::ErrorPayload, DeviceAction, MandatoryAction};
+use super::{error::ErrorResponse, DeviceAction, MandatoryAction};
 
-/// An `Ok` payload.
+/// An `Ok` response sends a boolean to notify a receiver that a device action
+/// has terminated correctly.
 #[derive(Serialize, Deserialize)]
-pub struct OkPayload(AscotOkPayload);
+pub struct OkResponse(AscotOkResponse);
 
-impl OkPayload {
-    /// Creates an [`OkPayload`].
+impl OkResponse {
+    /// Creates an [`OkResponse`].
     #[must_use]
     #[inline]
     pub fn ok() -> Self {
-        Self(AscotOkPayload::ok())
+        Self(AscotOkResponse::ok())
     }
 }
 
-impl IntoResponse for OkPayload {
+impl IntoResponse for OkResponse {
     fn into_response(self) -> Response {
         (StatusCode::OK, Json(self.0)).into_response()
     }
@@ -42,7 +43,7 @@ mod private {
 impl<F, Fut> private::OkTypeName<()> for F
 where
     F: FnOnce() -> Fut,
-    Fut: Future<Output = Result<OkPayload, ErrorPayload>> + Send,
+    Fut: Future<Output = Result<OkResponse, ErrorResponse>> + Send,
 {
 }
 
@@ -53,14 +54,14 @@ macro_rules! impl_ok_type_name {
         impl<F, Fut, M, $($ty,)* $($last)?> private::OkTypeName<(M, $($ty,)* $($last)?)> for F
         where
             F: FnOnce($($ty,)* $($last)?) -> Fut,
-            Fut: Future<Output = Result<OkPayload, ErrorPayload>> + Send,
+            Fut: Future<Output = Result<OkResponse, ErrorResponse>> + Send,
             {
             }
     };
 }
 super::all_the_tuples!(impl_ok_type_name);
 
-/// Creates a mandatory stateful [`DeviceAction`] with an [`OkPayload`].
+/// Creates a mandatory stateful [`DeviceAction`] with an [`OkResponse`].
 #[inline]
 pub fn mandatory_ok_stateful<H, T, S>(
     route: Route,
@@ -74,7 +75,7 @@ where
     move |state: S| MandatoryAction::new(DeviceAction::stateful(route, handler, state))
 }
 
-/// Creates a stateful [`DeviceAction`] with an [`OkPayload`].
+/// Creates a stateful [`DeviceAction`] with an [`OkResponse`].
 #[inline]
 pub fn ok_stateful<H, T, S>(route: Route, handler: H) -> impl FnOnce(S) -> DeviceAction
 where
@@ -85,7 +86,7 @@ where
     move |state: S| DeviceAction::stateful(route, handler, state)
 }
 
-/// Creates a mandatory stateless [`DeviceAction`] with an [`OkPayload`].
+/// Creates a mandatory stateless [`DeviceAction`] with an [`OkResponse`].
 #[inline]
 pub fn mandatory_ok_stateless<H, T, S>(
     route: Route,
@@ -99,7 +100,7 @@ where
     move |_state: S| MandatoryAction::new(DeviceAction::stateless(route, handler))
 }
 
-/// Creates a stateless [`DeviceAction`] with an [`OkPayload`].
+/// Creates a stateless [`DeviceAction`] with an [`OkResponse`].
 #[inline]
 pub fn ok_stateless<H, T, S>(route: Route, handler: H) -> impl FnOnce(S) -> DeviceAction
 where
