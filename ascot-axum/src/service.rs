@@ -36,7 +36,7 @@ pub struct ServiceConfig<'a> {
 }
 
 impl<'a> ServiceConfig<'a> {
-    /// Creates a new [`ServiceConfig`] for a `mDNS-SD` service.
+    /// Creates a [`ServiceConfig`] for a `mDNS-SD` service.
     #[must_use]
     pub const fn mdns_sd(instance_name: &'a str) -> Self {
         Self {
