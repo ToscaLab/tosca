@@ -1,6 +1,6 @@
 use core::result::Result;
 
-use ascot_library::device::{DeviceData, DeviceEnvironment, DeviceKind, DeviceSerializer};
+use ascot_library::device::{DeviceData, DeviceEnvironment, DeviceKind};
 use ascot_library::hazards::Hazard;
 use ascot_library::route::{Route, RouteConfigs};
 
@@ -109,25 +109,9 @@ pub struct Device {
     // Kind.
     kind: DeviceKind,
     // Main device route.
-    pub(crate) main_route: &'static str,
+    main_route: &'static str,
     // All device routes with their hazards and handlers.
-    pub(crate) routes_data: Vec<DeviceAction>,
-}
-
-impl DeviceSerializer for Device {
-    fn serialize_data(&self) -> DeviceData {
-        let mut route_configs = RouteConfigs::empty();
-        for route_data in &self.routes_data {
-            route_configs.add(route_data.route.serialize_data());
-        }
-
-        DeviceData {
-            kind: self.kind,
-            environment: DeviceEnvironment::Esp32,
-            main_route: self.main_route,
-            route_configs,
-        }
-    }
+    routes_data: Vec<DeviceAction>,
 }
 
 impl Device {
@@ -153,5 +137,23 @@ impl Device {
     pub fn add_action(mut self, device_action: DeviceAction) -> Self {
         self.routes_data.push(device_action);
         self
+    }
+
+    pub(crate) fn finalize(self) -> (&'static str, DeviceData, Vec<DeviceAction>) {
+        let mut route_configs = RouteConfigs::empty();
+        for route_data in &self.routes_data {
+            route_configs.add(route_data.route.serialize_data());
+        }
+
+        (
+            self.main_route,
+            DeviceData {
+                kind: self.kind,
+                environment: DeviceEnvironment::Esp32,
+                main_route: self.main_route,
+                route_configs,
+            },
+            self.routes_data,
+        )
     }
 }
