@@ -132,9 +132,3 @@ mod device_data {
 }
 
 pub use device_data::DeviceData;
-
-/// A trait to serialize device data.
-pub trait DeviceSerializer {
-    /// Serializes device data.
-    fn serialize_data(&self) -> DeviceData;
-}
