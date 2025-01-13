@@ -32,7 +32,7 @@ impl DeviceBuilder for Light {
 }
 
 impl Light {
-    /// Creates a new [`Light`] instance.
+    /// Creates a [`Light`].
     #[must_use]
     pub fn new(turn_light_on: DeviceAction, turn_light_off: DeviceAction) -> Self {
         // Create a new device.

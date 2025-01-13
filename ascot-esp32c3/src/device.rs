@@ -59,7 +59,7 @@ pub struct DeviceAction {
 }
 
 impl DeviceAction {
-    /// Creates a new [`DeviceAction`].
+    /// Creates a [`DeviceAction`].
     #[must_use]
     #[inline]
     pub fn new<R: internal::ResponseTrait>(route: Route, response: ResponseBuilder<R>) -> Self {

@@ -24,7 +24,7 @@ use super::{error::ErrorResponse, DeviceAction, MandatoryAction};
 pub struct SerialResponse<T: DeserializeOwned>(AscotSerialResponse<T>);
 
 impl<T: Serialize + DeserializeOwned> SerialResponse<T> {
-    /// Creates a new [`SerialResponse`].
+    /// Creates a [`SerialResponse`].
     #[must_use]
     pub const fn new(data: T) -> Self {
         Self(AscotSerialResponse::new(data))

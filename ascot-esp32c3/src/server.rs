@@ -28,7 +28,7 @@ pub struct AscotServer {
 }
 
 impl AscotServer {
-    /// Creates a new [`AscotServer`] instance.
+    /// Creates an [`AscotServer`].
     #[must_use]
     pub const fn new(device: Device) -> Self {
         Self {

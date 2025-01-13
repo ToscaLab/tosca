@@ -52,7 +52,7 @@ impl<'a, S> AscotServer<'a, S>
 where
     S: Clone + Send + Sync + 'static,
 {
-    /// Creates a new [`AscotServer`] instance.
+    /// Creates an [`AscotServer`].
     pub const fn new(device: Device<S>) -> Self {
         Self {
             http_address: DEFAULT_HTTP_ADDRESS,
