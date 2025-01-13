@@ -34,11 +34,11 @@ mod route_data {
     }
 
     impl RouteData {
-        pub(super) fn new(route: &Route) -> Self {
+        pub(super) fn new(route: Route) -> Self {
             Self {
                 name: route.route.into(),
                 description: route.description.map(core::convert::Into::into),
-                inputs: InputsData::from(&route.inputs),
+                inputs: InputsData::from(route.inputs),
             }
         }
     }
@@ -67,11 +67,11 @@ mod route_data {
     }
 
     impl RouteData {
-        pub(super) fn new(route: &Route) -> Self {
+        pub(super) fn new(route: Route) -> Self {
             Self {
                 name: route.route,
                 description: route.description,
-                inputs: InputsData::from(&route.inputs),
+                inputs: InputsData::from(route.inputs),
             }
         }
     }
@@ -165,7 +165,7 @@ impl core::hash::Hash for route_config::RouteConfig {
 }
 
 impl route_config::RouteConfig {
-    fn new(route: &Route) -> Self {
+    fn new(route: Route) -> Self {
         Self {
             rest_kind: route.rest_kind,
             hazards: route.hazards.clone(),
@@ -313,7 +313,7 @@ impl Route {
     /// It consumes the data.
     #[must_use]
     #[inline]
-    pub fn serialize_data(&self) -> RouteConfig {
+    pub fn serialize_data(self) -> RouteConfig {
         RouteConfig::new(self)
     }
 
