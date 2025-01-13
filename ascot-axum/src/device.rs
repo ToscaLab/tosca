@@ -1,4 +1,4 @@
-use ascot_library::device::{DeviceData, DeviceKind, DeviceSerializer};
+use ascot_library::device::{DeviceData, DeviceEnvironment, DeviceKind, DeviceSerializer};
 use ascot_library::route::{RouteConfigs, Routes};
 
 use axum::Router;
@@ -62,6 +62,7 @@ where
 
         DeviceData {
             kind: self.kind,
+            environment: DeviceEnvironment::Os,
             main_route: self.main_route.into(),
             route_configs,
         }
