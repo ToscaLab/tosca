@@ -129,9 +129,9 @@ mod tests {
 
     use serde::{Deserialize, Serialize};
 
-    use crate::actions::error::ErrorPayload;
-    use crate::actions::info::{info_stateful, InfoPayload};
-    use crate::actions::serial::{serial_stateful, serial_stateless, SerialPayload};
+    use crate::actions::error::ErrorResponse;
+    use crate::actions::info::{info_stateful, InfoResponse};
+    use crate::actions::serial::{serial_stateful, serial_stateless, SerialResponse};
 
     use super::Device;
 
@@ -225,8 +225,8 @@ mod tests {
     async fn serial_action_with_state(
         State(_state): State<DeviceState<()>>,
         Json(inputs): Json<Inputs>,
-    ) -> Result<SerialPayload<DeviceResponse>, ErrorPayload> {
-        Ok(SerialPayload::new(DeviceResponse {
+    ) -> Result<SerialResponse<DeviceResponse>, ErrorResponse> {
+        Ok(SerialResponse::new(DeviceResponse {
             parameter: inputs.parameter,
         }))
     }
@@ -234,8 +234,8 @@ mod tests {
     async fn serial_action_with_substate1(
         State(_state): State<SubState>,
         Json(inputs): Json<Inputs>,
-    ) -> Result<SerialPayload<DeviceResponse>, ErrorPayload> {
-        Ok(SerialPayload::new(DeviceResponse {
+    ) -> Result<SerialResponse<DeviceResponse>, ErrorResponse> {
+        Ok(SerialResponse::new(DeviceResponse {
             parameter: inputs.parameter,
         }))
     }
@@ -247,19 +247,19 @@ mod tests {
     }
 
     // This method is just a demonstration of this library flexibility,
-    // but we do not recommend it because a DeviceInfo inside a SerialPayload
+    // but we do not recommend it because a DeviceInfo inside a SerialResponse
     // could be ignored as response by a receiver.
     async fn serial_action_with_substate2(
         State(state): State<DeviceInfoState>,
         Json(inputs): Json<Inputs>,
-    ) -> Result<SerialPayload<DeviceInfoResponse>, ErrorPayload> {
+    ) -> Result<SerialResponse<DeviceInfoResponse>, ErrorResponse> {
         // Retrieve internal state.
         let mut device_info = state.lock().await;
 
         // Change state.
         device_info.energy = Energy::empty();
 
-        Ok(SerialPayload::new(DeviceInfoResponse {
+        Ok(SerialResponse::new(DeviceInfoResponse {
             parameter: inputs.parameter,
             device_info: device_info.clone(),
         }))
@@ -267,20 +267,20 @@ mod tests {
 
     async fn info_action_with_substate3(
         State(state): State<DeviceInfoState>,
-    ) -> Result<InfoPayload, ErrorPayload> {
+    ) -> Result<InfoResponse, ErrorResponse> {
         // Retrieve internal state.
         let mut device_info = state.lock().await;
 
         // Change state.
         device_info.energy = Energy::empty();
 
-        Ok(InfoPayload::new(device_info.clone()))
+        Ok(InfoResponse::new(device_info.clone()))
     }
 
     async fn serial_action_without_state(
         Json(inputs): Json<Inputs>,
-    ) -> Result<SerialPayload<DeviceResponse>, ErrorPayload> {
-        Ok(SerialPayload::new(DeviceResponse {
+    ) -> Result<SerialResponse<DeviceResponse>, ErrorResponse> {
+        Ok(SerialResponse::new(DeviceResponse {
             parameter: inputs.parameter,
         }))
     }

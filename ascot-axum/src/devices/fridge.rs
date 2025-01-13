@@ -174,10 +174,10 @@ mod tests {
 
     use serde::{Deserialize, Serialize};
 
-    use crate::actions::error::ErrorPayload;
+    use crate::actions::error::ErrorResponse;
     use crate::actions::serial::{
         mandatory_serial_stateful, mandatory_serial_stateless, serial_stateful, serial_stateless,
-        SerialPayload,
+        SerialResponse,
     };
 
     use super::Fridge;
@@ -198,16 +198,16 @@ mod tests {
     async fn increase_temperature(
         State(_state): State<FridgeState>,
         Json(inputs): Json<IncreaseTemperature>,
-    ) -> Result<SerialPayload<ChangeTempResponse>, ErrorPayload> {
-        Ok(SerialPayload::new(ChangeTempResponse {
+    ) -> Result<SerialResponse<ChangeTempResponse>, ErrorResponse> {
+        Ok(SerialResponse::new(ChangeTempResponse {
             temperature: inputs.increment,
         }))
     }
 
     async fn increase_temperature_without_state(
         Json(inputs): Json<IncreaseTemperature>,
-    ) -> Result<SerialPayload<ChangeTempResponse>, ErrorPayload> {
-        Ok(SerialPayload::new(ChangeTempResponse {
+    ) -> Result<SerialResponse<ChangeTempResponse>, ErrorResponse> {
+        Ok(SerialResponse::new(ChangeTempResponse {
             temperature: inputs.increment,
         }))
     }
@@ -220,16 +220,16 @@ mod tests {
     async fn decrease_temperature(
         State(_state): State<FridgeState>,
         Json(inputs): Json<DecreaseTemperature>,
-    ) -> Result<SerialPayload<ChangeTempResponse>, ErrorPayload> {
-        Ok(SerialPayload::new(ChangeTempResponse {
+    ) -> Result<SerialResponse<ChangeTempResponse>, ErrorResponse> {
+        Ok(SerialResponse::new(ChangeTempResponse {
             temperature: inputs.decrement,
         }))
     }
 
     async fn decrease_temperature_without_state(
         Json(inputs): Json<DecreaseTemperature>,
-    ) -> Result<SerialPayload<ChangeTempResponse>, ErrorPayload> {
-        Ok(SerialPayload::new(ChangeTempResponse {
+    ) -> Result<SerialResponse<ChangeTempResponse>, ErrorResponse> {
+        Ok(SerialResponse::new(ChangeTempResponse {
             temperature: inputs.decrement,
         }))
     }
