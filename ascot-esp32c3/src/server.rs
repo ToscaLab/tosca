@@ -2,7 +2,6 @@ use esp_idf_svc::http::server::{Configuration, EspHttpServer};
 use esp_idf_svc::http::Method;
 use esp_idf_svc::io::Write;
 
-use ascot_library::device::DeviceSerializer;
 use ascot_library::route::RestKind;
 
 use crate::device::Device;
@@ -73,10 +72,12 @@ impl AscotServer {
             ..Default::default()
         })?;
 
-        // Format the device description as a pretty string.
-        let device_description = serde_json::to_string_pretty(&self.device.serialize_data())?;
+        let (device_route, device_data, routes_data) = self.device.finalize();
 
-        for route in self.device.routes_data {
+        // Format the device description as a pretty string.
+        let device_description = serde_json::to_string_pretty(&device_data)?;
+
+        for route in routes_data {
             let method = match route.route.kind() {
                 RestKind::Get => Method::Get,
                 RestKind::Post => Method::Post,
@@ -85,7 +86,7 @@ impl AscotServer {
             };
             if let Some(body) = route.body {
                 server.fn_handler(
-                    &format!("{}{}", self.device.main_route, route.route.route()),
+                    &format!("{}{}", device_route, route.route.route()),
                     method,
                     move |req| {
                         // Run body.
@@ -104,7 +105,7 @@ impl AscotServer {
         }
 
         // Add main route
-        server.fn_handler(self.device.main_route, Method::Get, move |req| {
+        server.fn_handler(device_route, Method::Get, move |req| {
             req.into_response(200, Some("OK"), &[("Content-Type", "application/json")])?
                 .write_all(device_description.as_bytes())
         })?;
