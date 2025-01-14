@@ -22,7 +22,7 @@ use ascot_axum::actions::serial::{mandatory_serial_stateful, serial_stateful, Se
 use ascot_axum::devices::light::Light;
 use ascot_axum::error::Error;
 use ascot_axum::extract::{FromRef, Json, State};
-use ascot_axum::server::AscotServer;
+use ascot_axum::server::Server;
 use ascot_axum::service::ServiceConfig;
 
 // Command line library
@@ -262,7 +262,7 @@ async fn main() -> Result<(), Error> {
         .into_device();
 
     // Run a discovery service and the device on the server.
-    AscotServer::new(device)
+    Server::new(device)
         .address(cli.address)
         .port(cli.port)
         .service(
