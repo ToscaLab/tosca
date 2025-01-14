@@ -106,6 +106,23 @@ mod device_data {
         /// All device route configurations.
         pub route_configs: RouteConfigs,
     }
+
+    impl DeviceData {
+        /// Creates a [`DeviceData`].
+        pub fn new(
+            kind: DeviceKind,
+            environment: DeviceEnvironment,
+            main_route: impl Into<alloc::borrow::Cow<'static, str>>,
+            route_configs: RouteConfigs,
+        ) -> Self {
+            Self {
+                kind,
+                environment,
+                main_route: main_route.into(),
+                route_configs,
+            }
+        }
+    }
 }
 
 #[cfg(not(feature = "std"))]
@@ -126,6 +143,23 @@ mod device_data {
         pub main_route: &'static str,
         /// All device route configurations.
         pub route_configs: RouteConfigs,
+    }
+
+    impl DeviceData {
+        /// Creates a [`DeviceData`].
+        pub fn new(
+            kind: DeviceKind,
+            environment: DeviceEnvironment,
+            main_route: &'static str,
+            route_configs: RouteConfigs,
+        ) -> Self {
+            Self {
+                kind,
+                environment,
+                main_route,
+                route_configs,
+            }
+        }
     }
 }
 
