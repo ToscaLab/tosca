@@ -27,9 +27,9 @@ const DEFAULT_SCHEME: &str = "http";
 // at URLs consistent well-known locations across servers.
 const WELL_KNOWN_URI: &str = "/.well-known/server";
 
-/// The `Ascot` server.
+/// A [`Device`] server.
 #[derive(Debug)]
-pub struct AscotServer<'a, S = ()>
+pub struct Server<'a, S = ()>
 where
     S: Clone + Send + Sync + 'static,
 {
@@ -47,11 +47,11 @@ where
     device: Device<S>,
 }
 
-impl<'a, S> AscotServer<'a, S>
+impl<'a, S> Server<'a, S>
 where
     S: Clone + Send + Sync + 'static,
 {
-    /// Creates an [`AscotServer`].
+    /// Creates a [`Server`].
     pub const fn new(device: Device<S>) -> Self {
         Self {
             http_address: DEFAULT_HTTP_ADDRESS,
