@@ -1,10 +1,10 @@
-/// Action and payload to manage errors.
+/// Action and response to manage errors.
 pub mod error;
-/// Action and payload to manage device information.
+/// Action and response to manage device information.
 pub mod info;
-/// Action and payload to confirm the correct execution of an action.
+/// Action and response to confirm the correct execution of an action.
 pub mod ok;
-/// Action and payload to manage data serialization.
+/// Action and response to manage data serialization.
 pub mod serial;
 
 use ascot_library::hazards::{Hazard, Hazards};
