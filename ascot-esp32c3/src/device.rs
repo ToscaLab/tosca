@@ -46,7 +46,6 @@ pub struct ResponseBuilder<R: internal::ResponseTrait>(
 
 /// A device action connects a server route with a device handler and,
 /// optionally, with every possible hazards associated with the handler.
-#[allow(clippy::module_name_repetitions)]
 pub struct DeviceAction {
     // Route and hazards.
     pub(crate) route_config: RouteConfig,
