@@ -147,12 +147,12 @@ impl Device {
 
         (
             self.main_route,
-            DeviceData {
-                kind: self.kind,
-                environment: DeviceEnvironment::Esp32,
-                main_route: self.main_route,
+            DeviceData::new(
+                self.kind,
+                DeviceEnvironment::Esp32,
+                self.main_route,
                 route_configs,
-            },
+            ),
             self.routes_data,
         )
     }
