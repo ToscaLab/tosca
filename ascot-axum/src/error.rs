@@ -3,7 +3,6 @@ use std::borrow::Cow;
 use ascot_library::device::DeviceKind;
 
 /// All possible error kinds.
-#[allow(clippy::module_name_repetitions)]
 #[derive(Debug, Copy, Clone)]
 pub enum ErrorKind {
     /// Service error.

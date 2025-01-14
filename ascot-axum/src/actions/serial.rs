@@ -1,5 +1,3 @@
-#![allow(clippy::module_name_repetitions)]
-
 use core::future::Future;
 
 use ascot_library::response::{ResponseKind, SerialResponse as AscotSerialResponse};

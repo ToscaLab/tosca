@@ -28,7 +28,6 @@ const DEFAULT_SCHEME: &str = "http";
 const WELL_KNOWN_URI: &str = "/.well-known/server";
 
 /// The `Ascot` server.
-#[allow(clippy::module_name_repetitions)]
 #[derive(Debug)]
 pub struct AscotServer<'a, S = ()>
 where

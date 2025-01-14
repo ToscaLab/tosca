@@ -11,7 +11,6 @@ use axum::{
 /// the execution of an action.
 ///
 /// It describes the kind of error, the cause, and optional information.
-#[allow(clippy::module_name_repetitions)]
 pub struct ErrorResponse(AscotErrorResponse);
 
 impl ErrorResponse {
