@@ -1,5 +1,3 @@
-#![allow(clippy::module_name_repetitions)]
-
 use serde::{Deserialize, Serialize};
 
 use crate::collections::Collection;
@@ -47,7 +45,7 @@ pub enum InputStructure {
 
 #[cfg(feature = "std")]
 mod input_data {
-    use super::*;
+    use super::{Deserialize, Input, InputStructure, Serialize};
 
     /// Input data.
     #[derive(Debug, Clone, Serialize, Deserialize)]

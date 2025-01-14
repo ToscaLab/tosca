@@ -1,5 +1,4 @@
 /// All possible error kinds.
-#[allow(clippy::module_name_repetitions)]
 #[derive(Debug, Copy, Clone)]
 pub enum ErrorKind {
     /// Error creating a fixed-size text.
