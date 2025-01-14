@@ -2,7 +2,7 @@
 
 use core::future::Future;
 
-use ascot_library::response::SerialResponse as AscotSerialResponse;
+use ascot_library::response::{ResponseKind, SerialResponse as AscotSerialResponse};
 use ascot_library::route::Route;
 
 use axum::{
@@ -76,7 +76,14 @@ where
     T: 'static,
     S: Clone + Send + Sync + 'static,
 {
-    move |state: S| MandatoryAction::new(DeviceAction::stateful(route, handler, state))
+    move |state: S| {
+        MandatoryAction::new(DeviceAction::stateful(
+            route,
+            ResponseKind::Serial,
+            handler,
+            state,
+        ))
+    }
 }
 
 /// Creates a stateful [`DeviceAction`] with a [`SerialResponse`].
@@ -87,7 +94,7 @@ where
     T: 'static,
     S: Clone + Send + Sync + 'static,
 {
-    move |state: S| DeviceAction::stateful(route, handler, state)
+    move |state: S| DeviceAction::stateful(route, ResponseKind::Serial, handler, state)
 }
 
 /// Creates a mandatory stateless [`DeviceAction`] with a [`SerialResponse`].
@@ -101,7 +108,13 @@ where
     T: 'static,
     S: Clone + Send + Sync + 'static,
 {
-    move |_state: S| MandatoryAction::new(DeviceAction::stateless(route, handler))
+    move |_state: S| {
+        MandatoryAction::new(DeviceAction::stateless(
+            route,
+            ResponseKind::Serial,
+            handler,
+        ))
+    }
 }
 
 /// Creates a stateless [`DeviceAction`] with a [`SerialResponse`].
@@ -112,5 +125,5 @@ where
     T: 'static,
     S: Clone + Send + Sync + 'static,
 {
-    move |_state: S| DeviceAction::stateless(route, handler)
+    move |_state: S| DeviceAction::stateless(route, ResponseKind::Serial, handler)
 }

@@ -4,6 +4,7 @@ use core::future::Future;
 
 use ascot_library::device::DeviceInfo;
 use ascot_library::response::InfoResponse as AscotInfoResponse;
+use ascot_library::response::ResponseKind;
 use ascot_library::route::Route;
 
 use axum::{
@@ -70,7 +71,7 @@ where
     S: Clone + Send + Sync + 'static,
     I: 'static,
 {
-    move |state: S, _: I| DeviceAction::stateful(route, handler, state)
+    move |state: S, _: I| DeviceAction::stateful(route, ResponseKind::Info, handler, state)
 }
 
 /// Creates a stateless [`DeviceAction`] with an [`InfoResponse`].
@@ -81,5 +82,5 @@ where
     S: Clone + Send + Sync + 'static,
     I: 'static,
 {
-    move |_state: S, _: I| DeviceAction::stateless(route, handler)
+    move |_state: S, _: I| DeviceAction::stateless(route, ResponseKind::Info, handler)
 }

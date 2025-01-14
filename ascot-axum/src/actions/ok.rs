@@ -2,7 +2,7 @@
 
 use core::future::Future;
 
-use ascot_library::response::OkResponse as AscotOkResponse;
+use ascot_library::response::{OkResponse as AscotOkResponse, ResponseKind};
 use ascot_library::route::Route;
 
 use axum::{
@@ -72,7 +72,14 @@ where
     T: 'static,
     S: Clone + Send + Sync + 'static,
 {
-    move |state: S| MandatoryAction::new(DeviceAction::stateful(route, handler, state))
+    move |state: S| {
+        MandatoryAction::new(DeviceAction::stateful(
+            route,
+            ResponseKind::Ok,
+            handler,
+            state,
+        ))
+    }
 }
 
 /// Creates a stateful [`DeviceAction`] with an [`OkResponse`].
@@ -83,7 +90,7 @@ where
     T: 'static,
     S: Clone + Send + Sync + 'static,
 {
-    move |state: S| DeviceAction::stateful(route, handler, state)
+    move |state: S| DeviceAction::stateful(route, ResponseKind::Ok, handler, state)
 }
 
 /// Creates a mandatory stateless [`DeviceAction`] with an [`OkResponse`].
@@ -97,7 +104,7 @@ where
     T: 'static,
     S: Clone + Send + Sync + 'static,
 {
-    move |_state: S| MandatoryAction::new(DeviceAction::stateless(route, handler))
+    move |_state: S| MandatoryAction::new(DeviceAction::stateless(route, ResponseKind::Ok, handler))
 }
 
 /// Creates a stateless [`DeviceAction`] with an [`OkResponse`].
@@ -108,5 +115,5 @@ where
     T: 'static,
     S: Clone + Send + Sync + 'static,
 {
-    move |_state: S| DeviceAction::stateless(route, handler)
+    move |_state: S| DeviceAction::stateless(route, ResponseKind::Ok, handler)
 }

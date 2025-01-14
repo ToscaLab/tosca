@@ -8,7 +8,8 @@ pub mod ok;
 pub mod serial;
 
 use ascot_library::hazards::{Hazard, Hazards};
-use ascot_library::input::Inputs;
+use ascot_library::input::InputsData;
+use ascot_library::response::ResponseKind;
 use ascot_library::route::{RestKind, Route, RouteConfig};
 
 use axum::{handler::Handler, Router};
@@ -40,10 +41,10 @@ macro_rules! all_the_tuples {
 
 pub(super) use all_the_tuples;
 
-fn build_get_route(route: &str, inputs: &Inputs) -> String {
+fn build_get_route(route: &str, inputs: &InputsData) -> String {
     let mut route = String::from(route);
     for input in inputs.iter() {
-        route.push_str(&format!("/{{{}}}", input.name()));
+        route.push_str(&format!("/{{{}}}", input.name));
     }
     info!("Build GET route: {}", route);
     route
@@ -84,68 +85,68 @@ impl DeviceAction {
         &self.route_config.data.hazards
     }
 
-    #[inline]
-    pub(crate) fn stateless<H, T>(route: Route, handler: H) -> Self
+    pub(crate) fn stateless<H, T>(route: Route, response_kind: ResponseKind, handler: H) -> Self
     where
         H: Handler<T, ()>,
         T: 'static,
     {
-        Self {
-            router: Self::create_router(route.route(), route.kind(), route.inputs(), handler, ()),
-            route_config: route.serialize_data(),
-        }
+        Self::init(route, response_kind, handler, ())
     }
 
-    #[inline]
-    pub(crate) fn stateful<H, T, S>(route: Route, handler: H, state: S) -> Self
-    where
-        H: Handler<T, S>,
-        T: 'static,
-        S: Clone + Send + Sync + 'static,
-    {
-        Self {
-            router: Self::create_router(
-                route.route(),
-                route.kind(),
-                route.inputs(),
-                handler,
-                state,
-            ),
-            route_config: route.serialize_data(),
-        }
-    }
-
-    #[inline]
-    fn create_router<H, T, S>(
-        route: &str,
-        route_kind: RestKind,
-        inputs: &Inputs,
+    pub(crate) fn stateful<H, T, S>(
+        route: Route,
+        response_kind: ResponseKind,
         handler: H,
         state: S,
-    ) -> Router
+    ) -> Self
     where
         H: Handler<T, S>,
         T: 'static,
         S: Clone + Send + Sync + 'static,
     {
+        Self::init(route, response_kind, handler, state)
+    }
+
+    fn init<H, T, S>(
+        route: Route,
+        response_kind: ResponseKind,
+        /*route: &str,
+        route_kind: RestKind,
+        inputs: &Inputs,*/
+        handler: H,
+        state: S,
+    ) -> Self
+    where
+        H: Handler<T, S>,
+        T: 'static,
+        S: Clone + Send + Sync + 'static,
+    {
+        let mut route_config = route.serialize_data();
+        route_config.response_kind = response_kind;
+
         // Create the GET route for the axum architecture.
-        let route = if let RestKind::Get = route_kind {
-            &build_get_route(route, inputs)
+        let route = if let RestKind::Get = route_config.rest_kind {
+            &build_get_route(&route_config.data.name, &route_config.data.inputs)
         } else {
-            route
+            route_config.data.name.as_ref()
         };
 
-        Router::new()
+        let router = Router::new()
             .route(
                 route,
-                match route_kind {
+                match route_config.rest_kind {
                     RestKind::Get => axum::routing::get(handler),
                     RestKind::Put => axum::routing::put(handler),
                     RestKind::Post => axum::routing::post(handler),
                     RestKind::Delete => axum::routing::delete(handler),
                 },
             )
-            .with_state(state)
+            .with_state(state);
+
+        Self {
+            router,
+            route_config,
+        }
     }
 }
 
@@ -194,10 +195,11 @@ mod tests {
             .with_inputs([
                 Input::rangeu64_with_default("rangeu64", (0, 20, 1), 5),
                 Input::rangef64("rangef64", (0., 20., 0.1)),
-            ]);
+            ])
+            .serialize_data();
 
         assert_eq!(
-            &build_get_route(route.route(), route.inputs()),
+            &build_get_route(&route.data.name, &route.data.inputs),
             "/route/{rangeu64}/{rangef64}"
         );
     }
