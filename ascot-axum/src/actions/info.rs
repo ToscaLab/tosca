@@ -1,8 +1,7 @@
 use core::future::Future;
 
 use ascot_library::device::DeviceInfo;
-use ascot_library::response::InfoResponse as AscotInfoResponse;
-use ascot_library::response::ResponseKind;
+use ascot_library::response::{InfoResponse as AscotInfoResponse, ResponseKind};
 use ascot_library::route::Route;
 
 use axum::{
