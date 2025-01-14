@@ -62,7 +62,7 @@ macro_rules! impl_info_type_name {
 }
 super::all_the_tuples!(impl_info_type_name);
 
-/// Creates a stateful [`DeviceAction`] with a [`InfoResponse`].
+/// Creates a stateful [`DeviceAction`] with an [`InfoResponse`].
 pub fn info_stateful<H, T, S, I>(route: Route, handler: H) -> impl FnOnce(S, I) -> DeviceAction
 where
     H: Handler<T, S> + private::InfoTypeName<T>,
@@ -73,7 +73,7 @@ where
     move |state: S, _: I| DeviceAction::stateful(route, handler, state)
 }
 
-/// Creates a stateless [`DeviceAction`] with a [`InfoResponse`].
+/// Creates a stateless [`DeviceAction`] with an [`InfoResponse`].
 pub fn info_stateless<H, T, S, I>(route: Route, handler: H) -> impl FnOnce(S, I) -> DeviceAction
 where
     H: Handler<T, ()> + private::InfoTypeName<T>,
