@@ -13,7 +13,7 @@ use crate::MAXIMUM_ELEMENTS;
 mod route_data {
     use alloc::borrow::Cow;
 
-    use super::{Deserialize, InputsData, Route, Serialize};
+    use super::{Deserialize, Hazards, InputsData, Route, Serialize};
 
     /// Route data.
     #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -22,6 +22,10 @@ mod route_data {
         pub name: Cow<'static, str>,
         /// Description.
         pub description: Option<Cow<'static, str>>,
+        /// Hazards data.
+        #[serde(skip_serializing_if = "Hazards::is_empty")]
+        #[serde(default = "Hazards::empty")]
+        pub hazards: Hazards,
         /// Inputs associated with a route..
         #[serde(skip_serializing_if = "InputsData::is_empty")]
         #[serde(default = "InputsData::empty")]
@@ -39,6 +43,7 @@ mod route_data {
             Self {
                 name: route.route.into(),
                 description: route.description.map(core::convert::Into::into),
+                hazards: route.hazards,
                 inputs: InputsData::from(route.inputs),
             }
         }
@@ -47,7 +52,7 @@ mod route_data {
 
 #[cfg(not(feature = "std"))]
 mod route_data {
-    use super::{InputsData, Route, Serialize};
+    use super::{Hazards, InputsData, Route, Serialize};
 
     /// Route data.
     #[derive(Debug, Clone, Serialize)]
@@ -56,6 +61,10 @@ mod route_data {
         pub name: &'static str,
         /// Description.
         pub description: Option<&'static str>,
+        /// Hazards data.
+        #[serde(skip_serializing_if = "Hazards::is_empty")]
+        #[serde(default = "Hazards::empty")]
+        pub hazards: Hazards,
         /// Inputs associated with a route..
         #[serde(skip_serializing_if = "InputsData::is_empty")]
         pub inputs: InputsData,
@@ -72,6 +81,7 @@ mod route_data {
             Self {
                 name: route.route,
                 description: route.description,
+                hazards: route.hazards,
                 inputs: InputsData::from(route.inputs),
             }
         }
@@ -107,7 +117,7 @@ impl core::fmt::Display for RestKind {
 
 #[cfg(feature = "std")]
 mod route_config {
-    use super::{Deserialize, Hazards, ResponseKind, RestKind, RouteData, Serialize};
+    use super::{Deserialize, ResponseKind, RestKind, RouteData, Serialize};
 
     /// A server route configuration.
     #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -121,10 +131,6 @@ mod route_config {
         /// Response kind.
         #[serde(rename = "response kind")]
         pub response_kind: ResponseKind,
-        /// Hazards data.
-        #[serde(skip_serializing_if = "Hazards::is_empty")]
-        #[serde(default = "Hazards::empty")]
-        pub hazards: Hazards,
     }
 
     /// A collection of [`RouteConfig`]s.
@@ -133,7 +139,7 @@ mod route_config {
 
 #[cfg(not(feature = "std"))]
 mod route_config {
-    use super::{Hazards, ResponseKind, RestKind, RouteData, Serialize};
+    use super::{ResponseKind, RestKind, RouteData, Serialize};
 
     /// A server route configuration.
     #[derive(Debug, Clone, Serialize)]
@@ -147,9 +153,6 @@ mod route_config {
         /// Response kind.
         #[serde(rename = "response kind")]
         pub response_kind: ResponseKind,
-        /// Hazards data.
-        #[serde(skip_serializing_if = "Hazards::is_empty")]
-        pub hazards: Hazards,
     }
 
     /// A collection of [`RouteConfig`]s.
@@ -176,7 +179,6 @@ impl route_config::RouteConfig {
         Self {
             rest_kind: route.rest_kind,
             response_kind: ResponseKind::default(),
-            hazards: route.hazards.clone(),
             data: RouteData::new(route),
         }
     }
@@ -370,10 +372,10 @@ mod tests {
         RouteConfig {
             rest_kind,
             response_kind: ResponseKind::default(),
-            hazards,
             data: RouteData {
                 name: "/route".into(),
                 description: Some(desc.into()),
+                hazards,
                 inputs,
             },
         }
