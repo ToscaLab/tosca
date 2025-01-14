@@ -14,8 +14,8 @@ const DEFAULT_SERVER_PORT: u16 = 3000;
 // Server stack size.
 const DEFAULT_STACK_SIZE: usize = 10240;
 
-/// The `Ascot` server.
-pub struct AscotServer {
+/// A [`Device`] server.
+pub struct Server {
     // Server port.
     port: u16,
     // Stack size
@@ -26,8 +26,8 @@ pub struct AscotServer {
     service_config: Option<ServiceConfig>,
 }
 
-impl AscotServer {
-    /// Creates an [`AscotServer`].
+impl Server {
+    /// Creates a [`Server`].
     #[must_use]
     pub const fn new(device: Device) -> Self {
         Self {
