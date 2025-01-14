@@ -102,12 +102,12 @@ where
 
         (
             self.main_route,
-            DeviceData {
-                kind: self.kind,
-                environment: DeviceEnvironment::Os,
-                main_route: self.main_route.into(),
-                route_configs: self.route_configs,
-            },
+            DeviceData::new(
+                self.kind,
+                DeviceEnvironment::Os,
+                self.main_route,
+                self.route_configs,
+            ),
             self.router,
         )
     }
