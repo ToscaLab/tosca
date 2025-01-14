@@ -16,7 +16,6 @@ const MAXIMUM_ELEMENTS: usize = 8;
 const SERVICE_TYPE: &str = "General Device";
 
 /// A service configurator.
-#[allow(clippy::module_name_repetitions)]
 #[derive(Debug)]
 pub struct ServiceConfig<'a> {
     // Instance name.
