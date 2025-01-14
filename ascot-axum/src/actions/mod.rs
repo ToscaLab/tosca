@@ -65,7 +65,7 @@ impl DeviceAction {
     #[must_use]
     #[inline]
     pub fn miss_hazard(&self, hazard: Hazard) -> bool {
-        !self.route_config.hazards.contains(hazard)
+        !self.route_config.data.hazards.contains(hazard)
     }
 
     /// Checks whether an action does not define the given [`Hazard`]s.
@@ -74,14 +74,14 @@ impl DeviceAction {
     pub fn miss_hazards(&self, hazards: &'static [Hazard]) -> bool {
         !hazards
             .iter()
-            .all(|hazard| self.route_config.hazards.contains(*hazard))
+            .all(|hazard| self.route_config.data.hazards.contains(*hazard))
     }
 
     /// Returns the [`Hazards`] collection associated with an action.
     #[must_use]
     #[inline]
     pub fn hazards(&self) -> &Hazards {
-        &self.route_config.hazards
+        &self.route_config.data.hazards
     }
 
     #[inline]
