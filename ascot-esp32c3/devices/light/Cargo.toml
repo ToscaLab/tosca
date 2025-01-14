@@ -6,11 +6,11 @@ edition = "2021"
 [dependencies]
 ascot-library = { version = "0.1.0", path = "../../../", default-features = false }
 ascot-esp32c3 = { version = "0.1.0", path = "../../" }
-esp-idf-svc = { git = "https://github.com/esp-rs/esp-idf-svc" }
+esp-idf-svc = "0.50.1"
 toml-cfg = "0.2.0"
 
 [build-dependencies]
-embuild  = "0.32.0"
+embuild  = "0.33.0"
 toml-cfg = "0.2.0"
 
 [profile.dev]

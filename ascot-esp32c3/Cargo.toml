@@ -6,12 +6,12 @@ edition = "2021"
 [dependencies]
 
 # Esp
-esp-idf-svc = { git = "https://github.com/esp-rs/esp-idf-svc" }
+esp-idf-svc = "0.50.1"
 
 # Mdns-sd
-edge-mdns = {git = "https://github.com/ivmarkov/edge-net"}
-edge-nal = { git = "https://github.com/ivmarkov/edge-net", default-features = false }
-edge-nal-std = { git = "https://github.com/ivmarkov/edge-net", default-features = false }
+edge-mdns = "0.4.0"
+edge-nal = { version = "0.4.2", default-features = false }
+edge-nal-std = { version = "0.4.0", default-features = false }
 embassy-sync = { version = "0.6", default-features = false }
 embassy-time = { version = "0.3.2", features = ["std", "generic-queue-8"] }
 rand = "0.8.5"
