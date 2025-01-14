@@ -32,7 +32,6 @@ enum Algorithm {
 }
 
 /// A mDNS-SD service configurator.
-#[allow(clippy::module_name_repetitions)]
 pub struct ServiceConfig {
     algorithm: Algorithm,
     http_address: Ipv4Addr,

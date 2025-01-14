@@ -2,7 +2,6 @@ use alloc::borrow::Cow;
 
 /// All possible error kinds.
 #[derive(Copy, Clone)]
-#[allow(clippy::module_name_repetitions)]
 pub enum ErrorKind {
     /// Wi-Fi connection error.
     WiFi,

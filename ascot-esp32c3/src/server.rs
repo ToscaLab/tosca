@@ -15,7 +15,6 @@ const DEFAULT_SERVER_PORT: u16 = 3000;
 const DEFAULT_STACK_SIZE: usize = 10240;
 
 /// The `Ascot` server.
-#[allow(clippy::module_name_repetitions)]
 pub struct AscotServer {
     // Server port.
     port: u16,
