@@ -5,10 +5,11 @@ use crate::device::DeviceInfo;
 use crate::strings::ShortString;
 
 /// Action response kinds.
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Default, Serialize, Deserialize)]
 pub enum ResponseKind {
     /// A short message to notify a receiver that an action has terminated
     /// correctly.
+    #[default]
     Ok,
     /// Serial data (i.e. JSON).
     ///

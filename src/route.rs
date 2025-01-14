@@ -175,7 +175,7 @@ impl route_config::RouteConfig {
     fn new(route: Route) -> Self {
         Self {
             rest_kind: route.rest_kind,
-            response_kind: route.response_kind,
+            response_kind: ResponseKind::default(),
             hazards: route.hazards.clone(),
             data: RouteData::new(route),
         }
@@ -195,8 +195,6 @@ pub struct Route {
     route: &'static str,
     // REST kind.
     rest_kind: RestKind,
-    // Response kind.
-    response_kind: ResponseKind,
     // Description.
     description: Option<&'static str>,
     // Inputs.
@@ -249,13 +247,6 @@ impl Route {
     #[must_use]
     pub const fn description(mut self, description: &'static str) -> Self {
         self.description = Some(description);
-        self
-    }
-
-    /// Sets the route response kind..
-    #[must_use]
-    pub const fn response_kind(mut self, response_kind: ResponseKind) -> Self {
-        self.response_kind = response_kind;
         self
     }
 
@@ -338,7 +329,6 @@ impl Route {
         Self {
             route,
             rest_kind,
-            response_kind: ResponseKind::Ok, // OkResponse as default.
             description: None,
             hazards: Hazards::empty(),
             inputs: Inputs::empty(),
@@ -379,7 +369,7 @@ mod tests {
     ) -> RouteConfig {
         RouteConfig {
             rest_kind,
-            response_kind: ResponseKind::Ok,
+            response_kind: ResponseKind::default(),
             hazards,
             data: RouteData {
                 name: "/route".into(),
