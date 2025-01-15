@@ -1,3 +1,11 @@
+//! TODO
+
+#![forbid(unsafe_code)]
+#![deny(missing_docs)]
+
+use std::collections::HashMap;
+
+use ascot_library::device::DeviceEnvironment;
 use ascot_library::input::{InputStructure, InputsData};
 use ascot_library::route::{RestKind, RouteConfig};
 
@@ -99,14 +107,36 @@ impl std::fmt::Display for InputValue {
     }
 }
 
+/// Parameters for `POST`, `PUT`, and `DELETE` requests.
+#[derive(Debug, PartialEq)]
+pub struct Parameters {
+    /// Final route.
+    pub route: String,
+    /// Request parameters.
+    // The insertion order is not important, so a simple HashMap can be used.
+    pub params: HashMap<String, String>,
+}
+
+impl Parameters {
+    fn empty(route: String) -> Self {
+        Self {
+            route,
+            params: HashMap::new(),
+        }
+    }
+}
+
 /// All supported **_REST_** requests.
 #[derive(Debug, PartialEq)]
 pub enum Request {
     /// A `GET` request.
     Get(String),
-    /*Post(Post),
-    Put(Put),
-    Delete(Delete),*/
+    /// A `POST` request.
+    Post(Parameters),
+    /// A `PUT` request.
+    Put(Parameters),
+    /// A `DELETE` request.
+    Delete(Parameters),
 }
 
 /// A **_REST_** request generator.
@@ -115,6 +145,7 @@ pub enum Request {
 /// passed as input.
 #[derive(Debug, PartialEq)]
 pub struct RequestGenerator {
+    device_environment: DeviceEnvironment,
     rest_kind: RestKind,
     // A base route is a route without parameters, formed by the composition of
     // the main address, the main route, and the effective route.
@@ -125,9 +156,14 @@ pub struct RequestGenerator {
 }
 
 impl RequestGenerator {
-    /// Creates a [`RestGenerator`].
+    /// Creates a [`RequestGenerator`].
     #[must_use]
-    pub fn new(address: &str, main_route: &str, route_config: &RouteConfig) -> Self {
+    pub fn new(
+        address: &str,
+        device_environment: DeviceEnvironment,
+        main_route: &str,
+        route_config: &RouteConfig,
+    ) -> Self {
         let address = slash_end(address);
         let main_route = slash_start_end(main_route);
         let route = slash_start_end(&route_config.data.name);
@@ -139,18 +175,42 @@ impl RequestGenerator {
         };
 
         Self {
+            device_environment,
             rest_kind: route_config.rest_kind,
             base: format!("{address}/{main_route}/{route}"),
             inputs,
         }
     }
 
-    /// Constructs a **_REST_** request using the [`InputValue`] passed as
-    /// input for the route input parameter.
+    /// Checks whether a route has inputs.
+    #[must_use]
+    pub fn has_inputs(&self) -> bool {
+        !self.inputs.is_empty()
+    }
+
+    /// Builds a [`Request`].
+    #[must_use]
+    pub fn build_request(&self) -> Request {
+        let route = String::from(&self.base);
+
+        match self.rest_kind {
+            RestKind::Get => Request::Get(route),
+            RestKind::Post => Request::Post(Parameters::empty(route)),
+            RestKind::Put => Request::Put(Parameters::empty(route)),
+            RestKind::Delete => Request::Delete(Parameters::empty(route)),
+        }
+    }
+
+    /// Builds a [`Request`] having the given [`InputValue`] as
+    /// route input parameter.
     ///
     /// If [`None`], the route input parameter does not exist or the
     /// [`InputValue`] type is not correct.
-    pub fn construct_request(&self, route_input: &str, value: InputValue) -> Option<Request> {
+    pub fn build_request_with_input(
+        &self,
+        route_input: &str,
+        value: InputValue,
+    ) -> Option<Request> {
         let Some(input_value) = self.inputs.get(route_input) else {
             error!("{route_input} does not exist");
             return None;
@@ -162,17 +222,36 @@ impl RequestGenerator {
         }
 
         Some(match self.rest_kind {
-            _ => Request::Get(self.get_request(route_input, value)),
-            /*RestKind::Post => Request::Post(self.post_request(route_input, value)),
-            RestKind::Put => Request::Put(self.put_request(route_input, value)),
-            RestKind::Delete => Request::Delete(self.delete_request(route_input, value)),*/
+            RestKind::Get => Request::Get(self.get_request(route_input, value)),
+            RestKind::Post => Request::Post(self.param_request(route_input, value)),
+            RestKind::Put => Request::Put(self.param_request(route_input, value)),
+            RestKind::Delete => Request::Delete(self.param_request(route_input, value)),
         })
     }
 
     fn get_request(&self, route_input: &str, value: InputValue) -> String {
-        // TODO: Consider different architectures to join values in the ascot-library
-        // - standard: i.e. ?hello=0 - ?hello=3.5
-        // - axum: i.e. /0. - /3.5
+        match self.device_environment {
+            DeviceEnvironment::Os => self.axum_get(route_input, value),
+            // The server does not accept arguments.
+            DeviceEnvironment::Esp32 => String::from(&self.base),
+        }
+    }
+
+    fn param_request(&self, route_input: &str, value: InputValue) -> Parameters {
+        let route = String::from(&self.base);
+
+        let params = if self.inputs.is_empty() {
+            HashMap::new()
+        } else {
+            self.build_params(route_input, value)
+        };
+
+        Parameters { route, params }
+    }
+
+    // Axum parameters: hello/{{1}}/{{2}}
+    //                  hello/0.5/1
+    fn axum_get(&self, route_input: &str, value: InputValue) -> String {
         let mut route = String::from(&self.base);
         for input in &self.inputs {
             let input_value = if input.0 == route_input {
@@ -185,6 +264,18 @@ impl RequestGenerator {
 
         route
     }
+
+    fn build_params(&self, route_input: &str, value: InputValue) -> HashMap<String, String> {
+        let mut params = HashMap::new();
+        for input in &self.inputs {
+            if input.0 == route_input {
+                params.insert(route_input.into(), format!("{value}"));
+            } else {
+                params.insert(input.0.into(), format!("{}", input.1));
+            }
+        }
+        params
+    }
 }
 
 #[cfg(test)]
@@ -192,48 +283,176 @@ mod tests {
     use ascot_library::input::Input;
     use ascot_library::route::Route;
 
-    use super::{IndexMap, InputValue, Request, RequestGenerator, RestKind};
+    use super::{
+        DeviceEnvironment, HashMap, IndexMap, InputValue, Parameters, Request, RequestGenerator,
+        RestKind,
+    };
 
-    #[test]
-    fn create_route() {
-        let route = Route::get("/route")
-            .description("A GET route")
-            .with_inputs([
-                Input::rangeu64_with_default("rangeu64", (0, 20, 1), 5),
-                Input::rangef64("rangef64", (0., 20., 0.1)),
-            ])
-            .serialize_data();
+    const COMPLETE_ROUTE: &str = "http://hello.local/light/route";
 
-        let generator = RequestGenerator::new("http://hello.local/", "light/", &route);
+    fn generator<F>(
+        route: Route,
+        rest_kind: RestKind,
+        inputs: IndexMap<String, InputValue>,
+        has_inputs: bool,
+        compare_request: F,
+    ) where
+        F: FnOnce(RequestGenerator),
+    {
+        let route = route.serialize_data();
 
-        let mut inputs = IndexMap::with_capacity(2);
-        inputs.insert("rangeu64".into(), InputValue::U64(5));
-        inputs.insert("rangef64".into(), InputValue::F64(0.));
+        let generator = RequestGenerator::new(
+            "http://hello.local/",
+            DeviceEnvironment::Os,
+            "light/",
+            &route,
+        );
 
         assert_eq!(
             generator,
             RequestGenerator {
-                rest_kind: RestKind::Get,
-                base: "http://hello.local/light/route".into(),
-                inputs
+                device_environment: DeviceEnvironment::Os,
+                rest_kind,
+                base: COMPLETE_ROUTE.into(),
+                inputs,
             }
         );
 
+        // No input values.
+        assert_eq!(generator.has_inputs(), has_inputs);
+
         // Wrong value.
         assert_eq!(
-            generator.construct_request("wrong", InputValue::U64(0)),
+            generator.build_request_with_input("wrong", InputValue::U64(0)),
             None
         );
 
         // Wrong input type.
         assert_eq!(
-            generator.construct_request("rangeu64", InputValue::F64(0.)),
+            generator.build_request_with_input("rangeu64", InputValue::F64(0.)),
             None
         );
 
-        assert_eq!(
-            generator.construct_request("rangeu64", InputValue::U64(3)),
-            Some(Request::Get("http://hello.local/light/route/3/0".into())),
+        compare_request(generator);
+    }
+
+    fn build_generator<F>(route: Route, rest_kind: RestKind, compare_request: F)
+    where
+        F: FnOnce(RequestGenerator),
+    {
+        generator(route, rest_kind, IndexMap::new(), false, compare_request);
+    }
+
+    fn build_generator_with_inputs<F>(route: Route, rest_kind: RestKind, compare_request: F)
+    where
+        F: FnOnce(RequestGenerator),
+    {
+        let route = route.with_inputs([
+            Input::rangeu64_with_default("rangeu64", (0, 20, 1), 5),
+            Input::rangef64("rangef64", (0., 20., 0.1)),
+        ]);
+
+        let mut inputs = IndexMap::with_capacity(2);
+        inputs.insert("rangeu64".into(), InputValue::U64(5));
+        inputs.insert("rangef64".into(), InputValue::F64(0.));
+
+        generator(route, rest_kind, inputs, true, compare_request);
+    }
+
+    macro_rules! request {
+        ($route:expr, $request:ident) => {
+            build_generator_with_inputs($route, RestKind::$request, |generator| {
+                let request_params = Parameters {
+                    route: COMPLETE_ROUTE.into(),
+                    params: HashMap::new(),
+                };
+
+                assert_eq!(generator.build_request(), Request::$request(request_params),);
+            });
+        };
+    }
+
+    macro_rules! request_with_inputs {
+        ($route:expr, $request:ident) => {
+            build_generator_with_inputs($route, RestKind::$request, |generator| {
+                let mut params = HashMap::new();
+                params.insert("rangeu64".into(), format!("{}", InputValue::U64(3)));
+                params.insert("rangef64".into(), format!("{}", InputValue::F64(0.)));
+
+                let request_params = Parameters {
+                    route: COMPLETE_ROUTE.into(),
+                    params,
+                };
+
+                assert_eq!(
+                    generator.build_request_with_input("rangeu64", InputValue::U64(3)),
+                    Some(Request::$request(request_params)),
+                );
+            });
+        };
+    }
+
+    #[test]
+    fn create_os_get_request() {
+        build_generator(
+            Route::get("/route").description("A GET route"),
+            RestKind::Get,
+            |generator| {
+                assert_eq!(
+                    generator.build_request(),
+                    Request::Get(COMPLETE_ROUTE.into()),
+                );
+            },
+        );
+    }
+
+    #[test]
+    fn create_os_get_request_with_inputs() {
+        build_generator_with_inputs(
+            Route::get("/route").description("A GET route"),
+            RestKind::Get,
+            |generator| {
+                assert_eq!(
+                    generator.build_request_with_input("rangeu64", InputValue::U64(3)),
+                    Some(Request::Get("http://hello.local/light/route/3/0".into())),
+                );
+            },
+        );
+    }
+
+    #[test]
+    fn create_os_post_request() {
+        request!(Route::post("/route").description("A POST route."), Post);
+    }
+
+    #[test]
+    fn create_os_put_request() {
+        request!(Route::put("/route").description("A PUT route."), Put);
+    }
+
+    #[test]
+    fn create_os_delete_request() {
+        request!(
+            Route::delete("/route").description("A DELETE route."),
+            Delete
+        );
+    }
+
+    #[test]
+    fn create_os_post_request_with_inputs() {
+        request_with_inputs!(Route::post("/route").description("A POST route."), Post);
+    }
+
+    #[test]
+    fn create_os_put_request_with_inputs() {
+        request_with_inputs!(Route::put("/route").description("A PUT route."), Put);
+    }
+
+    #[test]
+    fn create_os_delete_request_with_inputs() {
+        request_with_inputs!(
+            Route::delete("/route").description("A DELETE route."),
+            Delete
         );
     }
 }
