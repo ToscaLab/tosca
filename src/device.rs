@@ -4,7 +4,7 @@ use crate::economy::Economy;
 use crate::energy::Energy;
 
 /// A device kind.
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub enum DeviceKind {
     /// Unknown.
     Unknown,
@@ -79,7 +79,7 @@ impl DeviceInfo {
 ///
 /// This enumerator allows to discriminate the different implementations among
 /// the supported architectures on a controller side.
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub enum DeviceEnvironment {
     /// Operating system.
     Os,
