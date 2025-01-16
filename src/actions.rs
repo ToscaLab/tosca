@@ -1,8 +1,8 @@
 use serde::{Deserialize, Serialize};
 
 // REMINDER:
-// 1. Parse an action response to verify whether it is an action error.
-// 2. If it is not an error, evaluate the respective payload.
+// 1. Parse an action response to verify whether it is an error response.
+// 2. If it is not an error, evaluate the respective response content.
 
 /// All possible errors which might led a device action to fail.
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
