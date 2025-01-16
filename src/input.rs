@@ -2,50 +2,59 @@ use serde::{Deserialize, Serialize};
 
 use crate::collections::Collection;
 
-/// An [`Input`] structure.
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-pub enum InputStructure {
-    /// A [`bool`] value.
-    Bool {
-        /// Both the initial [`bool`] value, but also the default one in case of
-        /// missing input.
-        default: bool,
-    },
-    /// A [`u8`] value.
-    U8 {
-        /// Both the initial [`u8`] value, but also the default one in case of
-        /// missing input.
-        default: u8,
-    },
-    /// A range of [`u64`] values.
-    RangeU64 {
-        /// Minimum allowed [`u64`] value.
-        min: u64,
-        /// Maximum allowed [`u64`] value.
-        max: u64,
-        /// The [`u64`] step to pass from one allowed value to another one
-        /// within the range.
-        step: u64,
-        /// Initial [`u64`] range value.
-        default: u64,
-    },
-    /// A range of [`f64`] values.
-    RangeF64 {
-        /// Minimum allowed [`f64`] value.
-        min: f64,
-        /// Maximum allowed [`u64`] value.
-        max: f64,
-        /// The [`f64`] step to pass from one allowed value to another one
-        /// within the range.
-        step: f64,
-        /// Initial [`f64`] range value.
-        default: f64,
-    },
-}
-
 #[cfg(feature = "alloc")]
-mod input_data {
-    use super::{Deserialize, Input, InputStructure, Serialize};
+mod input {
+    use super::{Deserialize, Serialize};
+
+    /// An [`Input`] structure.
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    pub enum InputStructure {
+        /// A [`bool`] value.
+        Bool {
+            /// Both the initial [`bool`] value, but also the default one
+            /// in case of missing input.
+            default: bool,
+        },
+        /// A [`u8`] value.
+        U8 {
+            /// Both the initial [`u8`] value, but also the default one
+            /// in case of missing input.
+            default: u8,
+        },
+        /// A range of [`u64`] values.
+        RangeU64 {
+            /// Minimum allowed [`u64`] value.
+            min: u64,
+            /// Maximum allowed [`u64`] value.
+            max: u64,
+            /// The [`u64`] step to pass from one allowed value to another one
+            /// within the range.
+            step: u64,
+            /// Initial [`u64`] range value.
+            default: u64,
+        },
+        /// A range of [`f64`] values.
+        RangeF64 {
+            /// Minimum allowed [`f64`] value.
+            min: f64,
+            /// Maximum allowed [`u64`] value.
+            max: f64,
+            /// The [`f64`] step to pass from one allowed value to another one
+            /// within the range.
+            step: f64,
+            /// Initial [`f64`] range value.
+            default: f64,
+        },
+        /// A characters sequence.
+        ///
+        /// This kind of input can contain an unknown or a precise sequence of
+        /// characters expressed either as a fixed-size or an allocated string.
+        CharsSequence {
+            /// Initial characters sequence, which also represents the default
+            /// value.
+            default: alloc::borrow::Cow<'static, str>,
+        },
+    }
 
     /// Input data.
     #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -55,6 +64,15 @@ mod input_data {
         /// Input structure.
         #[serde(rename = "structure")]
         pub structure: InputStructure,
+    }
+
+    /// All supported inputs.
+    #[derive(Debug, Clone)]
+    pub struct Input {
+        // Name.
+        pub(super) name: &'static str,
+        // Input structure.
+        pub(super) structure: InputStructure,
     }
 
     impl InputData {
@@ -71,17 +89,67 @@ mod input_data {
 }
 
 #[cfg(not(feature = "alloc"))]
-mod input_data {
-    use super::*;
+mod input {
+    use super::{Deserialize, Serialize};
+
+    /// An [`Input`] structure.
+    #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+    pub enum InputStructure {
+        /// A [`bool`] value.
+        Bool {
+            /// Both the initial [`bool`] value, but also the default one in case of
+            /// missing input.
+            default: bool,
+        },
+        /// A [`u8`] value.
+        U8 {
+            /// Both the initial [`u8`] value, but also the default one in case of
+            /// missing input.
+            default: u8,
+        },
+        /// A range of [`u64`] values.
+        RangeU64 {
+            /// Minimum allowed [`u64`] value.
+            min: u64,
+            /// Maximum allowed [`u64`] value.
+            max: u64,
+            /// The [`u64`] step to pass from one allowed value to another one
+            /// within the range.
+            step: u64,
+            /// Initial [`u64`] range value.
+            default: u64,
+        },
+        /// A range of [`f64`] values.
+        RangeF64 {
+            /// Minimum allowed [`f64`] value.
+            min: f64,
+            /// Maximum allowed [`u64`] value.
+            max: f64,
+            /// The [`f64`] step to pass from one allowed value to another one
+            /// within the range.
+            step: f64,
+            /// Initial [`f64`] range value.
+            default: f64,
+        },
+    }
 
     /// Input data.
-    #[derive(Debug, Clone, Serialize)]
+    #[derive(Debug, Clone, Copy, Serialize)]
     pub struct InputData {
         /// Name.
         pub name: &'static str,
         /// Input structure.
         #[serde(rename = "structure")]
         pub structure: InputStructure,
+    }
+
+    /// All supported inputs.
+    #[derive(Debug, Clone, Copy)]
+    pub struct Input {
+        // Name.
+        pub(super) name: &'static str,
+        // Input structure.
+        pub(super) structure: InputStructure,
     }
 
     impl InputData {
@@ -97,36 +165,26 @@ mod input_data {
     pub type InputsData = crate::collections::SerialCollection<InputData>;
 }
 
-impl core::cmp::PartialEq for input_data::InputData {
+pub use input::{Input, InputData, InputStructure, InputsData};
+
+impl core::cmp::PartialEq for InputData {
     fn eq(&self, other: &Self) -> bool {
         self.name == other.name
     }
 }
 
-impl core::cmp::Eq for input_data::InputData {}
+impl core::cmp::Eq for InputData {}
 
-impl core::hash::Hash for input_data::InputData {
+impl core::hash::Hash for InputData {
     fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
         self.name.hash(state);
     }
 }
 
-impl From<Input> for input_data::InputData {
+impl From<Input> for InputData {
     fn from(input: Input) -> Self {
         Self::new(input)
     }
-}
-
-pub use input_data::InputData;
-pub use input_data::InputsData;
-
-/// All supported inputs.
-#[derive(Debug, Clone, Copy)]
-pub struct Input {
-    // Name.
-    name: &'static str,
-    // Input structure.
-    structure: InputStructure,
 }
 
 impl core::cmp::PartialEq for Input {
@@ -144,6 +202,13 @@ impl core::hash::Hash for Input {
 }
 
 impl Input {
+    /// Returns [`Input`] name.
+    #[must_use]
+    #[inline]
+    pub const fn name(&self) -> &str {
+        self.name
+    }
+
     /// Creates a [`bool`] input.
     #[must_use]
     #[inline]
@@ -208,11 +273,20 @@ impl Input {
         }
     }
 
-    /// Returns [`Input`] name.
+    /// Creates a characters sequence with a default value.
     #[must_use]
     #[inline]
-    pub const fn name(&self) -> &str {
-        self.name
+    #[cfg(feature = "alloc")]
+    pub fn characters_sequence(
+        name: &'static str,
+        default: impl Into<alloc::borrow::Cow<'static, str>>,
+    ) -> Self {
+        Self {
+            name,
+            structure: InputStructure::CharsSequence {
+                default: default.into(),
+            },
+        }
     }
 }
 
@@ -254,6 +328,22 @@ mod tests {
                 5.
             )))),
             InputData::from(Input::rangef64_with_default("rangef64", (0., 20., 0.1), 5.))
+        );
+
+        assert_eq!(
+            deserialize::<InputData>(serialize(InputData::from(Input::characters_sequence(
+                "greeting", "hello",
+            )))),
+            InputData::from(Input::characters_sequence("greeting", "hello"))
+        );
+
+        use crate::alloc::string::ToString;
+        assert_eq!(
+            deserialize::<InputData>(serialize(InputData::from(Input::characters_sequence(
+                "greeting",
+                "hello".to_string(),
+            )))),
+            InputData::from(Input::characters_sequence("greeting", "hello"))
         );
     }
 }
