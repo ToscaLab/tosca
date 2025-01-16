@@ -25,12 +25,12 @@ macro_rules! from {
         impl<T, K> From<$from<K>> for $for<T>
         where
             T: Clone + PartialEq + Eq + Hash + From<K>,
-            K: Clone + Copy + PartialEq + Eq + Hash,
+            K: Clone + PartialEq + Eq + Hash,
         {
             fn from(other_collection: $from<K>) -> Self {
                 let mut elements = Self::empty();
                 for other_element in other_collection.iter() {
-                    let _ = elements.0.insert(T::from(*other_element));
+                    let _ = elements.0.insert(T::from(other_element.clone()));
                 }
                 elements
             }
@@ -42,7 +42,7 @@ macro_rules! implementation {
     ($impl:ident) => {
         impl<T> $impl<T>
         where
-            T: PartialEq + Eq + Hash,
+            T: Clone + PartialEq + Eq + Hash,
         {
             #[doc = concat!("Creates an empty [`", stringify!($impl), "`].")]
             #[must_use]
@@ -98,27 +98,17 @@ macro_rules! implementation {
             pub fn iter(&self) -> IndexSetIter<'_, T> {
                 self.0.iter()
             }
-        }
 
-        impl<T> $impl<T>
-        where
-            T: Clone + Copy + PartialEq + Eq + Hash,
-        {
             #[doc = concat!("Initializes [`", stringify!($impl), "`] with a list of elements.")]
             #[inline]
             pub fn init_with_elements(input_elements: &[T]) -> Self {
                 let mut elements = Self::empty();
                 for element in input_elements.iter() {
-                     elements.add(*element);
+                     elements.add(element.clone());
                 }
                 elements
             }
-        }
 
-        impl<T> $impl<T>
-        where
-            T: Clone + PartialEq + Eq + Hash,
-        {
             #[doc = concat!("Merges all elements from another [`", stringify!($impl), "`] into this one.")]
             #[inline]
             pub fn merge(&mut self, element: &Self) {
