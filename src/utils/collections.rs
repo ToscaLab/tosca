@@ -1,5 +1,3 @@
-#![allow(clippy::iter_without_into_iter)]
-
 use core::hash::Hash;
 
 use heapless::{FnvIndexSet, IndexSetIter};
@@ -43,6 +41,18 @@ macro_rules! from_collection {
 
 macro_rules! implementation {
     ($impl:ident $(,$trait:ident)?) => {
+        impl<'a, T> IntoIterator for &'a $impl<T>
+        where
+            T: Clone + $($trait +)? PartialEq + Eq + Hash,
+        {
+            type Item = &'a T;
+            type IntoIter = heapless::IndexSetIter<'a, T>;
+
+            fn into_iter(self) -> Self::IntoIter {
+                self.iter()
+            }
+        }
+
         impl<T> $impl<T>
         where
             T: Clone + $($trait +)? PartialEq + Eq + Hash,
