@@ -25,7 +25,7 @@
 #![deny(missing_docs)]
 #![no_std]
 
-#[cfg(feature = "std")]
+#[cfg(feature = "alloc")]
 extern crate alloc;
 
 // REMINDERS:
