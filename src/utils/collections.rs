@@ -20,17 +20,37 @@ pub struct SerialCollection<T: PartialEq + Eq + Hash>(FnvIndexSet<T, MAXIMUM_ELE
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct OutputCollection<T: PartialEq + Eq + Hash>(FnvIndexSet<T, MAXIMUM_ELEMENTS>);
 
+#[cfg(feature = "alloc")]
 macro_rules! from {
     ($from:ident, $for:ident) => {
         impl<T, K> From<$from<K>> for $for<T>
         where
-            T: Clone + PartialEq + Eq + Hash + From<K>,
-            K: Clone + PartialEq + Eq + Hash,
+            T: Clone + PartialEq + Eq + Hash,
+            K: Clone + PartialEq + Eq + Hash + Into<T>,
         {
-            fn from(other_collection: $from<K>) -> Self {
+            fn from(collection: $from<K>) -> Self {
                 let mut elements = Self::empty();
-                for other_element in other_collection.iter() {
-                    let _ = elements.0.insert(T::from(other_element.clone()));
+                for other_element in collection.iter() {
+                    let _ = elements.0.insert(other_element.clone().into());
+                }
+                elements
+            }
+        }
+    };
+}
+
+#[cfg(not(feature = "alloc"))]
+macro_rules! from_copy {
+    ($from:ident, $for:ident) => {
+        impl<T, K> From<$from<K>> for $for<T>
+        where
+            T: Clone + PartialEq + Eq + Hash + From<K>,
+            K: Clone + Copy + PartialEq + Eq + Hash,
+        {
+            fn from(collection: $from<K>) -> Self {
+                let mut elements = Self::empty();
+                for other_element in collection.iter() {
+                    let _ = elements.0.insert(T::from(*other_element));
                 }
                 elements
             }
@@ -39,10 +59,10 @@ macro_rules! from {
 }
 
 macro_rules! implementation {
-    ($impl:ident) => {
+    ($impl:ident $(,$trait:ident)?) => {
         impl<T> $impl<T>
         where
-            T: Clone + PartialEq + Eq + Hash,
+            T: Clone + $($trait +)? PartialEq + Eq + Hash,
         {
             #[doc = concat!("Creates an empty [`", stringify!($impl), "`].")]
             #[must_use]
@@ -118,15 +138,32 @@ macro_rules! implementation {
     };
 }
 
-// Collection implementation.
-implementation!(Collection);
+#[cfg(feature = "alloc")]
+mod alloc {
+    use super::{Collection, FnvIndexSet, Hash, IndexSetIter, OutputCollection, SerialCollection};
+
+    // Collection implementation.
+    implementation!(Collection);
+
+    // From macro traits.
+    from!(Collection, OutputCollection);
+    from!(Collection, SerialCollection);
+}
+
+#[cfg(not(feature = "alloc"))]
+mod alloc {
+    use super::{Collection, FnvIndexSet, Hash, IndexSetIter, OutputCollection, SerialCollection};
+
+    // Collection implementation.
+    implementation!(Collection, Copy);
+
+    // From macro traits.
+    from_copy!(Collection, OutputCollection);
+    from_copy!(Collection, SerialCollection);
+}
 
 // Serial collection implementation.
 implementation!(SerialCollection);
 
 // Output collection implementation.
 implementation!(OutputCollection);
-
-// From macro traits.
-from!(Collection, OutputCollection);
-from!(Collection, SerialCollection);
