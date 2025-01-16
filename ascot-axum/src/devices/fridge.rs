@@ -128,7 +128,7 @@ where
         let fridge_action = fridge_action(self.device.state.clone());
 
         // Return an error if action hazards are not a subset of allowed hazards.
-        for hazard in fridge_action.hazards().iter() {
+        for hazard in fridge_action.hazards() {
             if !self.allowed_hazards.contains(hazard) {
                 return Err(Error::device(
                     DeviceKind::Fridge,

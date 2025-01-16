@@ -43,7 +43,7 @@ pub(super) use all_the_tuples;
 
 fn build_get_route(route: &str, inputs: &InputsData) -> String {
     let mut route = String::from(route);
-    for input in inputs.iter() {
+    for input in inputs {
         route.push_str(&format!("/{{{}}}", input.name));
     }
     info!("Build GET route: {}", route);

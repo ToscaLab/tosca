@@ -93,7 +93,7 @@ where
     }
 
     pub(crate) fn finalize(self) -> (&'static str, DeviceData, Router) {
-        for route in self.route_configs.iter() {
+        for route in &self.route_configs {
             info!(
                 "Device route: [{}, \"{}{}\"]",
                 route.rest_kind, self.main_route, route.data.name,
