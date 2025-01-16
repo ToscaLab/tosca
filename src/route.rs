@@ -7,11 +7,36 @@ use crate::response::ResponseKind;
 
 use crate::MAXIMUM_ELEMENTS;
 
+/// `REST` requests kind.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum RestKind {
+    /// `GET` request.
+    Get,
+    /// `PUT` request.
+    Put,
+    /// `POST` request.
+    Post,
+    /// `DELETE` request.
+    Delete,
+}
+
+impl core::fmt::Display for RestKind {
+    fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+        match self {
+            Self::Get => "GET",
+            Self::Put => "PUT",
+            Self::Post => "POST",
+            Self::Delete => "DELETE",
+        }
+        .fmt(f)
+    }
+}
+
 #[cfg(feature = "alloc")]
-mod route_data {
+mod route {
     use alloc::borrow::Cow;
 
-    use super::{Deserialize, Hazards, InputsData, Route, Serialize};
+    use super::{Deserialize, Hazards, InputsData, ResponseKind, RestKind, Route, Serialize};
 
     /// Route data.
     #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -46,11 +71,28 @@ mod route_data {
             }
         }
     }
+
+    /// A server route configuration.
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    pub struct RouteConfig {
+        /// Route.
+        #[serde(flatten)]
+        pub data: RouteData,
+        /// **_REST_** kind..
+        #[serde(rename = "REST kind")]
+        pub rest_kind: RestKind,
+        /// Response kind.
+        #[serde(rename = "response kind")]
+        pub response_kind: ResponseKind,
+    }
+
+    /// A collection of [`RouteConfig`]s.
+    pub type RouteConfigs = crate::collections::OutputCollection<RouteConfig>;
 }
 
 #[cfg(not(feature = "alloc"))]
-mod route_data {
-    use super::{Hazards, InputsData, Route, Serialize};
+mod route {
+    use super::{Hazards, InputsData, ResponseKind, RestKind, Route, Serialize};
 
     /// Route data.
     #[derive(Debug, Clone, Serialize)]
@@ -84,60 +126,6 @@ mod route_data {
             }
         }
     }
-}
-
-pub use route_data::RouteData;
-
-/// `REST` requests kind.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub enum RestKind {
-    /// `GET` request.
-    Get,
-    /// `PUT` request.
-    Put,
-    /// `POST` request.
-    Post,
-    /// `DELETE` request.
-    Delete,
-}
-
-impl core::fmt::Display for RestKind {
-    fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
-        match self {
-            Self::Get => "GET",
-            Self::Put => "PUT",
-            Self::Post => "POST",
-            Self::Delete => "DELETE",
-        }
-        .fmt(f)
-    }
-}
-
-#[cfg(feature = "alloc")]
-mod route_config {
-    use super::{Deserialize, ResponseKind, RestKind, RouteData, Serialize};
-
-    /// A server route configuration.
-    #[derive(Debug, Clone, Serialize, Deserialize)]
-    pub struct RouteConfig {
-        /// Route.
-        #[serde(flatten)]
-        pub data: RouteData,
-        /// **_REST_** kind..
-        #[serde(rename = "REST kind")]
-        pub rest_kind: RestKind,
-        /// Response kind.
-        #[serde(rename = "response kind")]
-        pub response_kind: ResponseKind,
-    }
-
-    /// A collection of [`RouteConfig`]s.
-    pub type RouteConfigs = crate::collections::OutputCollection<RouteConfig>;
-}
-
-#[cfg(not(feature = "alloc"))]
-mod route_config {
-    use super::{ResponseKind, RestKind, RouteData, Serialize};
 
     /// A server route configuration.
     #[derive(Debug, Clone, Serialize)]
@@ -157,22 +145,24 @@ mod route_config {
     pub type RouteConfigs = crate::collections::SerialCollection<RouteConfig>;
 }
 
-impl PartialEq for route_config::RouteConfig {
+pub use route::{RouteConfig, RouteConfigs, RouteData};
+
+impl PartialEq for RouteConfig {
     fn eq(&self, other: &Self) -> bool {
         self.data.eq(&other.data) && self.rest_kind == other.rest_kind
     }
 }
 
-impl Eq for route_config::RouteConfig {}
+impl Eq for RouteConfig {}
 
-impl core::hash::Hash for route_config::RouteConfig {
+impl core::hash::Hash for RouteConfig {
     fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
         self.data.name.hash(state);
         self.rest_kind.hash(state);
     }
 }
 
-impl route_config::RouteConfig {
+impl RouteConfig {
     fn new(route: Route) -> Self {
         Self {
             rest_kind: route.rest_kind,
@@ -181,9 +171,6 @@ impl route_config::RouteConfig {
         }
     }
 }
-
-pub use route_config::RouteConfig;
-pub use route_config::RouteConfigs;
 
 /// A server route.
 ///
