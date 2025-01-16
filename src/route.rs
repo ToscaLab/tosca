@@ -33,7 +33,7 @@ impl core::fmt::Display for RestKind {
 }
 
 #[cfg(feature = "alloc")]
-mod route {
+mod private_route {
     use alloc::borrow::Cow;
 
     use super::{Deserialize, Hazards, InputsData, ResponseKind, RestKind, Route, Serialize};
@@ -91,7 +91,7 @@ mod route {
 }
 
 #[cfg(not(feature = "alloc"))]
-mod route {
+mod private_route {
     use super::{Hazards, InputsData, ResponseKind, RestKind, Route, Serialize};
 
     /// Route data.
@@ -145,7 +145,7 @@ mod route {
     pub type RouteConfigs = crate::collections::SerialCollection<RouteConfig>;
 }
 
-pub use route::{RouteConfig, RouteConfigs, RouteData};
+pub use private_route::{RouteConfig, RouteConfigs, RouteData};
 
 impl PartialEq for RouteConfig {
     fn eq(&self, other: &Self) -> bool {

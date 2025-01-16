@@ -88,7 +88,7 @@ pub enum DeviceEnvironment {
 }
 
 #[cfg(feature = "alloc")]
-mod device_data {
+mod private_device {
     use crate::route::RouteConfigs;
 
     use super::{Deserialize, DeviceEnvironment, DeviceKind, Serialize};
@@ -109,6 +109,7 @@ mod device_data {
 
     impl DeviceData {
         /// Creates a [`DeviceData`].
+        #[must_use]
         pub fn new(
             kind: DeviceKind,
             environment: DeviceEnvironment,
@@ -126,7 +127,7 @@ mod device_data {
 }
 
 #[cfg(not(feature = "alloc"))]
-mod device_data {
+mod private_device {
     use crate::route::RouteConfigs;
 
     use super::{DeviceEnvironment, DeviceKind, Serialize};
@@ -147,6 +148,7 @@ mod device_data {
 
     impl DeviceData {
         /// Creates a [`DeviceData`].
+        #[must_use]
         pub fn new(
             kind: DeviceKind,
             environment: DeviceEnvironment,
@@ -163,4 +165,4 @@ mod device_data {
     }
 }
 
-pub use device_data::DeviceData;
+pub use private_device::DeviceData;
