@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use crate::collections::Collection;
 
 #[cfg(feature = "alloc")]
-mod input {
+mod private_input {
     use super::{Deserialize, Serialize};
 
     /// An [`Input`] structure.
@@ -89,7 +89,7 @@ mod input {
 }
 
 #[cfg(not(feature = "alloc"))]
-mod input {
+mod private_input {
     use super::{Deserialize, Serialize};
 
     /// An [`Input`] structure.
@@ -165,7 +165,7 @@ mod input {
     pub type InputsData = crate::collections::SerialCollection<InputData>;
 }
 
-pub use input::{Input, InputData, InputStructure, InputsData};
+pub use private_input::{Input, InputData, InputStructure, InputsData};
 
 impl core::cmp::PartialEq for InputData {
     fn eq(&self, other: &Self) -> bool {
@@ -296,6 +296,7 @@ pub type Inputs = Collection<Input>;
 #[cfg(feature = "alloc")]
 #[cfg(test)]
 mod tests {
+    use crate::alloc::string::ToString;
     use crate::{deserialize, serialize};
 
     use super::{Input, InputData};
@@ -337,7 +338,6 @@ mod tests {
             InputData::from(Input::characters_sequence("greeting", "hello"))
         );
 
-        use crate::alloc::string::ToString;
         assert_eq!(
             deserialize::<InputData>(serialize(InputData::from(Input::characters_sequence(
                 "greeting",
