@@ -117,10 +117,7 @@ macro_rules! implementation {
             pub fn init_with_elements(input_elements: &[T]) -> Self {
                 let mut elements = Self::empty();
                 for element in input_elements.iter() {
-                    #[cfg(feature = "alloc")]
                     elements.add(element.clone());
-                    #[cfg(not(feature = "alloc"))]
-                    elements.add(*element);
                 }
                 elements
             }
@@ -128,17 +125,18 @@ macro_rules! implementation {
             #[doc = concat!("Merges all elements from another [`", stringify!($impl), "`] into this one.")]
             #[inline]
             pub fn merge(&mut self, element: &Self) {
-                #[cfg(feature = "alloc")]
-                let a = self.0.union(&element.0).cloned().collect();
-                #[cfg(not(feature = "alloc"))]
-                let a = self.0.union(&element.0).copied().collect();
-
-                self.0 = a;
+                self.0 = self.0.union(&element.0).cloned().collect();
             }
 
         }
     };
 }
+
+// Serial collection implementation.
+implementation!(SerialCollection);
+
+// Output collection implementation.
+implementation!(OutputCollection);
 
 #[cfg(feature = "alloc")]
 mod alloc {
@@ -146,12 +144,6 @@ mod alloc {
 
     // Collection implementation.
     implementation!(Collection);
-
-    // Output collection implementation.
-    implementation!(OutputCollection);
-
-    // Serial collection implementation.
-    implementation!(SerialCollection);
 
     // Convert from collection into serial collection.
     from_collection!(SerialCollection);
@@ -165,12 +157,6 @@ mod alloc {
 
     // Collection implementation.
     implementation!(Collection, Copy);
-
-    // Output collection implementation.
-    implementation!(OutputCollection, Copy);
-
-    // Serial collection implementation.
-    implementation!(SerialCollection, Copy);
 
     // Convert from collection into serial collection.
     from_collection!(SerialCollection, Copy);
