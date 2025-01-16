@@ -43,7 +43,7 @@ pub enum InputStructure {
     },
 }
 
-#[cfg(feature = "std")]
+#[cfg(feature = "alloc")]
 mod input_data {
     use super::{Deserialize, Input, InputStructure, Serialize};
 
@@ -70,7 +70,7 @@ mod input_data {
     pub type InputsData = crate::collections::OutputCollection<InputData>;
 }
 
-#[cfg(not(feature = "std"))]
+#[cfg(not(feature = "alloc"))]
 mod input_data {
     use super::*;
 
@@ -219,7 +219,7 @@ impl Input {
 /// A collection of [`Input`]s.
 pub type Inputs = Collection<Input>;
 
-#[cfg(feature = "std")]
+#[cfg(feature = "alloc")]
 #[cfg(test)]
 mod tests {
     use crate::{deserialize, serialize};
@@ -258,7 +258,7 @@ mod tests {
     }
 }
 
-#[cfg(not(feature = "std"))]
+#[cfg(not(feature = "alloc"))]
 #[cfg(test)]
 mod tests {
     use serde_json::json;

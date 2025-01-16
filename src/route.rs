@@ -7,7 +7,7 @@ use crate::response::ResponseKind;
 
 use crate::MAXIMUM_ELEMENTS;
 
-#[cfg(feature = "std")]
+#[cfg(feature = "alloc")]
 mod route_data {
     use alloc::borrow::Cow;
 
@@ -48,7 +48,7 @@ mod route_data {
     }
 }
 
-#[cfg(not(feature = "std"))]
+#[cfg(not(feature = "alloc"))]
 mod route_data {
     use super::{Hazards, InputsData, Route, Serialize};
 
@@ -113,7 +113,7 @@ impl core::fmt::Display for RestKind {
     }
 }
 
-#[cfg(feature = "std")]
+#[cfg(feature = "alloc")]
 mod route_config {
     use super::{Deserialize, ResponseKind, RestKind, RouteData, Serialize};
 
@@ -135,7 +135,7 @@ mod route_config {
     pub type RouteConfigs = crate::collections::OutputCollection<RouteConfig>;
 }
 
-#[cfg(not(feature = "std"))]
+#[cfg(not(feature = "alloc"))]
 mod route_config {
     use super::{ResponseKind, RestKind, RouteData, Serialize};
 
@@ -339,7 +339,7 @@ impl Route {
 /// A collection of [`Route`]s.
 pub type Routes = Collection<Route>;
 
-#[cfg(feature = "std")]
+#[cfg(feature = "alloc")]
 #[cfg(test)]
 mod tests {
     use crate::input::InputData;
@@ -510,7 +510,7 @@ mod tests {
     }
 }
 
-#[cfg(not(feature = "std"))]
+#[cfg(not(feature = "alloc"))]
 #[cfg(test)]
 mod tests {
     use serde_json::json;

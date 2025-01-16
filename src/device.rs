@@ -87,7 +87,7 @@ pub enum DeviceEnvironment {
     Esp32,
 }
 
-#[cfg(feature = "std")]
+#[cfg(feature = "alloc")]
 mod device_data {
     use crate::route::RouteConfigs;
 
@@ -125,7 +125,7 @@ mod device_data {
     }
 }
 
-#[cfg(not(feature = "std"))]
+#[cfg(not(feature = "alloc"))]
 mod device_data {
     use crate::route::RouteConfigs;
 
