@@ -20,36 +20,19 @@ pub struct SerialCollection<T: PartialEq + Eq + Hash>(FnvIndexSet<T, MAXIMUM_ELE
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct OutputCollection<T: PartialEq + Eq + Hash>(FnvIndexSet<T, MAXIMUM_ELEMENTS>);
 
-#[cfg(feature = "alloc")]
-macro_rules! from {
-    ($from:ident, $for:ident) => {
-        impl<T, K> From<$from<K>> for $for<T>
+macro_rules! from_collection {
+    ($for:ident $(,$trait:ident)?) => {
+        impl<T, K> From<Collection<K>> for $for<T>
         where
-            T: Clone + PartialEq + Eq + Hash,
-            K: Clone + PartialEq + Eq + Hash + Into<T>,
+            T: Clone + $($trait +)?  PartialEq + Eq + Hash + From<K>,
+            K: Clone + $($trait +)? PartialEq + Eq + Hash,
         {
-            fn from(collection: $from<K>) -> Self {
+            fn from(collection: Collection<K>) -> Self {
                 let mut elements = Self::empty();
                 for other_element in collection.iter() {
-                    let _ = elements.0.insert(other_element.clone().into());
-                }
-                elements
-            }
-        }
-    };
-}
-
-#[cfg(not(feature = "alloc"))]
-macro_rules! from_copy {
-    ($from:ident, $for:ident) => {
-        impl<T, K> From<$from<K>> for $for<T>
-        where
-            T: Clone + PartialEq + Eq + Hash + From<K>,
-            K: Clone + Copy + PartialEq + Eq + Hash,
-        {
-            fn from(collection: $from<K>) -> Self {
-                let mut elements = Self::empty();
-                for other_element in collection.iter() {
+                    #[cfg(feature = "alloc")]
+                    let _ = elements.0.insert(T::from(other_element.clone()));
+                    #[cfg(not(feature = "alloc"))]
                     let _ = elements.0.insert(T::from(*other_element));
                 }
                 elements
@@ -124,7 +107,10 @@ macro_rules! implementation {
             pub fn init_with_elements(input_elements: &[T]) -> Self {
                 let mut elements = Self::empty();
                 for element in input_elements.iter() {
-                     elements.add(element.clone());
+                    #[cfg(feature = "alloc")]
+                    elements.add(element.clone());
+                    #[cfg(not(feature = "alloc"))]
+                    elements.add(*element);
                 }
                 elements
             }
@@ -132,8 +118,14 @@ macro_rules! implementation {
             #[doc = concat!("Merges all elements from another [`", stringify!($impl), "`] into this one.")]
             #[inline]
             pub fn merge(&mut self, element: &Self) {
-                self.0 = self.0.union(&element.0).cloned().collect();
+                #[cfg(feature = "alloc")]
+                let a = self.0.union(&element.0).cloned().collect();
+                #[cfg(not(feature = "alloc"))]
+                let a = self.0.union(&element.0).copied().collect();
+
+                self.0 = a;
             }
+
         }
     };
 }
@@ -145,9 +137,16 @@ mod alloc {
     // Collection implementation.
     implementation!(Collection);
 
-    // From macro traits.
-    from!(Collection, OutputCollection);
-    from!(Collection, SerialCollection);
+    // Output collection implementation.
+    implementation!(OutputCollection);
+
+    // Serial collection implementation.
+    implementation!(SerialCollection);
+
+    // Convert from collection into serial collection.
+    from_collection!(SerialCollection);
+    // Convert from collection into output collection.
+    from_collection!(OutputCollection);
 }
 
 #[cfg(not(feature = "alloc"))]
@@ -157,13 +156,15 @@ mod alloc {
     // Collection implementation.
     implementation!(Collection, Copy);
 
-    // From macro traits.
-    from_copy!(Collection, OutputCollection);
-    from_copy!(Collection, SerialCollection);
+    // Output collection implementation.
+    implementation!(OutputCollection, Copy);
+
+    // Serial collection implementation.
+    implementation!(SerialCollection, Copy);
+
+    // Convert from collection into serial collection.
+    from_collection!(SerialCollection, Copy);
+
+    // Convert from collection into output collection.
+    from_collection!(OutputCollection, Copy);
 }
-
-// Serial collection implementation.
-implementation!(SerialCollection);
-
-// Output collection implementation.
-implementation!(OutputCollection);
