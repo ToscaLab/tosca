@@ -54,6 +54,10 @@ mod private_input {
             /// value.
             default: alloc::borrow::Cow<'static, str>,
         },
+        /// A flag which identifies a stream of bytes.
+        ///
+        /// This kind of input can be used to send files.
+        BytesStream,
     }
 
     /// Input data.
@@ -288,6 +292,17 @@ impl Input {
             },
         }
     }
+
+    /// Creates a stream of bytes input.
+    #[must_use]
+    #[inline]
+    #[cfg(feature = "alloc")]
+    pub fn bytes_stream(name: &'static str) -> Self {
+        Self {
+            name,
+            structure: InputStructure::BytesStream,
+        }
+    }
 }
 
 /// A collection of [`Input`]s.
@@ -344,6 +359,13 @@ mod tests {
                 "hello".to_string(),
             )))),
             InputData::from(Input::characters_sequence("greeting", "hello"))
+        );
+
+        assert_eq!(
+            deserialize::<InputData>(serialize(InputData::from(Input::bytes_stream(
+                "bytes_stream"
+            )))),
+            InputData::from(Input::bytes_stream("bytes_stream"))
         );
     }
 }
