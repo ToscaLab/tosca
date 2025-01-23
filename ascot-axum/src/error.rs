@@ -24,12 +24,12 @@ pub enum ErrorKind {
 impl ErrorKind {
     pub(crate) const fn description(self) -> &'static str {
         match self {
-            ErrorKind::Service => "Service",
-            ErrorKind::NotFoundAddress => "Not Found Address",
-            ErrorKind::Serialization => "Serialization",
-            ErrorKind::Ascot => "Ascot",
-            ErrorKind::Device => "Device",
-            ErrorKind::External => "External",
+            Self::Service => "Service",
+            Self::NotFoundAddress => "Not Found Address",
+            Self::Serialization => "Serialization",
+            Self::Ascot => "Ascot",
+            Self::Device => "Device",
+            Self::External => "External",
         }
     }
 }
