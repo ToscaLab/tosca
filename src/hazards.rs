@@ -24,6 +24,7 @@ pub const ALL_HAZARDS: &[Hazard] = &[
     Hazard::TakeDeviceScreenshots,
     Hazard::TakePictures,
     Hazard::UnauthorisedPhysicalAccess,
+    Hazard::VideoStream,
     Hazard::WaterConsumption,
     Hazard::WaterFlooding,
 ];
@@ -35,45 +36,60 @@ pub enum Hazard {
     AirPoisoning,
     /// The execution may cause oxygen deficiency by gaseous substances.
     Asphyxia,
-    /// The execution authorises the app to record and save a video with audio on persistent storage.
+    /// The execution authorises an application to record and save a video with
+    /// audio coming from a device on persistent storage.
     AudioVideoRecordAndStore,
-    /// The execution authorises the app to obtain a video stream with audio.
+    /// The execution authorises an application to display a video
+    /// with audio coming from a device.
     AudioVideoStream,
-    /// The execution enables a device that consumes electricity.
+    /// The execution enables a device which consumes electricity.
     ElectricEnergyConsumption,
     /// The execution may cause an explosion.
     Explosion,
     /// The execution may cause fire.
     FireHazard,
-    /// The execution enables a device that consumes gas.
+    /// The execution enables a device which consumes gas.
     GasConsumption,
-    /// The execution authorises the app to get and save information about the app's energy impact on the device the app runs on.
+    /// The execution authorises an application to get and save information
+    /// about a device's energy impact.
     LogEnergyConsumption,
-    /// The execution authorises the app to get and save information about the app's duration of use.
+    /// The execution authorises an application to get and save information
+    /// about a device's duration of use.
     LogUsageTime,
-    /// The execution authorises the app to use payment information and make a periodic payment.
+    /// The execution authorises an application to use payment information and
+    /// make a periodic payment.
     PaySubscriptionFee,
     /// The execution may cause an interruption in the supply of electricity.
     PowerOutage,
     /// The execution may lead to exposure to high voltages.
     PowerSurge,
-    /// The execution authorises the app to get and save user inputs.
+    /// The execution authorises an application to get and save user inputs.
     RecordIssuedCommands,
-    /// The execution authorises the app to get and save information about the user's preferences.
+    /// The execution authorises an application to get and save information
+    /// about user's preferences.
     RecordUserPreferences,
-    /// The execution authorises the app to use payment information and make a payment transaction.
+    /// The execution authorises an application to use payment information and
+    /// make a payment transaction.
     SpendMoney,
     /// The execution may lead to rotten food.
     SpoiledFood,
-    /// The execution authorises the app to read the display output and take screenshots of it.
+    /// The execution authorises an application to read and take screenshots
+    /// from the display output.
     TakeDeviceScreenshots,
-    /// The execution authorises the app to use a camera and take photos.
+    /// The execution authorises an application to use a camera and take photos.
     TakePictures,
-    /// The execution disables a protection mechanism and unauthorised individuals may physically enter home.
+    /// The execution disables a protection mechanism, therefore unauthorised
+    /// individuals may physically access to the environment.
     UnauthorisedPhysicalAccess,
-    /// The execution enables a device that consumes water.
+    /// The execution authorises an application to record and save a video
+    /// coming from a device on persistent storage.
+    VideoRecordAndStore,
+    /// The execution authorises an application to display a video coming from
+    /// a device.
+    VideoStream,
+    /// The execution enables a device which consumes water.
     WaterConsumption,
-    /// The execution allows water usage which may lead to flood.
+    /// The execution enables a device to water usage, which may lead to flood.
     WaterFlooding,
 }
 
@@ -120,6 +136,8 @@ impl Hazard {
             Self::TakeDeviceScreenshots => "Take Device Screenshots",
             Self::TakePictures => "Take Pictures",
             Self::UnauthorisedPhysicalAccess => "Unauthorised Physical Access",
+            Self::VideoRecordAndStore => "Video Record and Store",
+            Self::VideoStream => "Video Stream",
             Self::WaterConsumption => "Water Consumption",
             Self::WaterFlooding => "Water Flooding",
         }
@@ -131,26 +149,28 @@ impl Hazard {
         match self {
             Self::AirPoisoning => "The execution may release toxic gases.",
             Self::Asphyxia => "The execution may cause oxygen deficiency by gaseous substances.",
-            Self::AudioVideoRecordAndStore => "The execution authorises the app to record and save a video with audio on persistent storage.",
-            Self::AudioVideoStream => "The execution authorises the app to obtain a video stream with audio.",
-            Self::ElectricEnergyConsumption => "The execution enables a device that consumes electricity.",
+            Self::AudioVideoRecordAndStore => "The execution authorises an application to record and save a video with audio coming from a device on persistent storage.",
+            Self::AudioVideoStream => "The execution authorises an application to display a video with audio coming from a device.",
+            Self::ElectricEnergyConsumption => "The execution enables a device which consumes electricity.",
             Self::Explosion => "The execution may cause an explosion.",
             Self::FireHazard => "The execution may cause fire.",
-            Self::GasConsumption => "The execution enables a device that consumes gas.",
-            Self::LogEnergyConsumption => "The execution authorises the app to get and save information about the app's energy impact on the device the app runs on.",
-            Self::LogUsageTime => "The execution authorises the app to get and save information about the app's duration of use.",
-            Self::PaySubscriptionFee => "The execution authorises the app to use payment information and make a periodic payment.",
+            Self::GasConsumption => "The execution enables a device which consumes gas.",
+            Self::LogEnergyConsumption => "The execution authorises an application to get and save information about a device's energy impact.",
+            Self::LogUsageTime => "The execution authorises an application to get and save information about a device's duration of use.",
+            Self::PaySubscriptionFee => "The execution authorises an application to use payment information and make a periodic payment.",
             Self::PowerOutage => "The execution may cause an interruption in the supply of electricity.",
             Self::PowerSurge => "The execution may lead to exposure to high voltages.",
-            Self::RecordIssuedCommands => "The execution authorises the app to get and save user inputs.",
-            Self::RecordUserPreferences => "The execution authorises the app to get and save information about the user's preferences.",
-            Self::SpendMoney => "The execution authorises the app to use payment information and make a payment transaction.",
+            Self::RecordIssuedCommands => "The execution authorises an application to get and save user inputs.",
+            Self::RecordUserPreferences => "The execution authorises an application to get and save information about user's preferences.",
+            Self::SpendMoney => "The execution authorises an application to use payment information and make a payment transaction.",
             Self::SpoiledFood => "The execution may lead to rotten food.",
-            Self::TakeDeviceScreenshots => "The execution authorises the app to read the display output and take screenshots of it.",
-            Self::TakePictures => "The execution authorises the app to use a camera and take photos.",
-            Self::UnauthorisedPhysicalAccess => "The execution disables a protection mechanism and unauthorised individuals may physically enter home.",
-            Self::WaterConsumption => "The execution enables a device that consumes water.",
-            Self::WaterFlooding => "The execution allows water usage which may lead to flood.",
+            Self::TakeDeviceScreenshots => "The execution authorises an application to read and take screenshots from the display output.",
+            Self::TakePictures => "The execution authorises an application to use a camera and take photos.",
+            Self::UnauthorisedPhysicalAccess => "The execution disables a protection mechanism, therefore unauthorised individuals may physically access to the environment.",
+            Self::VideoRecordAndStore => "The execution authorises an application to record and save a video coming from a device on persistent storage.",
+            Self::VideoStream => "The execution authorises an application to display a video coming from a device.",
+            Self::WaterConsumption => "The execution enables a device which consumes water.",
+            Self::WaterFlooding => "The execution enables a device to water usage, which may lead to flood.",
         }
     }
 
@@ -172,11 +192,13 @@ impl Hazard {
             Self::AudioVideoRecordAndStore
             | Self::AudioVideoStream
             | Self::LogEnergyConsumption
+            | Self::LogUsageTime
             | Self::RecordIssuedCommands
             | Self::RecordUserPreferences
             | Self::TakeDeviceScreenshots
             | Self::TakePictures
-            | Self::LogUsageTime => Category::Privacy,
+            | Self::VideoRecordAndStore
+            | Self::VideoStream => Category::Privacy,
             Self::ElectricEnergyConsumption
             | Self::GasConsumption
             | Self::PaySubscriptionFee
@@ -209,8 +231,10 @@ impl Hazard {
             Self::TakeDeviceScreenshots => 17,
             Self::TakePictures => 18,
             Self::UnauthorisedPhysicalAccess => 19,
-            Self::WaterConsumption => 20,
-            Self::WaterFlooding => 21,
+            Self::VideoRecordAndStore => 20,
+            Self::VideoStream => 21,
+            Self::WaterConsumption => 22,
+            Self::WaterFlooding => 23,
         }
     }
 
@@ -241,8 +265,10 @@ impl Hazard {
             17 => Some(Self::TakeDeviceScreenshots),
             18 => Some(Self::TakePictures),
             19 => Some(Self::UnauthorisedPhysicalAccess),
-            20 => Some(Self::WaterConsumption),
-            21 => Some(Self::WaterFlooding),
+            20 => Some(Self::VideoRecordAndStore),
+            21 => Some(Self::VideoStream),
+            22 => Some(Self::WaterConsumption),
+            23 => Some(Self::WaterFlooding),
             _ => None,
         }
     }
@@ -286,11 +312,11 @@ pub const ALL_CATEGORIES: &[Category] = &[Category::Safety, Category::Privacy, C
 /// Hazard categories.
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Category {
-    /// Category which includes all the financial-related hazards.
+    /// Category which includes all financial-related hazards.
     Financial,
-    /// Category which includes all the privacy-related hazards.
+    /// Category which includes all privacy-related hazards.
     Privacy,
-    /// Category which includes all the safety-related hazards.
+    /// Category which includes all safety-related hazards.
     Safety,
 }
 
@@ -347,6 +373,8 @@ impl Category {
                 Hazard::RecordUserPreferences,
                 Hazard::TakeDeviceScreenshots,
                 Hazard::TakePictures,
+                Hazard::VideoRecordAndStore,
+                Hazard::VideoStream,
             ],
             Self::Safety => &[
                 Hazard::AirPoisoning,
