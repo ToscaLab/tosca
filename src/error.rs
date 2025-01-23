@@ -8,7 +8,7 @@ pub enum ErrorKind {
 impl ErrorKind {
     pub(crate) const fn description(self) -> &'static str {
         match self {
-            ErrorKind::FixedText => "Fixed-size text",
+            Self::FixedText => "Fixed-size text",
         }
     }
 }
