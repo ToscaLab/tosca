@@ -225,20 +225,24 @@ async fn main() -> Result<(), Error> {
     // Decrease temperature `PUT` route.
     let decrease_temp_route = Route::put("/decrease-temperature")
         .description("Decrease temperature.")
-        .with_hazard(Hazard::ElectricEnergyConsumption)
+        .with_slice_hazards(&[Hazard::ElectricEnergyConsumption, Hazard::SpoiledFood])
         .with_input(Input::rangef64_with_default("decrement", (1., 4., 0.1), 2.));
 
     // Increase temperature `POST` route.
     let increase_temp_post_route = Route::post("/increase-temperature")
         .description("Increase temperature.")
+        .with_slice_hazards(&[Hazard::ElectricEnergyConsumption, Hazard::SpoiledFood])
         .with_input(Input::rangef64_with_default("increment", (1., 4., 0.1), 2.));
 
     // Device info `GET` route.
-    let info_route = Route::get("/info").description("Get info about a fridge.");
+    let info_route = Route::get("/info")
+        .description("Get info about a fridge.")
+        .with_hazard(Hazard::LogEnergyConsumption);
 
     // Update energy efficiency `GET` route.
-    let update_energy_efficiency_route =
-        Route::get("/update-energy").description("Update energy efficiency.");
+    let update_energy_efficiency_route = Route::get("/update-energy")
+        .description("Update energy efficiency.")
+        .with_hazard(Hazard::LogEnergyConsumption);
 
     // A fridge device which is going to be run on the server.
     let device = Fridge::with_state(state)
