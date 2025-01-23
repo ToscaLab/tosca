@@ -107,15 +107,7 @@ impl DeviceAction {
         Self::init(route, response_kind, handler, state)
     }
 
-    fn init<H, T, S>(
-        route: Route,
-        response_kind: ResponseKind,
-        /*route: &str,
-        route_kind: RestKind,
-        inputs: &Inputs,*/
-        handler: H,
-        state: S,
-    ) -> Self
+    fn init<H, T, S>(route: Route, response_kind: ResponseKind, handler: H, state: S) -> Self
     where
         H: Handler<T, S>,
         T: 'static,
