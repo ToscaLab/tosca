@@ -6,8 +6,8 @@ use crate::collections::OutputCollection;
 pub const ALL_HAZARDS: &[Hazard] = &[
     Hazard::AirPoisoning,
     Hazard::Asphyxia,
+    Hazard::AudioVideoDisplay,
     Hazard::AudioVideoRecordAndStore,
-    Hazard::AudioVideoStream,
     Hazard::ElectricEnergyConsumption,
     Hazard::Explosion,
     Hazard::FireHazard,
@@ -24,7 +24,8 @@ pub const ALL_HAZARDS: &[Hazard] = &[
     Hazard::TakeDeviceScreenshots,
     Hazard::TakePictures,
     Hazard::UnauthorisedPhysicalAccess,
-    Hazard::VideoStream,
+    Hazard::VideoDisplay,
+    Hazard::VideoRecordAndStore,
     Hazard::WaterConsumption,
     Hazard::WaterFlooding,
 ];
@@ -36,12 +37,12 @@ pub enum Hazard {
     AirPoisoning,
     /// The execution may cause oxygen deficiency by gaseous substances.
     Asphyxia,
+    /// The execution authorises an application to display a video
+    /// with audio coming from a device.
+    AudioVideoDisplay,
     /// The execution authorises an application to record and save a video with
     /// audio coming from a device on persistent storage.
     AudioVideoRecordAndStore,
-    /// The execution authorises an application to display a video
-    /// with audio coming from a device.
-    AudioVideoStream,
     /// The execution enables a device which consumes electricity.
     ElectricEnergyConsumption,
     /// The execution may cause an explosion.
@@ -81,12 +82,12 @@ pub enum Hazard {
     /// The execution disables a protection mechanism, therefore unauthorised
     /// individuals may physically access to the environment.
     UnauthorisedPhysicalAccess,
+    /// The execution authorises an application to display a video coming from
+    /// a device.
+    VideoDisplay,
     /// The execution authorises an application to record and save a video
     /// coming from a device on persistent storage.
     VideoRecordAndStore,
-    /// The execution authorises an application to display a video coming from
-    /// a device.
-    VideoStream,
     /// The execution enables a device which consumes water.
     WaterConsumption,
     /// The execution enables a device to water usage, which may lead to flood.
@@ -118,8 +119,8 @@ impl Hazard {
         match self {
             Self::AirPoisoning => "Air Poisoning",
             Self::Asphyxia => "Asphyxia",
+            Self::AudioVideoDisplay => "Audio Video Display",
             Self::AudioVideoRecordAndStore => "Audio Video Record And Store",
-            Self::AudioVideoStream => "Audio Video Stream",
             Self::ElectricEnergyConsumption => "Electric Energy Consumption",
             Self::Explosion => "Explosion",
             Self::FireHazard => "Fire Hazard",
@@ -136,8 +137,8 @@ impl Hazard {
             Self::TakeDeviceScreenshots => "Take Device Screenshots",
             Self::TakePictures => "Take Pictures",
             Self::UnauthorisedPhysicalAccess => "Unauthorised Physical Access",
+            Self::VideoDisplay => "Video Display",
             Self::VideoRecordAndStore => "Video Record and Store",
-            Self::VideoStream => "Video Stream",
             Self::WaterConsumption => "Water Consumption",
             Self::WaterFlooding => "Water Flooding",
         }
@@ -149,8 +150,8 @@ impl Hazard {
         match self {
             Self::AirPoisoning => "The execution may release toxic gases.",
             Self::Asphyxia => "The execution may cause oxygen deficiency by gaseous substances.",
+            Self::AudioVideoDisplay => "The execution authorises an application to display a video with audio coming from a device.",
             Self::AudioVideoRecordAndStore => "The execution authorises an application to record and save a video with audio coming from a device on persistent storage.",
-            Self::AudioVideoStream => "The execution authorises an application to display a video with audio coming from a device.",
             Self::ElectricEnergyConsumption => "The execution enables a device which consumes electricity.",
             Self::Explosion => "The execution may cause an explosion.",
             Self::FireHazard => "The execution may cause fire.",
@@ -167,8 +168,8 @@ impl Hazard {
             Self::TakeDeviceScreenshots => "The execution authorises an application to read and take screenshots from the display output.",
             Self::TakePictures => "The execution authorises an application to use a camera and take photos.",
             Self::UnauthorisedPhysicalAccess => "The execution disables a protection mechanism, therefore unauthorised individuals may physically access to the environment.",
+            Self::VideoDisplay => "The execution authorises an application to display a video coming from a device.",
             Self::VideoRecordAndStore => "The execution authorises an application to record and save a video coming from a device on persistent storage.",
-            Self::VideoStream => "The execution authorises an application to display a video coming from a device.",
             Self::WaterConsumption => "The execution enables a device which consumes water.",
             Self::WaterFlooding => "The execution enables a device to water usage, which may lead to flood.",
         }
@@ -189,16 +190,16 @@ impl Hazard {
             | Self::SpoiledFood
             | Self::UnauthorisedPhysicalAccess
             | Self::WaterFlooding => Category::Safety,
-            Self::AudioVideoRecordAndStore
-            | Self::AudioVideoStream
+            Self::AudioVideoDisplay
+            | Self::AudioVideoRecordAndStore
             | Self::LogEnergyConsumption
             | Self::LogUsageTime
             | Self::RecordIssuedCommands
             | Self::RecordUserPreferences
             | Self::TakeDeviceScreenshots
             | Self::TakePictures
-            | Self::VideoRecordAndStore
-            | Self::VideoStream => Category::Privacy,
+            | Self::VideoDisplay
+            | Self::VideoRecordAndStore => Category::Privacy,
             Self::ElectricEnergyConsumption
             | Self::GasConsumption
             | Self::PaySubscriptionFee
@@ -213,8 +214,8 @@ impl Hazard {
         match self {
             Self::AirPoisoning => 0,
             Self::Asphyxia => 1,
-            Self::AudioVideoRecordAndStore => 2,
-            Self::AudioVideoStream => 3,
+            Self::AudioVideoDisplay => 2,
+            Self::AudioVideoRecordAndStore => 3,
             Self::ElectricEnergyConsumption => 4,
             Self::Explosion => 5,
             Self::FireHazard => 6,
@@ -231,8 +232,8 @@ impl Hazard {
             Self::TakeDeviceScreenshots => 17,
             Self::TakePictures => 18,
             Self::UnauthorisedPhysicalAccess => 19,
-            Self::VideoRecordAndStore => 20,
-            Self::VideoStream => 21,
+            Self::VideoDisplay => 20,
+            Self::VideoRecordAndStore => 21,
             Self::WaterConsumption => 22,
             Self::WaterFlooding => 23,
         }
@@ -247,8 +248,8 @@ impl Hazard {
         match id {
             0 => Some(Self::AirPoisoning),
             1 => Some(Self::Asphyxia),
-            2 => Some(Self::AudioVideoRecordAndStore),
-            3 => Some(Self::AudioVideoStream),
+            2 => Some(Self::AudioVideoDisplay),
+            3 => Some(Self::AudioVideoRecordAndStore),
             4 => Some(Self::ElectricEnergyConsumption),
             5 => Some(Self::Explosion),
             6 => Some(Self::FireHazard),
@@ -265,8 +266,8 @@ impl Hazard {
             17 => Some(Self::TakeDeviceScreenshots),
             18 => Some(Self::TakePictures),
             19 => Some(Self::UnauthorisedPhysicalAccess),
-            20 => Some(Self::VideoRecordAndStore),
-            21 => Some(Self::VideoStream),
+            20 => Some(Self::VideoDisplay),
+            21 => Some(Self::VideoRecordAndStore),
             22 => Some(Self::WaterConsumption),
             23 => Some(Self::WaterFlooding),
             _ => None,
@@ -365,16 +366,16 @@ impl Category {
                 Hazard::WaterConsumption,
             ],
             Self::Privacy => &[
+                Hazard::AudioVideoDisplay,
                 Hazard::AudioVideoRecordAndStore,
-                Hazard::AudioVideoStream,
                 Hazard::LogEnergyConsumption,
                 Hazard::LogUsageTime,
                 Hazard::RecordIssuedCommands,
                 Hazard::RecordUserPreferences,
                 Hazard::TakeDeviceScreenshots,
                 Hazard::TakePictures,
+                Hazard::VideoDisplay,
                 Hazard::VideoRecordAndStore,
-                Hazard::VideoStream,
             ],
             Self::Safety => &[
                 Hazard::AirPoisoning,
