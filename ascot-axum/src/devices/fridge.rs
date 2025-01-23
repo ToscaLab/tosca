@@ -250,11 +250,12 @@ mod tests {
 
             decrease_temp: Route::put("/decrease-temperature")
                 .description("Decrease temperature.")
-                .with_hazard(Hazard::ElectricEnergyConsumption)
+                .with_slice_hazards(&[Hazard::ElectricEnergyConsumption, Hazard::SpoiledFood])
                 .with_input(Input::rangef64_with_default("decrement", (1., 4., 0.1), 2.)),
 
             increase_temp_post: Route::post("/increase-temperature")
                 .description("Increase temperature.")
+                .with_slice_hazards(&[Hazard::ElectricEnergyConsumption, Hazard::SpoiledFood])
                 .with_input(Input::rangef64_with_default("increment", (1., 4., 0.1), 2.)),
         }
     }
