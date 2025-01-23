@@ -250,7 +250,7 @@ mod tests {
         Routes {
             light_on: Route::put("/on")
                 .description("Turn light on.")
-                .with_hazard(Hazard::FireHazard)
+                .with_hazard(Hazard::ElectricEnergyConsumption)
                 .with_inputs([
                     Input::rangef64("brightness", (0., 20., 0.1)),
                     Input::bool("save-energy", false),
@@ -258,6 +258,7 @@ mod tests {
 
             light_on_post: Route::post("/on")
                 .description("Turn light on.")
+                .with_hazard(Hazard::ElectricEnergyConsumption)
                 .with_inputs([
                     Input::rangef64("brightness", (0., 20., 0.1)),
                     Input::bool("save-energy", false),
@@ -265,7 +266,9 @@ mod tests {
 
             light_off: Route::put("/off").description("Turn light off."),
 
-            toggle: Route::put("/toggle").description("Toggle a light."),
+            toggle: Route::put("/toggle")
+                .description("Toggle a light.")
+                .with_hazard(Hazard::ElectricEnergyConsumption),
         }
     }
 
