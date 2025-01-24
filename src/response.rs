@@ -103,7 +103,7 @@ impl ErrorResponse {
     /// If an error occurs, an empty description is returned.
     #[must_use]
     #[inline]
-    pub fn with_description(error: ActionError, description: &'static str) -> Self {
+    pub fn with_description(error: ActionError, description: &str) -> Self {
         Self {
             error,
             description: ShortString::infallible(description),
@@ -118,11 +118,7 @@ impl ErrorResponse {
     /// description and information are returned.
     #[must_use]
     #[inline]
-    pub fn with_description_error(
-        error: ActionError,
-        description: &'static str,
-        info: &str,
-    ) -> Self {
+    pub fn with_description_error(error: ActionError, description: &str, info: &str) -> Self {
         Self {
             error,
             description: ShortString::infallible(description),
@@ -136,7 +132,7 @@ impl ErrorResponse {
     /// is returned.
     #[must_use]
     #[inline]
-    pub fn invalid_data(description: &'static str) -> Self {
+    pub fn invalid_data(description: &str) -> Self {
         Self::with_description(ActionError::InvalidData, description)
     }
 
@@ -147,7 +143,7 @@ impl ErrorResponse {
     /// information are returned.
     #[must_use]
     #[inline]
-    pub fn invalid_data_with_error(description: &'static str, info: &str) -> Self {
+    pub fn invalid_data_with_error(description: &str, info: &str) -> Self {
         Self::with_description_error(ActionError::InvalidData, description, info)
     }
 
@@ -157,7 +153,7 @@ impl ErrorResponse {
     /// is returned.
     #[must_use]
     #[inline]
-    pub fn internal(description: &'static str) -> Self {
+    pub fn internal(description: &str) -> Self {
         Self::with_description(ActionError::Internal, description)
     }
 
@@ -168,7 +164,7 @@ impl ErrorResponse {
     /// information are returned.
     #[must_use]
     #[inline]
-    pub fn internal_with_error(description: &'static str, info: &str) -> Self {
+    pub fn internal_with_error(description: &str, info: &str) -> Self {
         Self::with_description_error(ActionError::Internal, description, info)
     }
 }
