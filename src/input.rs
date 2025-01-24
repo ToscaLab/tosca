@@ -21,6 +21,36 @@ mod private_input {
             /// in case of missing input.
             default: u8,
         },
+        /// A [`u16`] value.
+        U16 {
+            /// Both the initial [`u16`] value, but also the default one
+            /// in case of missing input.
+            default: u16,
+        },
+        /// A [`u32`] value.
+        U32 {
+            /// Both the initial [`u32`] value, but also the default one
+            /// in case of missing input.
+            default: u32,
+        },
+        /// A [`u64`] value.
+        U64 {
+            /// Both the initial [`u64`] value, but also the default one
+            /// in case of missing input.
+            default: u64,
+        },
+        /// A [`f32`] value.
+        F32 {
+            /// Both the initial [`f32`] value, but also the default one
+            /// in case of missing input.
+            default: f32,
+        },
+        /// A [`f64`] value.
+        F64 {
+            /// Both the initial [`f64`] value, but also the default one
+            /// in case of missing input.
+            default: f64,
+        },
         /// A range of [`u64`] values.
         RangeU64 {
             /// Minimum allowed [`u64`] value.
@@ -110,6 +140,36 @@ mod private_input {
             /// Both the initial [`u8`] value, but also the default one in case of
             /// missing input.
             default: u8,
+        },
+        /// A [`u16`] value.
+        U16 {
+            /// Both the initial [`u16`] value, but also the default one
+            /// in case of missing input.
+            default: u16,
+        },
+        /// A [`u32`] value.
+        U32 {
+            /// Both the initial [`u32`] value, but also the default one
+            /// in case of missing input.
+            default: u32,
+        },
+        /// A [`u64`] value.
+        U64 {
+            /// Both the initial [`u64`] value, but also the default one
+            /// in case of missing input.
+            default: u64,
+        },
+        /// A [`f32`] value.
+        F32 {
+            /// Both the initial [`f32`] value, but also the default one
+            /// in case of missing input.
+            default: f32,
+        },
+        /// A [`f64`] value.
+        F64 {
+            /// Both the initial [`f64`] value, but also the default one
+            /// in case of missing input.
+            default: f64,
         },
         /// A range of [`u64`] values.
         RangeU64 {
@@ -233,6 +293,56 @@ impl Input {
         }
     }
 
+    /// Creates an [`u16`] input.
+    #[must_use]
+    #[inline]
+    pub fn u16(name: &'static str, default: u16) -> Self {
+        Self {
+            name,
+            structure: InputStructure::U16 { default },
+        }
+    }
+
+    /// Creates an [`u32`] input.
+    #[must_use]
+    #[inline]
+    pub fn u32(name: &'static str, default: u32) -> Self {
+        Self {
+            name,
+            structure: InputStructure::U32 { default },
+        }
+    }
+
+    /// Creates an [`u64`] input.
+    #[must_use]
+    #[inline]
+    pub fn u64(name: &'static str, default: u64) -> Self {
+        Self {
+            name,
+            structure: InputStructure::U64 { default },
+        }
+    }
+
+    /// Creates a [`f32`] input.
+    #[must_use]
+    #[inline]
+    pub fn f32(name: &'static str, default: f32) -> Self {
+        Self {
+            name,
+            structure: InputStructure::F32 { default },
+        }
+    }
+
+    /// Creates a [`f64`] input.
+    #[must_use]
+    #[inline]
+    pub fn f64(name: &'static str, default: f64) -> Self {
+        Self {
+            name,
+            structure: InputStructure::F64 { default },
+        }
+    }
+
     /// Creates an [`u64`] range without a default value.
     #[must_use]
     #[inline]
@@ -329,6 +439,31 @@ mod tests {
         );
 
         assert_eq!(
+            deserialize::<InputData>(serialize(InputData::from(Input::u16("u16", 0)))),
+            InputData::from(Input::u16("u16", 0))
+        );
+
+        assert_eq!(
+            deserialize::<InputData>(serialize(InputData::from(Input::u32("u32", 0)))),
+            InputData::from(Input::u32("u32", 0))
+        );
+
+        assert_eq!(
+            deserialize::<InputData>(serialize(InputData::from(Input::u64("u64", 0)))),
+            InputData::from(Input::u64("u64", 0))
+        );
+
+        assert_eq!(
+            deserialize::<InputData>(serialize(InputData::from(Input::f32("f32", 0.)))),
+            InputData::from(Input::f32("f32", 0.))
+        );
+
+        assert_eq!(
+            deserialize::<InputData>(serialize(InputData::from(Input::f64("f64", 0.)))),
+            InputData::from(Input::f64("f64", 0.))
+        );
+
+        assert_eq!(
             deserialize::<InputData>(serialize(InputData::from(Input::rangeu64_with_default(
                 "rangeu64",
                 (0, 20, 1),
@@ -400,6 +535,66 @@ mod tests {
                 "structure": {
                     "U8": {
                         "default": 0
+                    }
+                }
+            })
+        );
+
+        assert_eq!(
+            serialize(InputData::from(Input::u16("u16", 0))),
+            json!({
+                "name": "u16",
+                "structure": {
+                    "U16": {
+                        "default": 0
+                    }
+                }
+            })
+        );
+
+        assert_eq!(
+            serialize(InputData::from(Input::u32("u32", 0))),
+            json!({
+                "name": "u32",
+                "structure": {
+                    "U32": {
+                        "default": 0
+                    }
+                }
+            })
+        );
+
+        assert_eq!(
+            serialize(InputData::from(Input::u64("u64", 0))),
+            json!({
+                "name": "u64",
+                "structure": {
+                    "U64": {
+                        "default": 0
+                    }
+                }
+            })
+        );
+
+        assert_eq!(
+            serialize(InputData::from(Input::f32("f32", 0.))),
+            json!({
+                "name": "f32",
+                "structure": {
+                    "F32": {
+                        "default": 0.
+                    }
+                }
+            })
+        );
+
+        assert_eq!(
+            serialize(InputData::from(Input::f64("f64", 0.))),
+            json!({
+                "name": "f64",
+                "structure": {
+                    "F64": {
+                        "default": 0.
                     }
                 }
             })
