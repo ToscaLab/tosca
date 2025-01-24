@@ -1,5 +1,7 @@
 # Ip-Camera Server
 
+[![LICENSE][license badge]][license]
+
 An Ip-Camera server usable from different operating systems for taking
 screenshots and sending a video stream of the surrounding environment.
 
@@ -34,3 +36,9 @@ cross build [--release] --target=aarch64-unknown-linux-musl
 where `--release` is an option which enables all time and memory optimizations
 needed for having a binary usable in production. If the option is not inserted,
 the binary will be built with all debug symbols inside.
+
+<!-- Links -->
+[license]: https://github.com/SoftengPoliTo/ascot-firmware/blob/master/LICENSE-MIT
+
+<!-- Badges -->
+[license badge]: https://img.shields.io/badge/license-MIT-blue.svg
