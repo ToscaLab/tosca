@@ -34,6 +34,10 @@ extern crate alloc;
 //   of elements in the stack structures if some issues arises.
 
 // Maximum number of elements on stack for a data structure.
+#[cfg(feature = "alloc")]
+const MAXIMUM_ELEMENTS: usize = 32;
+
+#[cfg(not(feature = "alloc"))]
 const MAXIMUM_ELEMENTS: usize = 8;
 
 /// All methods to interact with an action.
