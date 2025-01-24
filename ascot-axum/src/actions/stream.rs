@@ -105,7 +105,7 @@ macro_rules! impl_empty_type_name {
 super::all_the_tuples!(impl_empty_type_name);
 
 /// Creates a mandatory stateful [`DeviceAction`] with a [`StreamResponse`].
-#[inline(always)]
+#[inline]
 pub fn mandatory_stream_stateful<H, T, S>(
     route: Route,
     handler: H,
@@ -126,6 +126,7 @@ where
 }
 
 /// Creates a stateful [`DeviceAction`] with a [`StreamResponse`].
+#[inline]
 pub fn stream_stateful<H, T, S>(route: Route, handler: H) -> impl FnOnce(S) -> DeviceAction
 where
     H: Handler<T, S> + private::StreamTypeName<T>,
@@ -136,7 +137,7 @@ where
 }
 
 /// Creates a mandatory stateless [`DeviceAction`] with a [`StreamResponse`].
-#[inline(always)]
+#[inline]
 pub fn mandatory_stream_stateless<H, T, S>(
     route: Route,
     handler: H,
@@ -156,6 +157,7 @@ where
 }
 
 /// Creates a stateless [`DeviceAction`] with a [`StreamResponse`].
+#[inline]
 pub fn stream_stateless<H, T, S>(route: Route, handler: H) -> impl FnOnce(S) -> DeviceAction
 where
     H: Handler<T, ()> + private::StreamTypeName<T>,
