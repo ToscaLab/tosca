@@ -48,7 +48,7 @@ pub mod server;
 /// device in a network.
 pub mod service;
 
-/// Methods to parse route inputs.
+/// Methods to parse requests and construct responses.
 pub mod extract {
     pub use axum::extract::{FromRef, Json, Path, State};
 }
