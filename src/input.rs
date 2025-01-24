@@ -7,7 +7,7 @@ mod private_input {
     use super::{Deserialize, Serialize};
 
     /// An [`Input`] structure.
-    #[derive(Debug, Clone, Serialize, Deserialize)]
+    #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
     pub enum InputStructure {
         /// A [`bool`] value.
         Bool {
@@ -97,7 +97,7 @@ mod private_input {
     use super::{Deserialize, Serialize};
 
     /// An [`Input`] structure.
-    #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+    #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
     pub enum InputStructure {
         /// A [`bool`] value.
         Bool {
