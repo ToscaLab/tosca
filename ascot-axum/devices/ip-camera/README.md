@@ -37,6 +37,24 @@ where `--release` is an option which enables all time and memory optimizations
 needed for having a binary usable in production. If the option is not inserted,
 the binary will be built with all debug symbols inside.
 
+# Usage
+
+To run the Ip-camera, the command is:
+
+```console
+cargo run -- --hostname your-hostname
+```
+
+where `your-hostname` is the mandatory parameters to define a specific hostname
+to contact the Ip-camera. An example of a complete hostname, leaving all the
+other parameters untouched is: `http://your-hostname.local:3000`.
+
+To issue commands to the Ip-Camera, it is necessary to look at routes manual
+printed on the console at the Ip-camera startup.
+
+For example, to start the streaming, one must write
+`http://your-hostname.local:3000/camera/stream` on the browser.
+
 <!-- Links -->
 [license]: https://github.com/SoftengPoliTo/ascot-firmware/blob/master/LICENSE-MIT
 
