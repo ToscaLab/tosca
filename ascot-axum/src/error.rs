@@ -85,7 +85,7 @@ impl Error {
     }
 
     fn format(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "Error: {}", self.kind)?;
+        writeln!(f, "{}", self.kind)?;
         write!(f, "Cause: {}", self.description)
     }
 }
