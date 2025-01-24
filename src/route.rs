@@ -237,6 +237,13 @@ impl Route {
         self
     }
 
+    /// Changes the route.
+    #[must_use]
+    pub const fn change_route(mut self, route: &'static str) -> Self {
+        self.route = route;
+        self
+    }
+
     /// Adds a single [`Input`] to a [`Route`].
     #[must_use]
     #[inline]
