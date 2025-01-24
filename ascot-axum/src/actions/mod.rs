@@ -121,7 +121,9 @@ impl DeviceAction {
         route_config.response_kind = response_kind;
 
         // Create the GET route for the axum architecture.
-        let route = if let RestKind::Get = route_config.rest_kind {
+        let route = if matches!(route_config.rest_kind, RestKind::Get)
+            && !route_config.data.inputs.is_empty()
+        {
             &build_get_route(&route_config.data.name, &route_config.data.inputs)
         } else {
             route_config.data.name.as_ref()
