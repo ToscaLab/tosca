@@ -1,4 +1,4 @@
-use core::net::Ipv4Addr;
+use std::net::Ipv4Addr;
 
 use axum::{response::Redirect, Router};
 
@@ -20,12 +20,12 @@ pub(crate) const DEFAULT_SERVER_PORT: u16 = 3000;
 // Default scheme is `http`.
 const DEFAULT_SCHEME: &str = "http";
 
-// Well-known URI.
+// Default service name needed to compose a well-known URI.
 // https://en.wikipedia.org/wiki/Well-known_URI
 //
-// Request to the server for well-known services or information are available
+// Requests to the servers for well-known services or information are available
 // at URLs consistent well-known locations across servers.
-const WELL_KNOWN_URI: &str = "/.well-known/server";
+const DEFAULT_WELL_KNOWN_SERVICE: &str = "ascot";
 
 /// A [`Device`] server.
 #[derive(Debug)]
@@ -39,8 +39,8 @@ where
     port: u16,
     // Scheme.
     scheme: &'a str,
-    // Well-known URI.
-    well_known_uri: &'a str,
+    // Well-known service.
+    well_known_service: &'a str,
     // Service configurator.
     service_config: Option<ServiceConfig<'a>>,
     // Device.
@@ -57,7 +57,7 @@ where
             http_address: DEFAULT_HTTP_ADDRESS,
             port: DEFAULT_SERVER_PORT,
             scheme: DEFAULT_SCHEME,
-            well_known_uri: WELL_KNOWN_URI,
+            well_known_service: DEFAULT_WELL_KNOWN_SERVICE,
             service_config: None,
             device,
         }
@@ -84,10 +84,10 @@ where
         self
     }
 
-    /// Sets well-known URI.
+    /// Sets the service name which will compose the well-known URI.
     #[must_use]
-    pub const fn well_known_uri(mut self, well_known_uri: &'a str) -> Self {
-        self.well_known_uri = well_known_uri;
+    pub fn well_known_service(mut self, service_name: &'a str) -> Self {
+        self.well_known_service = service_name;
         self
     }
 
@@ -135,15 +135,18 @@ where
         // Serialize device information returning a json format.
         let device_info = serde_json::to_value(device_info)?;
 
+        // Construct well-known URI.
+        let well_known_uri = format!("/.well-known/{}", self.well_known_service);
+
         info!("Server route: [GET, \"/\"]");
-        info!("Server route: [GET, \"{}\"]", self.well_known_uri);
+        info!("Server route: [GET, \"{}\"]", well_known_uri);
 
         // Run a service if present.
         if let Some(service_config) = self.service_config {
             // Add server properties.
             let service_config = service_config
                 .property(("scheme", self.scheme))
-                .property(("path", self.well_known_uri));
+                .property(("path", well_known_uri.to_string()));
 
             // Run service.
             Service::run(&service_config, self.http_address, self.port)?;
@@ -160,7 +163,7 @@ where
                 axum::routing::get(move || async { axum::Json(device_info) }),
             )
             .route(
-                self.well_known_uri,
+                &well_known_uri,
                 axum::routing::get(move || async { Redirect::to("/") }),
             )
             .nest(device_main_route, device_router))
