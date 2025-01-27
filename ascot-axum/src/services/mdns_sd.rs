@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use std::net::{IpAddr, Ipv4Addr};
 
 use mdns_sd::{IfKind, ServiceDaemon, ServiceInfo};
@@ -7,12 +6,6 @@ use tracing::info;
 
 use crate::error::{Error, ErrorKind};
 use crate::service::ServiceConfig;
-
-// Service domain name.
-//
-// It constitutes part of the mDNS service.
-// This also allows to detect a firmware during the mDNS discovery phase.
-const DOMAIN_NAME: &str = "firmware";
 
 impl From<mdns_sd::Error> for Error {
     fn from(e: mdns_sd::Error) -> Self {
@@ -27,7 +20,7 @@ impl From<std::io::Error> for Error {
 }
 
 pub(crate) fn run(
-    service_config: &ServiceConfig,
+    service_config: ServiceConfig,
     server_address: Ipv4Addr,
     server_port: u16,
 ) -> std::result::Result<(), Error> {
@@ -54,24 +47,7 @@ pub(crate) fn run(
         &format!("{}.local.", service_config.hostname)
     };
 
-    // Allocates properties on heap
-    let mut properties = service_config
-        .properties
-        .iter()
-        .map(|(key, value)| (key.clone(), value.clone()))
-        .collect::<HashMap<_, _>>();
-
-    // Firmware type.
-    properties.insert("type".into(), service_config.service_type.into());
-
-    // Define mDNS domain
-    let domain = format!(
-        "_{}._tcp.local.",
-        service_config.domain_name.unwrap_or(DOMAIN_NAME)
-    );
-
     info!("Service instance name: {}", service_config.instance_name);
-    info!("Service domain: {domain}");
     info!("Service port: {}", server_port);
     info!("Service type: {}", service_config.service_type);
     info!(
@@ -82,7 +58,7 @@ pub(crate) fn run(
 
     let service = ServiceInfo::new(
         // Domain label and service type
-        &domain,
+        &service_config.service_type,
         // Service instance name
         service_config.instance_name,
         // DNS hostname.
@@ -97,7 +73,7 @@ pub(crate) fn run(
         // server.
         server_port,
         // Service properties
-        properties,
+        service_config.properties,
     )?
     .enable_addr_auto();
 

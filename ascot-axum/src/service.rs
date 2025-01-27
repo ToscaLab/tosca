@@ -1,19 +1,15 @@
 //! The firmware can be discovered in the local network, which also represents
 //! the trusted network, through the `mDNS` protocol.
 
+use std::collections::HashMap;
 use std::net::Ipv4Addr;
-
-use heapless::FnvIndexMap;
 
 use crate::error::Result;
 
-// Maximum stack elements.
-const MAXIMUM_ELEMENTS: usize = 8;
-
 // Service type.
 //
-// It defines the type of a service. The default value is `General Device`.
-const SERVICE_TYPE: &str = "General Device";
+// It defines the default type of a service.
+const SERVICE_TYPE: &str = "_ascot._tcp.local.";
 
 /// A service configurator.
 #[derive(Debug)]
@@ -21,11 +17,9 @@ pub struct ServiceConfig<'a> {
     // Instance name.
     pub(crate) instance_name: &'a str,
     // Service properties.
-    pub(crate) properties: FnvIndexMap<String, String, MAXIMUM_ELEMENTS>,
+    pub(crate) properties: HashMap<String, String>,
     // Service host name
     pub(crate) hostname: &'a str,
-    // Service domain name.
-    pub(crate) domain_name: Option<&'a str>,
     // Service type.
     pub(crate) service_type: &'a str,
     // Disable Ipv6.
@@ -37,12 +31,11 @@ pub struct ServiceConfig<'a> {
 impl<'a> ServiceConfig<'a> {
     /// Creates a [`ServiceConfig`] for a `mDNS-SD` service.
     #[must_use]
-    pub const fn mdns_sd(instance_name: &'a str) -> Self {
+    pub fn mdns_sd(instance_name: &'a str) -> Self {
         Self {
             instance_name,
-            properties: FnvIndexMap::new(),
+            properties: HashMap::new(),
             hostname: instance_name,
-            domain_name: None,
             service_type: SERVICE_TYPE,
             disable_ipv6: false,
             disable_docker: false,
@@ -64,13 +57,6 @@ impl<'a> ServiceConfig<'a> {
     #[must_use]
     pub const fn hostname(mut self, hostname: &'a str) -> Self {
         self.hostname = hostname;
-        self
-    }
-
-    /// Sets the service domain name.
-    #[must_use]
-    pub const fn domain_name(mut self, domain_name: &'a str) -> Self {
-        self.domain_name = Some(domain_name);
         self
     }
 
@@ -105,7 +91,7 @@ impl Service {
     // Runs a service.
     #[inline]
     pub(crate) fn run(
-        service_config: &ServiceConfig,
+        service_config: ServiceConfig,
         server_address: Ipv4Addr,
         port: u16,
     ) -> Result<()> {
