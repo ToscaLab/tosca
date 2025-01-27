@@ -1,7 +1,7 @@
 //! The firmware can be discovered in the local network, which also represents
 //! the trusted network, through the `mDNS` protocol.
 
-use core::net::Ipv4Addr;
+use std::net::Ipv4Addr;
 
 use heapless::FnvIndexMap;
 

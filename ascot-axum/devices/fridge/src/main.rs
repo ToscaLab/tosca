@@ -1,7 +1,6 @@
 mod fridge_mockup;
 
-use core::net::Ipv4Addr;
-
+use std::net::Ipv4Addr;
 use std::sync::Arc;
 
 use async_lock::Mutex;
