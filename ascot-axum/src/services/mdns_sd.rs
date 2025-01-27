@@ -58,7 +58,7 @@ pub(crate) fn run(
 
     let service = ServiceInfo::new(
         // Domain label and service type
-        &service_config.service_type,
+        service_config.service_type,
         // Service instance name
         service_config.instance_name,
         // DNS hostname.
