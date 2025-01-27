@@ -2,7 +2,7 @@
 //! the trusted network, through the `mDNS` protocol.
 
 use std::collections::HashMap;
-use std::net::Ipv4Addr;
+use std::net::{IpAddr, Ipv4Addr};
 
 use crate::error::Result;
 
@@ -22,10 +22,12 @@ pub struct ServiceConfig<'a> {
     pub(crate) hostname: &'a str,
     // Service type.
     pub(crate) service_type: &'a str,
-    // Disable Ipv6.
+    // Disable IPv6.
     pub(crate) disable_ipv6: bool,
-    // Disable docker network.
-    pub(crate) disable_docker: bool,
+    // Disable IP.
+    pub(crate) disable_ip: Option<IpAddr>,
+    // Disable network interface.
+    pub(crate) disable_network_interface: Option<&'static str>,
 }
 
 impl<'a> ServiceConfig<'a> {
@@ -38,7 +40,8 @@ impl<'a> ServiceConfig<'a> {
             hostname: instance_name,
             service_type: SERVICE_TYPE,
             disable_ipv6: false,
-            disable_docker: false,
+            disable_ip: None,
+            disable_network_interface: None,
         }
     }
 
@@ -69,17 +72,25 @@ impl<'a> ServiceConfig<'a> {
         self
     }
 
-    /// Disables IPv6 addresses.
+    /// Disables `IPv6` interfaces.
     #[must_use]
-    pub const fn ipv6(mut self) -> Self {
+    pub const fn disable_ipv6(mut self) -> Self {
         self.disable_ipv6 = true;
         self
     }
 
-    /// Disables docker bridge.
+    /// Disables the given IP address.
     #[must_use]
-    pub const fn docker(mut self) -> Self {
-        self.disable_docker = true;
+    #[inline]
+    pub fn disable_ip(mut self, ip: impl Into<IpAddr>) -> Self {
+        self.disable_ip = Some(ip.into());
+        self
+    }
+
+    /// Disables the given network interface.
+    #[must_use]
+    pub const fn disable_network_interface(mut self, network_interface: &'static str) -> Self {
+        self.disable_network_interface = Some(network_interface);
         self
     }
 }
