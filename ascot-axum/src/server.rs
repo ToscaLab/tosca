@@ -91,10 +91,10 @@ where
         self
     }
 
-    /// Sets a service.
+    /// Sets a discovery service.
     #[must_use]
     #[inline]
-    pub fn service(mut self, service_config: ServiceConfig<'a>) -> Self {
+    pub fn discovery_service(mut self, service_config: ServiceConfig<'a>) -> Self {
         self.service_config = Some(service_config);
         self
     }
@@ -141,7 +141,7 @@ where
         info!("Server route: [GET, \"/\"]");
         info!("Server route: [GET, \"{}\"]", well_known_uri);
 
-        // Run a service if present.
+        // Run a discovery service if present.
         if let Some(service_config) = self.service_config {
             // Add server properties.
             let service_config = service_config
