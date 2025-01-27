@@ -27,14 +27,19 @@ pub(crate) fn run(
     // Create a new mDNS service daemon
     let mdns = ServiceDaemon::new()?;
 
-    // Disable every IpV6 interface.
+    // Disable IPv6.
     if service_config.disable_ipv6 {
         mdns.disable_interface(IfKind::IPv6)?;
     }
 
-    // Disable docker0 bridge.
-    if service_config.disable_docker {
-        mdns.disable_interface("docker0")?;
+    // Disable IP address.
+    if let Some(ip) = service_config.disable_ip {
+        mdns.disable_interface(ip)?;
+    }
+
+    // Disable network interface.
+    if let Some(network_interface) = service_config.disable_network_interface {
+        mdns.disable_interface(network_interface)?;
     }
 
     // Add the .local domain as hostname suffix when not present.
