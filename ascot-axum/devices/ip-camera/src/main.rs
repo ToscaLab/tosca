@@ -102,12 +102,8 @@ struct Cli {
     #[arg(short, long, default_value_t = 3000)]
     port: u16,
 
-    /// Service domain.
-    #[arg(short, long, default_value = "device")]
-    domain: String,
-
     /// Service type.
-    #[arg(short = 't', long = "type", default_value = "General Device")]
+    #[arg(short = 't', long = "type", default_value = "_ascot._tcp.local.")]
     service_type: String,
 }
 
@@ -368,10 +364,9 @@ async fn main() -> Result<(), Error> {
         Server::new(device)
             .address(cli.address)
             .port(cli.port)
-            .service(
+            .discovery_service(
                 ServiceConfig::mdns_sd("camera")
                     .hostname(&cli.hostname)
-                    .domain_name(&cli.domain)
                     .service_type(&cli.service_type),
             )
             .run(),
