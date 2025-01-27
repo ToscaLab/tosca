@@ -116,7 +116,7 @@ mod tests {
         let error = Error::device(DeviceKind::Fridge, "This hazard is not correct");
         assert_eq!(
             error.to_string(),
-            r"Error: Device
+            r"Device
 Cause: This hazard is not correct [Fridge Device]"
         );
     }
