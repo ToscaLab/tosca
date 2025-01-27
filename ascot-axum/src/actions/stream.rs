@@ -1,5 +1,5 @@
-use core::error::Error;
-use core::future::Future;
+use std::error::Error;
+use std::future::Future;
 
 use ascot_library::response::ResponseKind;
 use ascot_library::route::Route;

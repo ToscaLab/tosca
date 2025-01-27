@@ -1,6 +1,5 @@
-use core::net::{IpAddr, Ipv4Addr};
-
 use std::collections::HashMap;
+use std::net::{IpAddr, Ipv4Addr};
 
 use mdns_sd::{IfKind, ServiceDaemon, ServiceInfo};
 
