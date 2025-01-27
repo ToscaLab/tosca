@@ -194,12 +194,8 @@ struct Cli {
     #[arg(short, long, default_value_t = 3000)]
     port: u16,
 
-    /// Service domain.
-    #[arg(short, long, default_value = "fridge")]
-    domain: String,
-
     /// Service type.
-    #[arg(short = 't', long = "type", default_value = "General Fridge")]
+    #[arg(short = 't', long = "type", default_value = "_ascot._tcp.local.")]
     service_type: String,
 }
 
@@ -273,7 +269,6 @@ async fn main() -> Result<(), Error> {
         .discovery_service(
             ServiceConfig::mdns_sd("fridge")
                 .hostname(&cli.hostname)
-                .domain_name(&cli.domain)
                 .service_type(&cli.service_type),
         )
         .run()
