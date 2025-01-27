@@ -149,7 +149,7 @@ where
                 .property(("path", well_known_uri.to_string()));
 
             // Run service.
-            Service::run(&service_config, self.http_address, self.port)?;
+            Service::run(service_config, self.http_address, self.port)?;
         }
 
         // Create the main router.
