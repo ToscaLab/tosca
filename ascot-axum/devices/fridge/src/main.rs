@@ -271,7 +271,7 @@ async fn main() -> Result<(), Error> {
     Server::new(device)
         .address(cli.address)
         .port(cli.port)
-        .service(
+        .discovery_service(
             ServiceConfig::mdns_sd("fridge")
                 .hostname(&cli.hostname)
                 .domain_name(&cli.domain)
