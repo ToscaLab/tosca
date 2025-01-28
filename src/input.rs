@@ -427,7 +427,7 @@ mod tests {
     use super::{Input, InputData};
 
     #[test]
-    fn test_all_inputs() {
+    fn test_values_inputs() {
         assert_eq!(
             deserialize::<InputData>(serialize(InputData::from(Input::bool("bool", true)))),
             InputData::from(Input::bool("bool", true))
@@ -462,7 +462,10 @@ mod tests {
             deserialize::<InputData>(serialize(InputData::from(Input::f64("f64", 0.)))),
             InputData::from(Input::f64("f64", 0.))
         );
+    }
 
+    #[test]
+    fn test_range_inputs() {
         assert_eq!(
             deserialize::<InputData>(serialize(InputData::from(Input::rangeu64_with_default(
                 "rangeu64",
@@ -515,7 +518,7 @@ mod tests {
     use super::{Input, InputData};
 
     #[test]
-    fn test_all_inputs() {
+    fn test_values_inputs() {
         assert_eq!(
             serialize(InputData::from(Input::bool("bool", true))),
             json!({
@@ -599,7 +602,10 @@ mod tests {
                 }
             })
         );
+    }
 
+    #[test]
+    fn test_range_inputs() {
         assert_eq!(
             serialize(InputData::from(Input::rangeu64_with_default(
                 "rangeu64",
