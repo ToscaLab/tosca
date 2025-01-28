@@ -373,20 +373,15 @@ async fn main() -> Result<(), Error> {
     let device = change_format(device);
     let device = screenshot(device);
 
-    // Run a discovery service and the device on the server.
-    // FIXME: Remove Box when ascot-library uses heap collections and not
-    // stacked ones.
-    Box::pin(
-        Server::new(device)
-            .address(cli.address)
-            .port(cli.port)
-            .discovery_service(
-                ServiceConfig::mdns_sd("camera")
-                    .hostname(&cli.hostname)
-                    .domain(&cli.service_domain)
-                    .transport_protocol(cli.service_transport_protocol),
-            )
-            .run(),
-    )
-    .await
+    Server::new(device)
+        .address(cli.address)
+        .port(cli.port)
+        .discovery_service(
+            ServiceConfig::mdns_sd("camera")
+                .hostname(&cli.hostname)
+                .domain(&cli.service_domain)
+                .transport_protocol(cli.service_transport_protocol),
+        )
+        .run()
+        .await
 }
