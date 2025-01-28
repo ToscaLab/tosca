@@ -4,6 +4,7 @@ use crate::collections::Collection;
 
 /// An [`Input`] structure.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(not(feature = "alloc"), derive(Copy))]
 pub enum InputStructure {
     /// A [`bool`] value.
     Bool {
@@ -88,11 +89,9 @@ pub enum InputStructure {
     ByteStream,
 }
 
-#[cfg(not(feature = "alloc"))]
-impl Copy for InputStructure {}
-
 /// Input data.
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(not(feature = "alloc"), derive(Copy))]
 pub struct InputData {
     /// Name.
     #[cfg(feature = "alloc")]
@@ -104,9 +103,6 @@ pub struct InputData {
     #[serde(rename = "structure")]
     pub structure: InputStructure,
 }
-
-#[cfg(not(feature = "alloc"))]
-impl Copy for InputData {}
 
 impl InputData {
     fn new(input: Input) -> Self {
@@ -122,15 +118,13 @@ impl InputData {
 
 /// All supported inputs.
 #[derive(Debug, Clone)]
+#[cfg_attr(not(feature = "alloc"), derive(Copy))]
 pub struct Input {
     // Name.
     name: &'static str,
     // Input structure.
     structure: InputStructure,
 }
-
-#[cfg(not(feature = "alloc"))]
-impl Copy for Input {}
 
 /// A collection of [`InputData`]s.
 #[cfg(feature = "alloc")]
