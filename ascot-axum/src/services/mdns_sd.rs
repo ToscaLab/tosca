@@ -42,21 +42,18 @@ pub(crate) fn run(
         mdns.disable_interface(network_interface)?;
     }
 
-    // Add the .local domain as hostname suffix when not present.
-    //
-    // .local is a special domain name for hostnames in local area networks
-    // which can be resolved via the Multicast DNS name resolution protocol.
-    let hostname = if service_config.hostname.ends_with(".local.") {
-        service_config.hostname
-    } else {
-        &format!("{}.local.", service_config.hostname)
-    };
+    // Create a hostname.
+    let hostname = format!(
+        "{}.{}.",
+        service_config.hostname, service_config.top_level_domain
+    );
 
     // Create a service type.
     let service_type = format!(
-        "_{}._{}.local.",
+        "_{}._{}.{}.",
         service_config.domain,
-        service_config.transport_protocol.name()
+        service_config.transport_protocol.name(),
+        service_config.top_level_domain
     );
 
     info!("Service instance name: {}", service_config.instance_name);
@@ -65,6 +62,10 @@ pub(crate) fn run(
     info!(
         "Service transport protocol: {}",
         service_config.transport_protocol.name()
+    );
+    info!(
+        "Service top-level domain: {}",
+        service_config.top_level_domain
     );
     info!("Service type: {}", service_type);
     info!(
@@ -83,7 +84,7 @@ pub(crate) fn run(
         // For the same hostname in the same local network, the service resolves
         // in the same addresses. It is used for A (IPv4) and AAAA (IPv6)
         // records.
-        hostname,
+        &hostname,
         // Considered IP address which allow to reach out the service.
         IpAddr::V4(server_address),
         // Port on which the service listens to. It has to be same of the
