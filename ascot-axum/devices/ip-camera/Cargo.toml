@@ -4,19 +4,18 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-async-lock = "3.3.0"
-ascot-library = { version = "0.1.0", path = "../../../" }
-ascot-axum = { version = "0.1.0", path = "../../" }
+async-lock = "3.3"
+ascot-library = { version = "0.1", path = "../../../" }
+ascot-axum = { version = "0.1", path = "../../" }
 clap = { version = "4.5", features = ["derive"] }
 serde = { version = "1.0", features = ["derive"] }
-tokio = { version = "1.0", features = ["full"] }
-tokio-stream = "0.1.17"
+tokio = { version = "1.0", features = ["rt", "rt-multi-thread"] }
+tokio-stream = "0.1"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-rayon = "1.10.0"
 
 # Webcam framework
-nokhwa = { version = "0.10.7", features = ["input-native", "serialize", "output-threaded"] }
+nokhwa = { version = "0.10", features = ["input-native", "serialize", "output-threaded"] }
 
 # Image
 [dependencies.image]
