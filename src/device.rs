@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::economy::Economy;
 use crate::energy::Energy;
+use crate::route::RouteConfigs;
 
 /// A device kind.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
@@ -87,82 +88,44 @@ pub enum DeviceEnvironment {
     Esp32,
 }
 
-#[cfg(feature = "alloc")]
-mod private_device {
-    use crate::route::RouteConfigs;
+/// Device data.
+#[derive(Debug, Serialize)]
+#[cfg_attr(feature = "alloc", derive(Deserialize))]
+pub struct DeviceData {
+    /// Device kind.
+    pub kind: DeviceKind,
+    /// Device environment.
+    pub environment: DeviceEnvironment,
+    /// Device main route.
+    #[cfg(feature = "alloc")]
+    #[serde(rename = "main route")]
+    pub main_route: alloc::borrow::Cow<'static, str>,
+    /// Device main route.
+    #[cfg(not(feature = "alloc"))]
+    #[serde(rename = "main route")]
+    pub main_route: &'static str,
+    /// All device route configurations.
+    pub route_configs: RouteConfigs,
+}
 
-    use super::{Deserialize, DeviceEnvironment, DeviceKind, Serialize};
-
-    /// Device data.
-    #[derive(Debug, Serialize, Deserialize)]
-    pub struct DeviceData {
-        /// Device kind.
-        pub kind: DeviceKind,
-        /// Device environment.
-        pub environment: DeviceEnvironment,
-        /// Device main route.
-        #[serde(rename = "main route")]
-        pub main_route: alloc::borrow::Cow<'static, str>,
-        /// All device route configurations.
-        pub route_configs: RouteConfigs,
-    }
-
-    impl DeviceData {
-        /// Creates a [`DeviceData`].
-        #[must_use]
-        pub fn new(
-            kind: DeviceKind,
-            environment: DeviceEnvironment,
-            main_route: impl Into<alloc::borrow::Cow<'static, str>>,
-            route_configs: RouteConfigs,
-        ) -> Self {
-            Self {
-                kind,
-                environment,
-                main_route: main_route.into(),
-                route_configs,
-            }
+impl DeviceData {
+    /// Creates a [`DeviceData`].
+    #[must_use]
+    pub fn new(
+        kind: DeviceKind,
+        environment: DeviceEnvironment,
+        #[cfg(feature = "alloc")] main_route: impl Into<alloc::borrow::Cow<'static, str>>,
+        #[cfg(not(feature = "alloc"))] main_route: &'static str,
+        route_configs: RouteConfigs,
+    ) -> Self {
+        Self {
+            kind,
+            environment,
+            #[cfg(feature = "alloc")]
+            main_route: main_route.into(),
+            #[cfg(not(feature = "alloc"))]
+            main_route,
+            route_configs,
         }
     }
 }
-
-#[cfg(not(feature = "alloc"))]
-mod private_device {
-    use crate::route::RouteConfigs;
-
-    use super::{DeviceEnvironment, DeviceKind, Serialize};
-
-    /// Device data.
-    #[derive(Debug, Serialize)]
-    pub struct DeviceData {
-        /// Device kind.
-        pub kind: DeviceKind,
-        /// Device environment.
-        pub environment: DeviceEnvironment,
-        /// Device main route.
-        #[serde(rename = "main route")]
-        pub main_route: &'static str,
-        /// All device route configurations.
-        pub route_configs: RouteConfigs,
-    }
-
-    impl DeviceData {
-        /// Creates a [`DeviceData`].
-        #[must_use]
-        pub fn new(
-            kind: DeviceKind,
-            environment: DeviceEnvironment,
-            main_route: &'static str,
-            route_configs: RouteConfigs,
-        ) -> Self {
-            Self {
-                kind,
-                environment,
-                main_route,
-                route_configs,
-            }
-        }
-    }
-}
-
-pub use private_device::DeviceData;
