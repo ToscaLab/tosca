@@ -5,8 +5,6 @@ use crate::hazards::{Hazard, Hazards};
 use crate::input::{Input, Inputs, InputsData};
 use crate::response::ResponseKind;
 
-use crate::MAXIMUM_ELEMENTS;
-
 /// `REST` requests kind.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum RestKind {
@@ -208,25 +206,29 @@ impl core::hash::Hash for Route {
 impl Route {
     /// Creates a new [`Route`] through a REST `GET` API.
     #[must_use]
-    pub const fn get(route: &'static str) -> Self {
+    #[inline]
+    pub fn get(route: &'static str) -> Self {
         Self::init(RestKind::Get, route)
     }
 
     /// Creates a new [`Route`] through a REST `PUT` API.
     #[must_use]
-    pub const fn put(route: &'static str) -> Self {
+    #[inline]
+    pub fn put(route: &'static str) -> Self {
         Self::init(RestKind::Put, route)
     }
 
     /// Creates a new [`Route`] through a REST `POST` API.
     #[must_use]
-    pub const fn post(route: &'static str) -> Self {
+    #[inline]
+    pub fn post(route: &'static str) -> Self {
         Self::init(RestKind::Post, route)
     }
 
     /// Creates a new [`Route`] through a REST `DELETE` API.
     #[must_use]
-    pub const fn delete(route: &'static str) -> Self {
+    #[inline]
+    pub fn delete(route: &'static str) -> Self {
         Self::init(RestKind::Delete, route)
     }
 
@@ -256,9 +258,9 @@ impl Route {
     #[must_use]
     #[inline]
     pub fn with_inputs<const N: usize>(mut self, inputs: [Input; N]) -> Self {
-        inputs.into_iter().take(MAXIMUM_ELEMENTS).for_each(|input| {
+        for input in inputs {
             self.inputs.add(input);
-        });
+        }
         self
     }
 
@@ -319,7 +321,7 @@ impl Route {
         RouteConfig::new(self)
     }
 
-    const fn init(rest_kind: RestKind, route: &'static str) -> Self {
+    fn init(rest_kind: RestKind, route: &'static str) -> Self {
         Self {
             route,
             rest_kind,
