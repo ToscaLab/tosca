@@ -1,5 +1,8 @@
-/// A series of collections which can be used for internal storage or
-/// I/O tasks.
-pub mod collections;
+/// Heap collections which might be used for internal storage or I/O tasks.
+#[cfg(feature = "alloc")]
+pub mod heap;
+/// Stack collections which might be used for internal storage or I/O tasks.
+#[cfg(not(feature = "alloc"))]
+pub mod stack;
 /// All fixed capacity strings.
 pub mod strings;
