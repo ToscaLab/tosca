@@ -6,22 +6,51 @@ use std::net::{IpAddr, Ipv4Addr};
 
 use crate::error::Result;
 
-// Service type.
+// Service domain.
 //
-// It defines the default type of a service.
-const SERVICE_TYPE: &str = "_ascot._tcp.local.";
+// It defines the default domain for a service.
+const DOMAIN: &str = "ascot";
+
+/// Service transport protocol.
+#[derive(Debug, Default, Clone, Copy)]
+pub enum TransportProtocol {
+    /// TCP service.
+    #[default]
+    TCP,
+    /// UDP service.
+    UDP,
+}
+
+impl std::fmt::Display for TransportProtocol {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        self.name().fmt(f)
+    }
+}
+
+impl TransportProtocol {
+    /// Returns the [`TransportProtocol`] name.
+    #[must_use]
+    pub const fn name(&self) -> &'static str {
+        match self {
+            Self::TCP => "tcp",
+            Self::UDP => "udp",
+        }
+    }
+}
 
 /// A service configurator.
 #[derive(Debug)]
 pub struct ServiceConfig<'a> {
     // Instance name.
     pub(crate) instance_name: &'a str,
-    // Service properties.
-    pub(crate) properties: HashMap<String, String>,
     // Service host name
     pub(crate) hostname: &'a str,
-    // Service type.
-    pub(crate) service_type: &'a str,
+    // Service domain.
+    pub(crate) domain: &'a str,
+    // Service transport protocol.
+    pub(crate) transport_protocol: TransportProtocol,
+    // Service properties.
+    pub(crate) properties: HashMap<String, String>,
     // Disable IPv6.
     pub(crate) disable_ipv6: bool,
     // Disable IP.
@@ -36,9 +65,10 @@ impl<'a> ServiceConfig<'a> {
     pub fn mdns_sd(instance_name: &'a str) -> Self {
         Self {
             instance_name,
-            properties: HashMap::new(),
             hostname: instance_name,
-            service_type: SERVICE_TYPE,
+            domain: DOMAIN,
+            transport_protocol: TransportProtocol::default(),
+            properties: HashMap::new(),
             disable_ipv6: false,
             disable_ip: None,
             disable_network_interface: None,
@@ -59,12 +89,17 @@ impl<'a> ServiceConfig<'a> {
         self
     }
 
-    /// Sets the service type.
-    ///
-    /// This allows to detect the type of firmware associated with a service.
+    /// Sets the service transport protocol.
     #[must_use]
-    pub const fn service_type(mut self, service_type: &'a str) -> Self {
-        self.service_type = service_type;
+    pub const fn transport_protocol(mut self, transport_protocol: TransportProtocol) -> Self {
+        self.transport_protocol = transport_protocol;
+        self
+    }
+
+    /// Sets the service domain.
+    #[must_use]
+    pub const fn domain(mut self, domain: &'a str) -> Self {
+        self.domain = domain;
         self
     }
 
