@@ -28,18 +28,6 @@
 #[cfg(feature = "alloc")]
 extern crate alloc;
 
-// REMINDERS:
-//
-// - The `heapless` dependency can consume a lot of stack. Reduce the number
-//   of elements in the stack structures if some issues arises.
-
-// Maximum number of elements on stack for a data structure.
-#[cfg(feature = "alloc")]
-const MAXIMUM_ELEMENTS: usize = 32;
-
-#[cfg(not(feature = "alloc"))]
-const MAXIMUM_ELEMENTS: usize = 8;
-
 /// All methods to interact with an action.
 pub mod actions;
 /// Description of a device with its routes information.
@@ -62,8 +50,12 @@ pub mod route;
 mod utils;
 
 pub use error::{Error, ErrorKind};
-pub use utils::collections;
 pub use utils::strings;
+
+#[cfg(feature = "alloc")]
+pub use utils::heap as collections;
+#[cfg(not(feature = "alloc"))]
+pub use utils::stack as collections;
 
 #[cfg(test)]
 pub(crate) fn serialize<T: serde::Serialize>(value: T) -> serde_json::Value {

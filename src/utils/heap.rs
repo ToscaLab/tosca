@@ -1,37 +1,32 @@
 use core::hash::Hash;
 
-use heapless::{FnvIndexSet, IndexSetIter};
+use indexmap::set::{IndexSet, Iter};
 
 use serde::{Deserialize, Serialize};
 
-use crate::MAXIMUM_ELEMENTS;
-
 /// A collection of elements for internal storage.
-#[derive(Debug, PartialEq, Clone)]
-pub struct Collection<T: PartialEq + Eq + Hash>(FnvIndexSet<T, MAXIMUM_ELEMENTS>);
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub struct Collection<T: PartialEq + Eq + Hash>(IndexSet<T>);
 
 /// A serializable collection of elements.
-#[derive(Debug, PartialEq, Clone, Serialize)]
-pub struct SerialCollection<T: PartialEq + Eq + Hash>(FnvIndexSet<T, MAXIMUM_ELEMENTS>);
+#[derive(Debug, PartialEq, Eq, Clone, Serialize)]
+pub struct SerialCollection<T: PartialEq + Eq + Hash>(IndexSet<T>);
 
 /// A serializable and deserializable collection of elements.
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
-pub struct OutputCollection<T: PartialEq + Eq + Hash>(FnvIndexSet<T, MAXIMUM_ELEMENTS>);
+#[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize)]
+pub struct OutputCollection<T: PartialEq + Eq + Hash>(IndexSet<T>);
 
 macro_rules! from_collection {
-    ($for:ident $(,$trait:ident)?) => {
+    ($for:ident) => {
         impl<T, K> From<Collection<K>> for $for<T>
         where
-            T: Clone + $($trait +)?  PartialEq + Eq + Hash + From<K>,
-            K: Clone + $($trait +)? PartialEq + Eq + Hash,
+            T: Clone + PartialEq + Eq + Hash + From<K>,
+            K: Clone + PartialEq + Eq + Hash,
         {
             fn from(collection: Collection<K>) -> Self {
                 let mut elements = Self::empty();
                 for other_element in collection.iter() {
-                    #[cfg(feature = "alloc")]
-                    let _ = elements.0.insert(T::from(other_element.clone()));
-                    #[cfg(not(feature = "alloc"))]
-                    let _ = elements.0.insert(T::from(*other_element));
+                    elements.0.insert(T::from(other_element.clone()));
                 }
                 elements
             }
@@ -40,13 +35,13 @@ macro_rules! from_collection {
 }
 
 macro_rules! implementation {
-    ($impl:ident $(,$trait:ident)?) => {
+    ($impl:ident) => {
         impl<'a, T> IntoIterator for &'a $impl<T>
         where
-            T: Clone + $($trait +)? PartialEq + Eq + Hash,
+            T: Clone + PartialEq + Eq + Hash,
         {
             type Item = &'a T;
-            type IntoIter = heapless::IndexSetIter<'a, T>;
+            type IntoIter = Iter<'a, T>;
 
             fn into_iter(self) -> Self::IntoIter {
                 self.iter()
@@ -55,44 +50,45 @@ macro_rules! implementation {
 
         impl<T> $impl<T>
         where
-            T: Clone + $($trait +)? PartialEq + Eq + Hash,
+            T: Clone + PartialEq + Eq +  Hash,
         {
             #[doc = concat!("Creates an empty [`", stringify!($impl), "`].")]
             #[must_use]
-            pub const fn empty() -> Self {
-                Self(FnvIndexSet::new())
+            #[inline]
+            pub fn empty() -> Self {
+                Self(IndexSet::default())
             }
 
             #[doc = concat!("Initializes a [`", stringify!($impl), "`] with a determined element.")]
             #[must_use]
             #[inline]
             pub fn init(element: T) -> Self {
-                let mut elements = Self::empty();
-                elements.add(element);
-                elements
+                Self::empty().insert(element)
             }
 
             #[doc = concat!("Inserts an element to a [`", stringify!($impl), "`].")]
             #[must_use]
             #[inline]
             pub fn insert(mut self, element: T) -> Self {
-                let _ = self.0.insert(element);
+                self.0.insert(element);
                 self
             }
 
             #[doc = concat!("Adds an element to a [`", stringify!($impl), "`].")]
             #[inline]
             pub fn add(&mut self, element: T) {
-                let _ = self.0.insert(element);
+                self.0.insert(element);
             }
 
             #[doc = concat!("Checks whether the [`", stringify!($impl), "`] is empty.")]
+            #[must_use]
             #[inline]
             pub fn is_empty(&self) -> bool {
                 self.0.is_empty()
             }
 
             #[doc = concat!("Returns the [`", stringify!($impl), "`] length.")]
+            #[must_use]
             #[inline]
             pub fn len(&self) -> usize {
                 self.0.len()
@@ -107,8 +103,9 @@ macro_rules! implementation {
             #[doc = concat!("Returns an iterator over the [`", stringify!($impl), "`].")]
             #[doc = ""]
             #[doc = "**It iterates in the insertion order.**"]
+            #[must_use]
             #[inline]
-            pub fn iter(&self) -> IndexSetIter<'_, T> {
+            pub fn iter(&self) -> Iter<'_, T> {
                 self.0.iter()
             }
 
@@ -132,35 +129,16 @@ macro_rules! implementation {
     };
 }
 
+// Collection implementation.
+implementation!(Collection);
+
 // Serial collection implementation.
 implementation!(SerialCollection);
 
 // Output collection implementation.
 implementation!(OutputCollection);
 
-#[cfg(feature = "alloc")]
-mod alloc {
-    use super::{Collection, FnvIndexSet, Hash, IndexSetIter, OutputCollection, SerialCollection};
-
-    // Collection implementation.
-    implementation!(Collection);
-
-    // Convert from collection into serial collection.
-    from_collection!(SerialCollection);
-    // Convert from collection into output collection.
-    from_collection!(OutputCollection);
-}
-
-#[cfg(not(feature = "alloc"))]
-mod alloc {
-    use super::{Collection, FnvIndexSet, Hash, IndexSetIter, OutputCollection, SerialCollection};
-
-    // Collection implementation.
-    implementation!(Collection, Copy);
-
-    // Convert from collection into serial collection.
-    from_collection!(SerialCollection, Copy);
-
-    // Convert from collection into output collection.
-    from_collection!(OutputCollection, Copy);
-}
+// Convert from collection into serial collection.
+from_collection!(SerialCollection);
+// Convert from collection into output collection.
+from_collection!(OutputCollection);
