@@ -48,11 +48,7 @@ impl<'a> ServiceConfig<'a> {
     /// Sets a service property.
     #[must_use]
     pub fn property(mut self, property: (impl Into<String>, impl Into<String>)) -> Self {
-        // If an equivalent key already exists in the map: the key remains and
-        // retains in its place in the order.
-        // Its corresponding value is updated with value and the older value
-        // is returned inside.
-        let _ = self.properties.insert(property.0.into(), property.1.into());
+        self.properties.insert(property.0.into(), property.1.into());
         self
     }
 
