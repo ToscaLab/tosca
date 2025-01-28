@@ -11,8 +11,6 @@ pub enum ErrorKind {
     NotFoundAddress,
     /// Serialize/Deserialize error.
     Serialization,
-    /// An `Ascot` error.
-    Ascot,
     /// A device error.
     Device,
     /// External error.
@@ -27,7 +25,6 @@ impl ErrorKind {
             Self::Service => "Service",
             Self::NotFoundAddress => "Not Found Address",
             Self::Serialization => "Serialization",
-            Self::Ascot => "Ascot",
             Self::Device => "Device",
             Self::External => "External",
         }
@@ -93,12 +90,6 @@ impl Error {
 impl From<serde_json::Error> for Error {
     fn from(e: serde_json::Error) -> Self {
         Self::new(ErrorKind::Serialization, e.to_string())
-    }
-}
-
-impl From<ascot_library::Error> for Error {
-    fn from(e: ascot_library::Error) -> Self {
-        Self::new(ErrorKind::Ascot, e.to_string())
     }
 }
 
