@@ -11,6 +11,11 @@ use crate::error::Result;
 // It defines the default domain for a service.
 const DOMAIN: &str = "ascot";
 
+// Service top-level domain.
+//
+// It defines the default top-level domain for a service.
+const TOP_LEVEL_DOMAIN: &str = "local";
+
 /// Service transport protocol.
 #[derive(Debug, Default, Clone, Copy)]
 pub enum TransportProtocol {
@@ -49,6 +54,8 @@ pub struct ServiceConfig<'a> {
     pub(crate) domain: &'a str,
     // Service transport protocol.
     pub(crate) transport_protocol: TransportProtocol,
+    // Top-level domain.
+    pub(crate) top_level_domain: &'a str,
     // Service properties.
     pub(crate) properties: HashMap<String, String>,
     // Disable IPv6.
@@ -68,6 +75,7 @@ impl<'a> ServiceConfig<'a> {
             hostname: instance_name,
             domain: DOMAIN,
             transport_protocol: TransportProtocol::default(),
+            top_level_domain: TOP_LEVEL_DOMAIN,
             properties: HashMap::new(),
             disable_ipv6: false,
             disable_ip: None,
@@ -100,6 +108,13 @@ impl<'a> ServiceConfig<'a> {
     #[must_use]
     pub const fn domain(mut self, domain: &'a str) -> Self {
         self.domain = domain;
+        self
+    }
+
+    /// Sets the service top-level domain.
+    #[must_use]
+    pub const fn top_level_domain(mut self, top_level_domain: &'a str) -> Self {
+        self.top_level_domain = top_level_domain;
         self
     }
 
