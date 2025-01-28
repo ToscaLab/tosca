@@ -35,10 +35,10 @@ macro_rules! from_collection {
 }
 
 macro_rules! implementation {
-    ($impl:ident) => {
+    ($impl:ident $(,$trait:ident)?) => {
         impl<'a, T> IntoIterator for &'a $impl<T>
         where
-            T: Clone + Copy + PartialEq + Eq + Hash,
+            T: Clone + $($trait +)? PartialEq + Eq + Hash,
         {
             type Item = &'a T;
             type IntoIter = IndexSetIter<'a, T>;
@@ -50,7 +50,7 @@ macro_rules! implementation {
 
         impl<T> $impl<T>
         where
-            T: Clone + Copy + PartialEq + Eq + Hash,
+            T: Clone + $($trait +)? PartialEq + Eq + Hash,
         {
             #[doc = concat!("Creates an empty [`", stringify!($impl), "`].")]
             #[must_use]
@@ -128,7 +128,7 @@ macro_rules! implementation {
 }
 
 // Collection implementation.
-implementation!(Collection);
+implementation!(Collection, Copy);
 
 // Serial collection implementation.
 implementation!(SerialCollection);
