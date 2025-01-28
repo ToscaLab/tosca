@@ -1,7 +1,12 @@
+#[cfg(feature = "alloc")]
+use alloc::string::String;
+
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
 use crate::actions::ActionError;
 use crate::device::DeviceInfo;
+
+#[cfg(not(feature = "alloc"))]
 use crate::strings::ShortString;
 
 /// Action response kinds.
@@ -85,14 +90,16 @@ pub struct ErrorResponse {
     /// Action error type.
     pub error: ActionError,
     /// Error description.
-    // This field is not a String in the `std` variant because we want to know
-    // in advance its size in bytes in order to control the amount of data
-    // returned by this structure.
+    #[cfg(feature = "alloc")]
+    pub description: String,
+    /// Error description.
+    #[cfg(not(feature = "alloc"))]
     pub description: ShortString,
     /// Information about an error.
-    // This field is not a String in the `std` variant because we want to know
-    // in advance its size in bytes in order to control the amount of data
-    // returned by this structure.
+    #[cfg(feature = "alloc")]
+    pub info: Option<String>,
+    /// Information about an error.
+    #[cfg(not(feature = "alloc"))]
     pub info: Option<ShortString>,
 }
 
@@ -106,6 +113,9 @@ impl ErrorResponse {
     pub fn with_description(error: ActionError, description: &str) -> Self {
         Self {
             error,
+            #[cfg(feature = "alloc")]
+            description: String::from(description),
+            #[cfg(not(feature = "alloc"))]
             description: ShortString::infallible(description),
             info: None,
         }
@@ -121,7 +131,13 @@ impl ErrorResponse {
     pub fn with_description_error(error: ActionError, description: &str, info: &str) -> Self {
         Self {
             error,
+            #[cfg(feature = "alloc")]
+            description: String::from(description),
+            #[cfg(not(feature = "alloc"))]
             description: ShortString::infallible(description),
+            #[cfg(feature = "alloc")]
+            info: Some(String::from(info)),
+            #[cfg(not(feature = "alloc"))]
             info: Some(ShortString::infallible(info)),
         }
     }
@@ -177,7 +193,7 @@ mod tests {
 
     use super::{
         ActionError, Deserialize, DeviceInfo, ErrorResponse, InfoResponse, OkResponse,
-        SerialResponse, Serialize, ShortString,
+        SerialResponse, Serialize,
     };
 
     #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -238,7 +254,10 @@ mod tests {
             deserialize::<ErrorResponse>(serialize(error)),
             ErrorResponse {
                 error: ActionError::InvalidData,
-                description: ShortString::infallible("Invalid data error description"),
+                #[cfg(feature = "alloc")]
+                description: super::String::from("Invalid data error description"),
+                #[cfg(not(feature = "alloc"))]
+                description: super::ShortString::infallible("Invalid data error description"),
                 info: None,
             }
         );

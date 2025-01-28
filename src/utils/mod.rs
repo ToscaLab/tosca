@@ -5,4 +5,5 @@ pub mod heap;
 #[cfg(not(feature = "alloc"))]
 pub mod stack;
 /// All fixed capacity strings.
+#[cfg(not(feature = "alloc"))]
 pub mod strings;
