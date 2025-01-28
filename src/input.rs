@@ -2,234 +2,143 @@ use serde::{Deserialize, Serialize};
 
 use crate::collections::Collection;
 
-#[cfg(feature = "alloc")]
-mod private_input {
-    use super::{Deserialize, Serialize};
-
-    /// An [`Input`] structure.
-    #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-    pub enum InputStructure {
-        /// A [`bool`] value.
-        Bool {
-            /// Both the initial [`bool`] value, but also the default one
-            /// in case of missing input.
-            default: bool,
-        },
-        /// A [`u8`] value.
-        U8 {
-            /// Both the initial [`u8`] value, but also the default one
-            /// in case of missing input.
-            default: u8,
-        },
-        /// A [`u16`] value.
-        U16 {
-            /// Both the initial [`u16`] value, but also the default one
-            /// in case of missing input.
-            default: u16,
-        },
-        /// A [`u32`] value.
-        U32 {
-            /// Both the initial [`u32`] value, but also the default one
-            /// in case of missing input.
-            default: u32,
-        },
-        /// A [`u64`] value.
-        U64 {
-            /// Both the initial [`u64`] value, but also the default one
-            /// in case of missing input.
-            default: u64,
-        },
-        /// A [`f32`] value.
-        F32 {
-            /// Both the initial [`f32`] value, but also the default one
-            /// in case of missing input.
-            default: f32,
-        },
-        /// A [`f64`] value.
-        F64 {
-            /// Both the initial [`f64`] value, but also the default one
-            /// in case of missing input.
-            default: f64,
-        },
-        /// A range of [`u64`] values.
-        RangeU64 {
-            /// Minimum allowed [`u64`] value.
-            min: u64,
-            /// Maximum allowed [`u64`] value.
-            max: u64,
-            /// The [`u64`] step to pass from one allowed value to another one
-            /// within the range.
-            step: u64,
-            /// Initial [`u64`] range value.
-            default: u64,
-        },
-        /// A range of [`f64`] values.
-        RangeF64 {
-            /// Minimum allowed [`f64`] value.
-            min: f64,
-            /// Maximum allowed [`u64`] value.
-            max: f64,
-            /// The [`f64`] step to pass from one allowed value to another one
-            /// within the range.
-            step: f64,
-            /// Initial [`f64`] range value.
-            default: f64,
-        },
-        /// A characters sequence.
-        ///
-        /// This kind of input can contain an unknown or a precise sequence of
-        /// characters expressed either as a fixed-size or an allocated string.
-        CharsSequence {
-            /// Initial characters sequence, which also represents the default
-            /// value.
-            default: alloc::borrow::Cow<'static, str>,
-        },
-        /// A byte stream input.
-        ///
-        /// This kind of input can be used to send files.
-        ByteStream,
-    }
-
-    /// Input data.
-    #[derive(Debug, Clone, Serialize, Deserialize)]
-    pub struct InputData {
-        /// Name.
-        pub name: alloc::borrow::Cow<'static, str>,
-        /// Input structure.
-        #[serde(rename = "structure")]
-        pub structure: InputStructure,
-    }
-
-    /// All supported inputs.
-    #[derive(Debug, Clone)]
-    pub struct Input {
-        // Name.
-        pub(super) name: &'static str,
-        // Input structure.
-        pub(super) structure: InputStructure,
-    }
-
-    impl InputData {
-        pub(super) fn new(input: Input) -> Self {
-            Self {
-                name: input.name.into(),
-                structure: input.structure,
-            }
-        }
-    }
-
-    /// A collection of [`InputData`]s.
-    pub type InputsData = crate::collections::OutputCollection<InputData>;
+/// An [`Input`] structure.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub enum InputStructure {
+    /// A [`bool`] value.
+    Bool {
+        /// Both the initial [`bool`] value, but also the default one
+        /// in case of missing input.
+        default: bool,
+    },
+    /// A [`u8`] value.
+    U8 {
+        /// Both the initial [`u8`] value, but also the default one
+        /// in case of missing input.
+        default: u8,
+    },
+    /// A [`u16`] value.
+    U16 {
+        /// Both the initial [`u16`] value, but also the default one
+        /// in case of missing input.
+        default: u16,
+    },
+    /// A [`u32`] value.
+    U32 {
+        /// Both the initial [`u32`] value, but also the default one
+        /// in case of missing input.
+        default: u32,
+    },
+    /// A [`u64`] value.
+    U64 {
+        /// Both the initial [`u64`] value, but also the default one
+        /// in case of missing input.
+        default: u64,
+    },
+    /// A [`f32`] value.
+    F32 {
+        /// Both the initial [`f32`] value, but also the default one
+        /// in case of missing input.
+        default: f32,
+    },
+    /// A [`f64`] value.
+    F64 {
+        /// Both the initial [`f64`] value, but also the default one
+        /// in case of missing input.
+        default: f64,
+    },
+    /// A range of [`u64`] values.
+    RangeU64 {
+        /// Minimum allowed [`u64`] value.
+        min: u64,
+        /// Maximum allowed [`u64`] value.
+        max: u64,
+        /// The [`u64`] step to pass from one allowed value to another one
+        /// within the range.
+        step: u64,
+        /// Initial [`u64`] range value.
+        default: u64,
+    },
+    /// A range of [`f64`] values.
+    RangeF64 {
+        /// Minimum allowed [`f64`] value.
+        min: f64,
+        /// Maximum allowed [`u64`] value.
+        max: f64,
+        /// The [`f64`] step to pass from one allowed value to another one
+        /// within the range.
+        step: f64,
+        /// Initial [`f64`] range value.
+        default: f64,
+    },
+    /// A characters sequence.
+    ///
+    /// This kind of input can contain an unknown or a precise sequence of
+    /// characters expressed either as a fixed-size or an allocated string.
+    #[cfg(feature = "alloc")]
+    CharsSequence {
+        /// Initial characters sequence, which also represents the default
+        /// value.
+        default: alloc::borrow::Cow<'static, str>,
+    },
+    /// A byte stream input.
+    ///
+    /// This kind of input can be used to send files.
+    #[cfg(feature = "alloc")]
+    ByteStream,
 }
 
 #[cfg(not(feature = "alloc"))]
-mod private_input {
-    use super::{Deserialize, Serialize};
+impl Copy for InputStructure {}
 
-    /// An [`Input`] structure.
-    #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
-    pub enum InputStructure {
-        /// A [`bool`] value.
-        Bool {
-            /// Both the initial [`bool`] value, but also the default one in case of
-            /// missing input.
-            default: bool,
-        },
-        /// A [`u8`] value.
-        U8 {
-            /// Both the initial [`u8`] value, but also the default one in case of
-            /// missing input.
-            default: u8,
-        },
-        /// A [`u16`] value.
-        U16 {
-            /// Both the initial [`u16`] value, but also the default one
-            /// in case of missing input.
-            default: u16,
-        },
-        /// A [`u32`] value.
-        U32 {
-            /// Both the initial [`u32`] value, but also the default one
-            /// in case of missing input.
-            default: u32,
-        },
-        /// A [`u64`] value.
-        U64 {
-            /// Both the initial [`u64`] value, but also the default one
-            /// in case of missing input.
-            default: u64,
-        },
-        /// A [`f32`] value.
-        F32 {
-            /// Both the initial [`f32`] value, but also the default one
-            /// in case of missing input.
-            default: f32,
-        },
-        /// A [`f64`] value.
-        F64 {
-            /// Both the initial [`f64`] value, but also the default one
-            /// in case of missing input.
-            default: f64,
-        },
-        /// A range of [`u64`] values.
-        RangeU64 {
-            /// Minimum allowed [`u64`] value.
-            min: u64,
-            /// Maximum allowed [`u64`] value.
-            max: u64,
-            /// The [`u64`] step to pass from one allowed value to another one
-            /// within the range.
-            step: u64,
-            /// Initial [`u64`] range value.
-            default: u64,
-        },
-        /// A range of [`f64`] values.
-        RangeF64 {
-            /// Minimum allowed [`f64`] value.
-            min: f64,
-            /// Maximum allowed [`u64`] value.
-            max: f64,
-            /// The [`f64`] step to pass from one allowed value to another one
-            /// within the range.
-            step: f64,
-            /// Initial [`f64`] range value.
-            default: f64,
-        },
-    }
-
-    /// Input data.
-    #[derive(Debug, Clone, Copy, Serialize)]
-    pub struct InputData {
-        /// Name.
-        pub name: &'static str,
-        /// Input structure.
-        #[serde(rename = "structure")]
-        pub structure: InputStructure,
-    }
-
-    /// All supported inputs.
-    #[derive(Debug, Clone, Copy)]
-    pub struct Input {
-        // Name.
-        pub(super) name: &'static str,
-        // Input structure.
-        pub(super) structure: InputStructure,
-    }
-
-    impl InputData {
-        pub(super) fn new(input: Input) -> Self {
-            Self {
-                name: input.name,
-                structure: input.structure,
-            }
-        }
-    }
-
-    /// A collection of [`InputData`]s.
-    pub type InputsData = crate::collections::SerialCollection<InputData>;
+/// Input data.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InputData {
+    /// Name.
+    #[cfg(feature = "alloc")]
+    pub name: alloc::borrow::Cow<'static, str>,
+    /// Name.
+    #[cfg(not(feature = "alloc"))]
+    pub name: &'static str,
+    /// Input structure.
+    #[serde(rename = "structure")]
+    pub structure: InputStructure,
 }
 
-pub use private_input::{Input, InputData, InputStructure, InputsData};
+#[cfg(not(feature = "alloc"))]
+impl Copy for InputData {}
+
+impl InputData {
+    fn new(input: Input) -> Self {
+        Self {
+            #[cfg(feature = "alloc")]
+            name: input.name.into(),
+            #[cfg(not(feature = "alloc"))]
+            name: input.name,
+            structure: input.structure,
+        }
+    }
+}
+
+/// All supported inputs.
+#[derive(Debug, Clone)]
+pub struct Input {
+    // Name.
+    name: &'static str,
+    // Input structure.
+    structure: InputStructure,
+}
+
+#[cfg(not(feature = "alloc"))]
+impl Copy for Input {}
+
+/// A collection of [`InputData`]s.
+#[cfg(feature = "alloc")]
+pub type InputsData = crate::collections::OutputCollection<InputData>;
+
+/// A collection of [`InputData`]s.
+#[cfg(not(feature = "alloc"))]
+pub type InputsData = crate::collections::SerialCollection<InputData>;
 
 impl core::cmp::PartialEq for InputData {
     fn eq(&self, other: &Self) -> bool {
