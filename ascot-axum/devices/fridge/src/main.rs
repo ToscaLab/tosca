@@ -3,17 +3,12 @@ mod fridge_mockup;
 use std::net::Ipv4Addr;
 use std::sync::Arc;
 
-use async_lock::Mutex;
-use serde::{Deserialize, Serialize};
-
-// Ascot library.
 use ascot_library::device::DeviceInfo;
 use ascot_library::energy::{EnergyClass, EnergyEfficiencies, EnergyEfficiency};
 use ascot_library::hazards::Hazard;
 use ascot_library::input::Input;
 use ascot_library::route::Route;
 
-// Ascot axum.
 use ascot_axum::actions::error::ErrorResponse;
 use ascot_axum::actions::info::{info_stateful, InfoResponse};
 use ascot_axum::actions::serial::{mandatory_serial_stateful, serial_stateful, SerialResponse};
@@ -21,15 +16,17 @@ use ascot_axum::devices::fridge::Fridge;
 use ascot_axum::error::Error;
 use ascot_axum::extract::{FromRef, Json, State};
 use ascot_axum::server::Server;
-use ascot_axum::service::ServiceConfig;
+use ascot_axum::service::{ServiceConfig, TransportProtocol};
 
-// Command line library
+use async_lock::Mutex;
+
+use clap::builder::ValueParser;
 use clap::Parser;
 
-// Tracing library.
+use serde::{Deserialize, Serialize};
+
 use tracing_subscriber::filter::LevelFilter;
 
-// A fridge implementation mock-up
 use fridge_mockup::FridgeMockup;
 
 #[derive(Clone)]
@@ -177,6 +174,17 @@ async fn update_energy_efficiency(
     Ok(InfoResponse::new(fridge_info.clone()))
 }
 
+fn parse_transport_protocol(protocol: &str) -> Result<TransportProtocol, std::io::Error> {
+    match protocol {
+        "tcp" | "TCP" => Ok(TransportProtocol::TCP),
+        "udp" | "UDP" => Ok(TransportProtocol::UDP),
+        _ => Err(std::io::Error::new(
+            std::io::ErrorKind::Other,
+            format!("{protocol:?} is not a supported protocol."),
+        )),
+    }
+}
+
 #[derive(Parser)]
 #[command(version, about, long_about = "A complete fridge device example.")]
 struct Cli {
@@ -194,9 +202,13 @@ struct Cli {
     #[arg(short, long, default_value_t = 3000)]
     port: u16,
 
-    /// Service type.
-    #[arg(short = 't', long = "type", default_value = "_ascot._tcp.local.")]
-    service_type: String,
+    /// Service domain.
+    #[arg(short = 'd', long = "domain")]
+    service_domain: String,
+
+    /// Service transport protocol.
+    #[arg(short = 't', long = "protocol", default_value_t = TransportProtocol::TCP, value_parser = ValueParser::new(parse_transport_protocol))]
+    service_transport_protocol: TransportProtocol,
 }
 
 #[tokio::main]
@@ -269,7 +281,8 @@ async fn main() -> Result<(), Error> {
         .discovery_service(
             ServiceConfig::mdns_sd("fridge")
                 .hostname(&cli.hostname)
-                .service_type(&cli.service_type),
+                .domain(&cli.service_domain)
+                .transport_protocol(cli.service_transport_protocol),
         )
         .run()
         .await

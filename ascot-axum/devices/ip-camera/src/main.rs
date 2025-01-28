@@ -17,10 +17,11 @@ use ascot_axum::actions::stream::stream_stateful;
 use ascot_axum::device::Device;
 use ascot_axum::error::Error;
 use ascot_axum::server::Server;
-use ascot_axum::service::ServiceConfig;
+use ascot_axum::service::{ServiceConfig, TransportProtocol};
 
 use async_lock::Mutex;
 
+use clap::builder::ValueParser;
 use clap::Parser;
 
 use nokhwa::{
@@ -85,6 +86,17 @@ impl InternalState {
     }
 }
 
+fn parse_transport_protocol(protocol: &str) -> Result<TransportProtocol, std::io::Error> {
+    match protocol {
+        "tcp" | "TCP" => Ok(TransportProtocol::TCP),
+        "udp" | "UDP" => Ok(TransportProtocol::UDP),
+        _ => Err(std::io::Error::new(
+            std::io::ErrorKind::Other,
+            format!("{protocol:?} is not a supported protocol."),
+        )),
+    }
+}
+
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
 struct Cli {
@@ -102,9 +114,13 @@ struct Cli {
     #[arg(short, long, default_value_t = 3000)]
     port: u16,
 
-    /// Service type.
-    #[arg(short = 't', long = "type", default_value = "_ascot._tcp.local.")]
-    service_type: String,
+    /// Service domain.
+    #[arg(short = 'd', long = "domain")]
+    service_domain: String,
+
+    /// Service transport protocol.
+    #[arg(short = 't', long = "protocol", default_value_t = TransportProtocol::TCP, value_parser = ValueParser::new(parse_transport_protocol))]
+    service_transport_protocol: TransportProtocol,
 }
 
 fn camera_format(
@@ -367,7 +383,8 @@ async fn main() -> Result<(), Error> {
             .discovery_service(
                 ServiceConfig::mdns_sd("camera")
                     .hostname(&cli.hostname)
-                    .service_type(&cli.service_type),
+                    .domain(&cli.service_domain)
+                    .transport_protocol(cli.service_transport_protocol),
             )
             .run(),
     )
