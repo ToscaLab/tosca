@@ -8,7 +8,7 @@ edition = "2021"
 [dependencies]
 heapless = { version = "0.8.0", features = ["serde"] }
 serde = { version = "1.0", features = ["derive"] }
-serde_json = { version =  "1", features = ["preserve_order"] }
+serde_json = { version =  "1", features = ["alloc"] }
 
 [dependencies.indexmap]
 version = "2.7"
@@ -18,4 +18,5 @@ optional = true
 
 [features]
 default = ["alloc"]
-alloc = ["indexmap"]
+alloc = ["indexmap", "preserve_order"]
+preserve_order = ["serde_json/preserve_order"]
