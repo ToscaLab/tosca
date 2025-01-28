@@ -30,120 +30,83 @@ impl core::fmt::Display for RestKind {
     }
 }
 
+/// Route data.
+#[derive(Debug, Clone, Serialize)]
+#[cfg_attr(feature = "alloc", derive(Deserialize))]
+pub struct RouteData {
+    /// Name.
+    #[cfg(feature = "alloc")]
+    pub name: alloc::borrow::Cow<'static, str>,
+    /// Name.
+    #[cfg(not(feature = "alloc"))]
+    pub name: &'static str,
+    /// Description.
+    #[cfg(feature = "alloc")]
+    pub description: Option<alloc::borrow::Cow<'static, str>>,
+    /// Description.
+    #[cfg(not(feature = "alloc"))]
+    pub description: Option<&'static str>,
+    /// Hazards data.
+    #[serde(skip_serializing_if = "Hazards::is_empty")]
+    #[serde(default = "Hazards::empty")]
+    pub hazards: Hazards,
+    /// Inputs associated with a route..
+    #[serde(skip_serializing_if = "InputsData::is_empty")]
+    #[serde(default = "InputsData::empty")]
+    pub inputs: InputsData,
+}
+
+impl PartialEq for RouteData {
+    #[cfg(feature = "alloc")]
+    fn eq(&self, other: &Self) -> bool {
+        self.name.eq(&other.name)
+    }
+
+    #[cfg(not(feature = "alloc"))]
+    fn eq(&self, other: &Self) -> bool {
+        self.name.eq(other.name)
+    }
+}
+
+impl RouteData {
+    pub(super) fn new(route: Route) -> Self {
+        Self {
+            #[cfg(feature = "alloc")]
+            name: route.route.into(),
+            #[cfg(not(feature = "alloc"))]
+            name: route.route,
+            #[cfg(feature = "alloc")]
+            description: route.description.map(core::convert::Into::into),
+            #[cfg(not(feature = "alloc"))]
+            description: route.description,
+            hazards: route.hazards,
+            inputs: InputsData::from(route.inputs),
+        }
+    }
+}
+
+/// A server route configuration.
+#[derive(Debug, Clone, Serialize)]
+#[cfg_attr(feature = "alloc", derive(Deserialize))]
+pub struct RouteConfig {
+    /// Route.
+    #[serde(flatten)]
+    pub data: RouteData,
+    /// **_REST_** kind..
+    #[serde(rename = "REST kind")]
+    pub rest_kind: RestKind,
+    /// Response kind.
+    #[serde(rename = "response kind")]
+    pub response_kind: ResponseKind,
+}
+
+/// A collection of [`RouteConfig`]s.
 #[cfg(feature = "alloc")]
-mod private_route {
-    use alloc::borrow::Cow;
+pub type RouteConfigs = crate::collections::OutputCollection<RouteConfig>;
 
-    use super::{Deserialize, Hazards, InputsData, ResponseKind, RestKind, Route, Serialize};
-
-    /// Route data.
-    #[derive(Debug, Clone, Serialize, Deserialize)]
-    pub struct RouteData {
-        /// Name.
-        pub name: Cow<'static, str>,
-        /// Description.
-        pub description: Option<Cow<'static, str>>,
-        /// Hazards data.
-        #[serde(skip_serializing_if = "Hazards::is_empty")]
-        #[serde(default = "Hazards::empty")]
-        pub hazards: Hazards,
-        /// Inputs associated with a route..
-        #[serde(skip_serializing_if = "InputsData::is_empty")]
-        #[serde(default = "InputsData::empty")]
-        pub inputs: InputsData,
-    }
-
-    impl PartialEq for RouteData {
-        fn eq(&self, other: &Self) -> bool {
-            self.name.eq(&other.name)
-        }
-    }
-
-    impl RouteData {
-        pub(super) fn new(route: Route) -> Self {
-            Self {
-                name: route.route.into(),
-                description: route.description.map(core::convert::Into::into),
-                hazards: route.hazards,
-                inputs: InputsData::from(route.inputs),
-            }
-        }
-    }
-
-    /// A server route configuration.
-    #[derive(Debug, Clone, Serialize, Deserialize)]
-    pub struct RouteConfig {
-        /// Route.
-        #[serde(flatten)]
-        pub data: RouteData,
-        /// **_REST_** kind..
-        #[serde(rename = "REST kind")]
-        pub rest_kind: RestKind,
-        /// Response kind.
-        #[serde(rename = "response kind")]
-        pub response_kind: ResponseKind,
-    }
-
-    /// A collection of [`RouteConfig`]s.
-    pub type RouteConfigs = crate::collections::OutputCollection<RouteConfig>;
-}
-
+/// A collection of [`RouteConfig`]s.
 #[cfg(not(feature = "alloc"))]
-mod private_route {
-    use super::{Hazards, InputsData, ResponseKind, RestKind, Route, Serialize};
-
-    /// Route data.
-    #[derive(Debug, Clone, Serialize)]
-    pub struct RouteData {
-        /// Name.
-        pub name: &'static str,
-        /// Description.
-        pub description: Option<&'static str>,
-        /// Hazards data.
-        #[serde(skip_serializing_if = "Hazards::is_empty")]
-        #[serde(default = "Hazards::empty")]
-        pub hazards: Hazards,
-        /// Inputs associated with a route..
-        #[serde(skip_serializing_if = "InputsData::is_empty")]
-        pub inputs: InputsData,
-    }
-
-    impl PartialEq for RouteData {
-        fn eq(&self, other: &Self) -> bool {
-            self.name.eq(other.name)
-        }
-    }
-
-    impl RouteData {
-        pub(super) fn new(route: Route) -> Self {
-            Self {
-                name: route.route,
-                description: route.description,
-                hazards: route.hazards,
-                inputs: InputsData::from(route.inputs),
-            }
-        }
-    }
-
-    /// A server route configuration.
-    #[derive(Debug, Clone, Serialize)]
-    pub struct RouteConfig {
-        /// Route.
-        #[serde(flatten)]
-        pub data: RouteData,
-        /// **_REST_** kind..
-        #[serde(rename = "REST kind")]
-        pub rest_kind: RestKind,
-        /// Response kind.
-        #[serde(rename = "response kind")]
-        pub response_kind: ResponseKind,
-    }
-
-    /// A collection of [`RouteConfig`]s.
-    pub type RouteConfigs = crate::collections::SerialCollection<RouteConfig>;
-}
-
-pub use private_route::{RouteConfig, RouteConfigs, RouteData};
+pub type RouteConfigs = crate::collections::SerialCollection<RouteConfig>;
 
 impl PartialEq for RouteConfig {
     fn eq(&self, other: &Self) -> bool {
