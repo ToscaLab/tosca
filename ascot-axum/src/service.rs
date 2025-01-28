@@ -27,7 +27,7 @@ pub struct ServiceConfig<'a> {
     // Disable IP.
     pub(crate) disable_ip: Option<IpAddr>,
     // Disable network interface.
-    pub(crate) disable_network_interface: Option<&'static str>,
+    pub(crate) disable_network_interface: Option<&'a str>,
 }
 
 impl<'a> ServiceConfig<'a> {
@@ -89,7 +89,7 @@ impl<'a> ServiceConfig<'a> {
 
     /// Disables the given network interface.
     #[must_use]
-    pub const fn disable_network_interface(mut self, network_interface: &'static str) -> Self {
+    pub const fn disable_network_interface(mut self, network_interface: &'a str) -> Self {
         self.disable_network_interface = Some(network_interface);
         self
     }
