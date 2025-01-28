@@ -52,9 +52,21 @@ pub(crate) fn run(
         &format!("{}.local.", service_config.hostname)
     };
 
+    // Create a service type.
+    let service_type = format!(
+        "_{}._{}.local.",
+        service_config.domain,
+        service_config.transport_protocol.name()
+    );
+
     info!("Service instance name: {}", service_config.instance_name);
     info!("Service port: {}", server_port);
-    info!("Service type: {}", service_config.service_type);
+    info!("Service domain: {}", service_config.domain);
+    info!(
+        "Service transport protocol: {}",
+        service_config.transport_protocol.name()
+    );
+    info!("Service type: {}", service_type);
     info!(
         "Device reachable at this hostname: {}:{}",
         &hostname[0..hostname.len() - 1],
@@ -62,8 +74,8 @@ pub(crate) fn run(
     );
 
     let service = ServiceInfo::new(
-        // Domain label and service type
-        service_config.service_type,
+        // Service type
+        &service_type,
         // Service instance name
         service_config.instance_name,
         // DNS hostname.
