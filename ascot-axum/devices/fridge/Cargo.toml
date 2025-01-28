@@ -15,9 +15,13 @@ tokio = { version = "1.0", features = ["full"] }
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
 [profile.release]
-codegen-units = 1 # LLVM can perform better optimizations using a single thread
+opt-level = 3
+debug = false
+rpath = false
+lto = true
+debug-assertions = false
+codegen-units = 1
+panic = "unwind"
 incremental = false
-lto = 'fat'
-# Optimize for binary size, but with loop vectorization.
-opt-level = 's'
 overflow-checks = false
+strip = "debuginfo"
