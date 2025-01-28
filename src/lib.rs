@@ -37,6 +37,7 @@ pub mod economy;
 /// Information about the energy device aspects.
 pub mod energy;
 /// Error handling.
+#[cfg(not(feature = "alloc"))]
 pub mod error;
 /// Hazards descriptions and methods.
 pub mod hazards;
@@ -49,13 +50,16 @@ pub mod route;
 
 mod utils;
 
+#[cfg(not(feature = "alloc"))]
 pub use error::{Error, ErrorKind};
-pub use utils::strings;
 
 #[cfg(feature = "alloc")]
 pub use utils::heap as collections;
 #[cfg(not(feature = "alloc"))]
 pub use utils::stack as collections;
+
+#[cfg(not(feature = "alloc"))]
+pub use utils::strings;
 
 #[cfg(test)]
 pub(crate) fn serialize<T: serde::Serialize>(value: T) -> serde_json::Value {
