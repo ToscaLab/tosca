@@ -17,10 +17,9 @@ const DOMAIN: &str = "ascot";
 const TOP_LEVEL_DOMAIN: &str = "local";
 
 /// Service transport protocol.
-#[derive(Debug, Default, Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub enum TransportProtocol {
     /// TCP service.
-    #[default]
     TCP,
     /// UDP service.
     UDP,
@@ -74,7 +73,7 @@ impl<'a> ServiceConfig<'a> {
             instance_name,
             hostname: instance_name,
             domain: DOMAIN,
-            transport_protocol: TransportProtocol::default(),
+            transport_protocol: TransportProtocol::TCP,
             top_level_domain: TOP_LEVEL_DOMAIN,
             properties: HashMap::new(),
             disable_ipv6: false,
