@@ -4,7 +4,7 @@ use crate::collections::Collection;
 
 /// An [`Input`] structure.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "alloc"), derive(Copy))]
+#[cfg_attr(feature = "stack", derive(Copy))]
 pub enum InputStructure {
     /// A [`bool`] value.
     Bool {
@@ -91,13 +91,13 @@ pub enum InputStructure {
 
 /// Input data.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "alloc"), derive(Copy))]
+#[cfg_attr(feature = "stack", derive(Copy))]
 pub struct InputData {
     /// Name.
     #[cfg(feature = "alloc")]
     pub name: alloc::borrow::Cow<'static, str>,
     /// Name.
-    #[cfg(not(feature = "alloc"))]
+    #[cfg(feature = "stack")]
     pub name: &'static str,
     /// Input structure.
     #[serde(rename = "structure")]
@@ -109,7 +109,7 @@ impl InputData {
         Self {
             #[cfg(feature = "alloc")]
             name: input.name.into(),
-            #[cfg(not(feature = "alloc"))]
+            #[cfg(feature = "stack")]
             name: input.name,
             structure: input.structure,
         }
@@ -118,7 +118,7 @@ impl InputData {
 
 /// All supported inputs.
 #[derive(Debug, Clone)]
-#[cfg_attr(not(feature = "alloc"), derive(Copy))]
+#[cfg_attr(feature = "stack", derive(Copy))]
 pub struct Input {
     // Name.
     name: &'static str,
@@ -131,7 +131,7 @@ pub struct Input {
 pub type InputsData = crate::collections::OutputCollection<InputData>;
 
 /// A collection of [`InputData`]s.
-#[cfg(not(feature = "alloc"))]
+#[cfg(feature = "stack")]
 pub type InputsData = crate::collections::SerialCollection<InputData>;
 
 impl core::cmp::PartialEq for InputData {
@@ -411,7 +411,7 @@ mod tests {
     }
 }
 
-#[cfg(not(feature = "alloc"))]
+#[cfg(feature = "stack")]
 #[cfg(test)]
 mod tests {
     use serde_json::json;

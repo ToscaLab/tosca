@@ -38,13 +38,13 @@ pub struct RouteData {
     #[cfg(feature = "alloc")]
     pub name: alloc::borrow::Cow<'static, str>,
     /// Name.
-    #[cfg(not(feature = "alloc"))]
+    #[cfg(feature = "stack")]
     pub name: &'static str,
     /// Description.
     #[cfg(feature = "alloc")]
     pub description: Option<alloc::borrow::Cow<'static, str>>,
     /// Description.
-    #[cfg(not(feature = "alloc"))]
+    #[cfg(feature = "stack")]
     pub description: Option<&'static str>,
     /// Hazards data.
     #[serde(skip_serializing_if = "Hazards::is_empty")]
@@ -62,7 +62,7 @@ impl PartialEq for RouteData {
         self.name.eq(&other.name)
     }
 
-    #[cfg(not(feature = "alloc"))]
+    #[cfg(feature = "stack")]
     fn eq(&self, other: &Self) -> bool {
         self.name.eq(other.name)
     }
@@ -73,11 +73,11 @@ impl RouteData {
         Self {
             #[cfg(feature = "alloc")]
             name: route.route.into(),
-            #[cfg(not(feature = "alloc"))]
+            #[cfg(feature = "stack")]
             name: route.route,
             #[cfg(feature = "alloc")]
             description: route.description.map(core::convert::Into::into),
-            #[cfg(not(feature = "alloc"))]
+            #[cfg(feature = "stack")]
             description: route.description,
             hazards: route.hazards,
             inputs: InputsData::from(route.inputs),
@@ -105,7 +105,7 @@ pub struct RouteConfig {
 pub type RouteConfigs = crate::collections::OutputCollection<RouteConfig>;
 
 /// A collection of [`RouteConfig`]s.
-#[cfg(not(feature = "alloc"))]
+#[cfg(feature = "stack")]
 pub type RouteConfigs = crate::collections::SerialCollection<RouteConfig>;
 
 impl PartialEq for RouteConfig {
@@ -469,7 +469,7 @@ mod tests {
     }
 }
 
-#[cfg(not(feature = "alloc"))]
+#[cfg(feature = "stack")]
 #[cfg(test)]
 mod tests {
     use serde_json::json;

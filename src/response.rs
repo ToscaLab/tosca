@@ -6,7 +6,7 @@ use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use crate::actions::ActionError;
 use crate::device::DeviceInfo;
 
-#[cfg(not(feature = "alloc"))]
+#[cfg(feature = "stack")]
 use crate::strings::ShortString;
 
 /// Action response kinds.
@@ -93,13 +93,13 @@ pub struct ErrorResponse {
     #[cfg(feature = "alloc")]
     pub description: String,
     /// Error description.
-    #[cfg(not(feature = "alloc"))]
+    #[cfg(feature = "stack")]
     pub description: ShortString,
     /// Information about an error.
     #[cfg(feature = "alloc")]
     pub info: Option<String>,
     /// Information about an error.
-    #[cfg(not(feature = "alloc"))]
+    #[cfg(feature = "stack")]
     pub info: Option<ShortString>,
 }
 
@@ -115,7 +115,7 @@ impl ErrorResponse {
             error,
             #[cfg(feature = "alloc")]
             description: String::from(description),
-            #[cfg(not(feature = "alloc"))]
+            #[cfg(feature = "stack")]
             description: ShortString::infallible(description),
             info: None,
         }
@@ -133,11 +133,11 @@ impl ErrorResponse {
             error,
             #[cfg(feature = "alloc")]
             description: String::from(description),
-            #[cfg(not(feature = "alloc"))]
+            #[cfg(feature = "stack")]
             description: ShortString::infallible(description),
             #[cfg(feature = "alloc")]
             info: Some(String::from(info)),
-            #[cfg(not(feature = "alloc"))]
+            #[cfg(feature = "stack")]
             info: Some(ShortString::infallible(info)),
         }
     }
@@ -256,7 +256,7 @@ mod tests {
                 error: ActionError::InvalidData,
                 #[cfg(feature = "alloc")]
                 description: super::String::from("Invalid data error description"),
-                #[cfg(not(feature = "alloc"))]
+                #[cfg(feature = "stack")]
                 description: super::ShortString::infallible("Invalid data error description"),
                 info: None,
             }
