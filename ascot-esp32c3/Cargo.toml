@@ -6,10 +6,10 @@ edition = "2021"
 [dependencies]
 
 # Esp
-esp-idf-svc = "0.50.1"
+esp-idf-svc = { version = "0.50.1", default-features = false, features = ["alloc"] }
 
 # Mdns-sd
-edge-mdns = "0.4.0"
+edge-mdns = { version = "0.4.0", default-features = false, features = ["io"] }
 edge-nal = { version = "0.4.2", default-features = false }
 edge-nal-std = { version = "0.4.0", default-features = false }
 embassy-sync = { version = "0.6", default-features = false }
@@ -19,4 +19,4 @@ rand = "0.8.5"
 # Other dependencies
 ascot-library = { path = "../", default-features = false, features = ["stack"] }
 log = { version = "0.4", default-features = false }
-serde_json = { version =  "1", features = ["preserve_order"] }
+serde_json = { version =  "1", default-features = false, features = ["preserve_order"] }
