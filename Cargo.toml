@@ -2,21 +2,27 @@
 name = "ascot-library"
 version = "0.1.0"
 edition = "2021"
+resolver = "2"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-heapless = { version = "0.8.0", features = ["serde"] }
-serde = { version = "1.0", features = ["derive"] }
-serde_json = { version =  "1", features = ["alloc"] }
+serde = { version = "1.0", default-features = false, features = ["derive"] }
+serde_json = {version = "1", default-features = false, features = ["alloc"] }
+
+[dependencies.heapless]
+version = "0.8.0"
+default-features = false
+optional = true
 
 [dependencies.indexmap]
 version = "2.7"
 default-features = false
-features = ["serde"]
 optional = true
 
 [features]
 default = ["alloc"]
-alloc = ["indexmap", "preserve_order"]
-preserve_order = ["serde_json/preserve_order"]
+alloc = ["indexmap/serde", "preserve-order"]
+# REMINDER: Serde always allocates something to perform its operations.
+stack = ["heapless/serde", "serde_json/alloc"]
+preserve-order = ["serde_json/preserve_order"]

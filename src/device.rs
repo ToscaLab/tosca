@@ -101,7 +101,7 @@ pub struct DeviceData {
     #[serde(rename = "main route")]
     pub main_route: alloc::borrow::Cow<'static, str>,
     /// Device main route.
-    #[cfg(not(feature = "alloc"))]
+    #[cfg(feature = "stack")]
     #[serde(rename = "main route")]
     pub main_route: &'static str,
     /// All device route configurations.
@@ -115,7 +115,7 @@ impl DeviceData {
         kind: DeviceKind,
         environment: DeviceEnvironment,
         #[cfg(feature = "alloc")] main_route: impl Into<alloc::borrow::Cow<'static, str>>,
-        #[cfg(not(feature = "alloc"))] main_route: &'static str,
+        #[cfg(feature = "stack")] main_route: &'static str,
         route_configs: RouteConfigs,
     ) -> Self {
         Self {
@@ -123,7 +123,7 @@ impl DeviceData {
             environment,
             #[cfg(feature = "alloc")]
             main_route: main_route.into(),
-            #[cfg(not(feature = "alloc"))]
+            #[cfg(feature = "stack")]
             main_route,
             route_configs,
         }

@@ -25,6 +25,11 @@
 #![deny(missing_docs)]
 #![no_std]
 
+#[cfg(not(any(feature = "alloc", feature = "stack")))]
+compile_error! {
+    "ascot-library requires that either `alloc` (default) or `stack` feature is enabled"
+}
+
 #[cfg(feature = "alloc")]
 extern crate alloc;
 
@@ -37,7 +42,7 @@ pub mod economy;
 /// Information about the energy device aspects.
 pub mod energy;
 /// Error handling.
-#[cfg(not(feature = "alloc"))]
+#[cfg(feature = "stack")]
 pub mod error;
 /// Hazards descriptions and methods.
 pub mod hazards;
@@ -50,15 +55,15 @@ pub mod route;
 
 mod utils;
 
-#[cfg(not(feature = "alloc"))]
+#[cfg(feature = "stack")]
 pub use error::{Error, ErrorKind};
 
 #[cfg(feature = "alloc")]
 pub use utils::heap as collections;
-#[cfg(not(feature = "alloc"))]
+#[cfg(feature = "stack")]
 pub use utils::stack as collections;
 
-#[cfg(not(feature = "alloc"))]
+#[cfg(feature = "stack")]
 pub use utils::strings;
 
 #[cfg(test)]
