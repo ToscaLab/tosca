@@ -21,8 +21,8 @@ default-features = false
 optional = true
 
 [features]
-default = ["alloc"]
 alloc = ["indexmap/serde", "preserve-order"]
 # REMINDER: Serde always allocates something to perform its operations.
 stack = ["heapless/serde", "serde_json/alloc"]
 preserve-order = ["serde_json/preserve_order"]
+default = ["alloc"]
