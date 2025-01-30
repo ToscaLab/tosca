@@ -148,7 +148,7 @@ where
     signal: F,
 }
 
-impl<'a, S, F> GracefulShutdownServer<'a, S, F>
+impl<S, F> GracefulShutdownServer<'_, S, F>
 where
     S: Clone + Send + Sync + 'static,
     F: Future<Output = ()> + Send + 'static,
