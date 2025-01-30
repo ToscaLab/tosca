@@ -1,3 +1,4 @@
+use std::future::Future;
 use std::net::Ipv4Addr;
 
 use axum::{response::Redirect, Router};
@@ -27,9 +28,8 @@ const DEFAULT_SCHEME: &str = "http";
 // at URLs consistent well-known locations across servers.
 const DEFAULT_WELL_KNOWN_SERVICE: &str = "ascot";
 
-/// A [`Device`] server.
 #[derive(Debug)]
-pub struct Server<'a, S = ()>
+struct ServerData<'a, S>
 where
     S: Clone + Send + Sync + 'static,
 {
@@ -47,6 +47,15 @@ where
     device: Device<S>,
 }
 
+/// A [`Device`] server.
+#[derive(Debug)]
+pub struct Server<'a, S = ()>
+where
+    S: Clone + Send + Sync + 'static,
+{
+    data: ServerData<'a, S>,
+}
+
 impl<'a, S> Server<'a, S>
 where
     S: Clone + Send + Sync + 'static,
@@ -54,40 +63,42 @@ where
     /// Creates a [`Server`].
     pub const fn new(device: Device<S>) -> Self {
         Self {
-            http_address: DEFAULT_HTTP_ADDRESS,
-            port: DEFAULT_SERVER_PORT,
-            scheme: DEFAULT_SCHEME,
-            well_known_service: DEFAULT_WELL_KNOWN_SERVICE,
-            service_config: None,
-            device,
+            data: ServerData {
+                http_address: DEFAULT_HTTP_ADDRESS,
+                port: DEFAULT_SERVER_PORT,
+                scheme: DEFAULT_SCHEME,
+                well_known_service: DEFAULT_WELL_KNOWN_SERVICE,
+                service_config: None,
+                device,
+            },
         }
     }
 
-    /// Sets server Ipv4 address.
+    /// Sets server IPv4 address.
     #[must_use]
     pub const fn address(mut self, http_address: Ipv4Addr) -> Self {
-        self.http_address = http_address;
+        self.data.http_address = http_address;
         self
     }
 
     /// Sets server port.
     #[must_use]
     pub const fn port(mut self, port: u16) -> Self {
-        self.port = port;
+        self.data.port = port;
         self
     }
 
     /// Sets server scheme.
     #[must_use]
     pub const fn scheme(mut self, scheme: &'a str) -> Self {
-        self.scheme = scheme;
+        self.data.scheme = scheme;
         self
     }
 
     /// Sets the service name which will compose the well-known URI.
     #[must_use]
     pub fn well_known_service(mut self, service_name: &'a str) -> Self {
-        self.well_known_service = service_name;
+        self.data.well_known_service = service_name;
         self
     }
 
@@ -95,21 +106,100 @@ where
     #[must_use]
     #[inline]
     pub fn discovery_service(mut self, service_config: ServiceConfig<'a>) -> Self {
-        self.service_config = Some(service_config);
+        self.data.service_config = Some(service_config);
         self
     }
 
-    /// Runs a smart home device on the server.
+    /// Enables a server with a graceful shutdown operation being performed
+    /// by the [`Future`] passed as input.
+    #[must_use]
+    #[inline]
+    pub fn with_graceful_shutdown<F>(self, signal: F) -> GracefulShutdownServer<'a, S, F>
+    where
+        F: Future<Output = ()> + Send + 'static,
+    {
+        GracefulShutdownServer {
+            data: self.data,
+            signal,
+        }
+    }
+
+    /// Runs a [`Device`] on the server.
     ///
     /// # Errors
     ///
     /// It returns an error whether a server fails to start.
     pub async fn run(self) -> Result<()> {
-        // Create listener bind.
-        let listener_bind = format!("{}:{}", self.http_address, self.port);
+        self.with_graceful_shutdown(std::future::pending())
+            .run()
+            .await
+    }
+}
 
-        // Create application.
-        let router = self.build_app()?;
+/// Run a server for [`Device`] with graceful shutdown enabled.
+#[derive(Debug)]
+pub struct GracefulShutdownServer<'a, S, F>
+where
+    S: Clone + Send + Sync + 'static,
+{
+    // Server data.
+    data: ServerData<'a, S>,
+    // Graceful shutdown signal.
+    signal: F,
+}
+
+impl<'a, S, F> GracefulShutdownServer<'a, S, F>
+where
+    S: Clone + Send + Sync + 'static,
+    F: Future<Output = ()> + Send + 'static,
+{
+    /// Runs a [`Device`] on the server with a graceful shutdown enabled.
+    ///
+    /// # Errors
+    ///
+    /// It returns an error whenever a server fails to start.
+    pub async fn run(self) -> Result<()> {
+        // Create listener bind.
+        let listener_bind = format!("{}:{}", self.data.http_address, self.data.port);
+
+        // Consume a device returning all server information.
+        let (device_main_route, device_info, device_router) = self.data.device.finalize();
+
+        // Serialize device information returning a json format.
+        let device_info = serde_json::to_value(device_info)?;
+
+        // Construct well-known URI.
+        let well_known_uri = format!("/.well-known/{}", self.data.well_known_service);
+
+        info!("Server route: [GET, \"/\"]");
+        info!("Server route: [GET, \"{}\"]", well_known_uri);
+
+        // Run a discovery service if present.
+        if let Some(service_config) = self.data.service_config {
+            // Add server properties.
+            let service_config = service_config
+                .property(("scheme", self.data.scheme))
+                .property(("path", well_known_uri.to_string()));
+
+            // Run service.
+            Service::run(service_config, self.data.http_address, self.data.port)?;
+        }
+
+        // Create the main router.
+        //
+        //- Save device info as a json format which is returned when a query to
+        //  the server root is requested.
+        //- Redirect well-known URI to server root.
+        let router = Router::new()
+            .route(
+                "/",
+                axum::routing::get(move || async { axum::Json(device_info) }),
+            )
+            .route(
+                &well_known_uri,
+                axum::routing::get(move || async { Redirect::to("/") }),
+            )
+            .nest(device_main_route, device_router);
 
         // Print server Ip and port.
         info!("Device reachable at this HTTP address: {listener_bind}");
@@ -122,50 +212,10 @@ where
         info!("Starting server...");
 
         // Start the server
-        axum::serve(listener, router).await?;
+        axum::serve(listener, router)
+            .with_graceful_shutdown(self.signal)
+            .await?;
 
         Ok(())
-    }
-
-    // Build device routing.
-    fn build_app(self) -> Result<Router> {
-        // Consume a device returning all server information.
-        let (device_main_route, device_info, device_router) = self.device.finalize();
-
-        // Serialize device information returning a json format.
-        let device_info = serde_json::to_value(device_info)?;
-
-        // Construct well-known URI.
-        let well_known_uri = format!("/.well-known/{}", self.well_known_service);
-
-        info!("Server route: [GET, \"/\"]");
-        info!("Server route: [GET, \"{}\"]", well_known_uri);
-
-        // Run a discovery service if present.
-        if let Some(service_config) = self.service_config {
-            // Add server properties.
-            let service_config = service_config
-                .property(("scheme", self.scheme))
-                .property(("path", well_known_uri.to_string()));
-
-            // Run service.
-            Service::run(service_config, self.http_address, self.port)?;
-        }
-
-        // Create the main router.
-        //
-        //- Save device info as a json format which is returned when a query to
-        //  the server root is requested.
-        //- Redirect well-known URI to server root.
-        Ok(Router::new()
-            .route(
-                "/",
-                axum::routing::get(move || async { axum::Json(device_info) }),
-            )
-            .route(
-                &well_known_uri,
-                axum::routing::get(move || async { Redirect::to("/") }),
-            )
-            .nest(device_main_route, device_router))
     }
 }
