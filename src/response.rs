@@ -28,6 +28,18 @@ pub enum ResponseKind {
     Stream,
 }
 
+impl core::fmt::Display for ResponseKind {
+    fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+        match self {
+            Self::Ok => "Ok",
+            Self::Serial => "Serial",
+            Self::Info => "Info",
+            Self::Stream => "Stream",
+        }
+        .fmt(f)
+    }
+}
+
 /// An `Ok` response sends a boolean to notify a receiver that a device action
 /// has terminated correctly.
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
