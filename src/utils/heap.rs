@@ -1,6 +1,6 @@
 use core::hash::Hash;
 
-use indexmap::set::{IndexSet, Iter};
+use indexmap::set::{IndexSet, IntoIter, Iter};
 
 use serde::{Deserialize, Serialize};
 
@@ -36,6 +36,18 @@ macro_rules! from_collection {
 
 macro_rules! implementation {
     ($impl:ident) => {
+        impl<T> IntoIterator for $impl<T>
+        where
+            T: Clone + PartialEq + Eq + Hash,
+        {
+            type Item = T;
+            type IntoIter = IntoIter<T>;
+
+            fn into_iter(self) -> Self::IntoIter {
+                self.0.into_iter()
+            }
+        }
+
         impl<'a, T> IntoIterator for &'a $impl<T>
         where
             T: Clone + PartialEq + Eq + Hash,
