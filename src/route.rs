@@ -48,11 +48,11 @@ pub struct RouteData {
     pub description: Option<&'static str>,
     /// Hazards data.
     #[serde(skip_serializing_if = "Hazards::is_empty")]
-    #[serde(default = "Hazards::empty")]
+    #[serde(default = "Hazards::new")]
     pub hazards: Hazards,
     /// Input parameters associated with a route.
     #[serde(skip_serializing_if = "ParametersData::is_empty")]
-    #[serde(default = "ParametersData::empty")]
+    #[serde(default = "ParametersData::new")]
     pub parameters: ParametersData,
 }
 
@@ -279,7 +279,7 @@ impl Route {
             route,
             rest_kind,
             description: None,
-            hazards: Hazards::empty(),
+            hazards: Hazards::new(),
             parameters: Parameters::new(),
         }
     }
@@ -300,7 +300,7 @@ mod tests {
     };
 
     fn route_config_empty(rest_kind: RestKind, desc: &'static str) -> RouteConfig {
-        route_config_hazards(rest_kind, Hazards::empty(), desc)
+        route_config_hazards(rest_kind, Hazards::new(), desc)
     }
 
     fn route_config_hazards(
@@ -308,7 +308,7 @@ mod tests {
         hazards: Hazards,
         desc: &'static str,
     ) -> RouteConfig {
-        route_config_inputs(rest_kind, hazards, desc, ParametersData::empty())
+        route_config_inputs(rest_kind, hazards, desc, ParametersData::new())
     }
 
     fn route_config_inputs(
@@ -379,7 +379,7 @@ mod tests {
             )),
             route_config_hazards(
                 RestKind::Get,
-                Hazards::empty().insert(Hazard::FireHazard),
+                Hazards::new().insert(Hazard::FireHazard),
                 "A GET route"
             )
         );
@@ -389,7 +389,7 @@ mod tests {
                 Route::get("/route")
                     .description("A GET route")
                     .with_hazards(
-                        Hazards::empty()
+                        Hazards::new()
                             .insert(Hazard::FireHazard)
                             .insert(Hazard::AirPoisoning)
                     )
@@ -397,7 +397,7 @@ mod tests {
             )),
             route_config_hazards(
                 RestKind::Get,
-                Hazards::empty()
+                Hazards::new()
                     .insert(Hazard::FireHazard)
                     .insert(Hazard::AirPoisoning),
                 "A GET route"
@@ -413,7 +413,7 @@ mod tests {
             )),
             route_config_hazards(
                 RestKind::Get,
-                Hazards::empty()
+                Hazards::new()
                     .insert(Hazard::FireHazard)
                     .insert(Hazard::AirPoisoning),
                 "A GET route"
@@ -425,9 +425,9 @@ mod tests {
     fn test_all_inputs() {
         let expected = route_config_inputs(
             RestKind::Get,
-            Hazards::empty(),
+            Hazards::new(),
             "A GET route",
-            ParametersData::empty().insert(
+            ParametersData::new().insert(
                 "rangeu64".into(),
                 ParameterKind::RangeU64 {
                     min: 0,
@@ -547,7 +547,7 @@ mod tests {
                 Route::get("/route")
                     .description("A GET route")
                     .with_hazards(
-                        Hazards::empty()
+                        Hazards::new()
                             .insert(Hazard::FireHazard)
                             .insert(Hazard::AirPoisoning)
                     )
