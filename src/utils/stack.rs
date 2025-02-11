@@ -24,7 +24,7 @@ macro_rules! from_set {
             K: Clone + Copy + PartialEq + Eq + Hash,
         {
             fn from(collection: Set<K>) -> Self {
-                let mut elements = Self::empty();
+                let mut elements = Self::new();
                 for other_element in collection.iter() {
                     let _ = elements.0.insert(T::from(*other_element));
                 }
@@ -52,9 +52,9 @@ macro_rules! set_implementation {
         where
             T: Clone + $($trait +)? PartialEq + Eq + Hash,
         {
-            #[doc = concat!("Creates an empty [`", stringify!($impl), "`].")]
+            #[doc = concat!("Creates a [`", stringify!($impl), "`].")]
             #[must_use]
-            pub const fn empty() -> Self {
+            pub const fn new() -> Self {
                 Self(FnvIndexSet::new())
             }
 
@@ -62,7 +62,7 @@ macro_rules! set_implementation {
             #[must_use]
             #[inline]
             pub fn init(element: T) -> Self {
-                let mut elements = Self::empty();
+                let mut elements = Self::new();
                 elements.add(element);
                 elements
             }
@@ -110,7 +110,7 @@ macro_rules! set_implementation {
             #[doc = concat!("Initializes [`", stringify!($impl), "`] with a list of elements.")]
             #[inline]
             pub fn init_with_elements(input_elements: &[T]) -> Self {
-                let mut elements = Self::empty();
+                let mut elements = Self::new();
                 for element in input_elements.iter() {
                     elements.add(element.clone());
                 }
@@ -163,7 +163,7 @@ macro_rules! from_map {
             V1: Clone + Copy + PartialEq + Eq,
         {
             fn from(map: Map<K1, V1>) -> Self {
-                let mut new_map = Self::empty();
+                let mut new_map = Self::new();
                 for (key, value) in map.iter() {
                     let _ = new_map
                         .0
@@ -195,10 +195,10 @@ macro_rules! map_implementation {
             K: Clone + PartialEq + Eq +  Hash,
             V: Clone
         {
-            #[doc = concat!("Creates an empty [`", stringify!($impl), "`].")]
+            #[doc = concat!("Creates a [`", stringify!($impl), "`].")]
             #[must_use]
             #[inline]
-            pub fn empty() -> Self {
+            pub fn new() -> Self {
                 Self(FnvIndexMap::new())
             }
 
@@ -206,7 +206,7 @@ macro_rules! map_implementation {
             #[must_use]
             #[inline]
             pub fn init(key: K, value: V) -> Self {
-                Self::empty().insert(key, value)
+                Self::new().insert(key, value)
             }
 
             #[doc = concat!("Inserts an element to a [`", stringify!($impl), "`].")]
@@ -255,7 +255,7 @@ macro_rules! map_implementation {
             #[doc = concat!("Initializes [`", stringify!($impl), "`] with a list of `(key, value)`.")]
             #[inline]
             pub fn init_with_elements(input_elements: &[(K, V)]) -> Self {
-                let mut elements = Self::empty();
+                let mut elements = Self::new();
                 for (key, value) in input_elements.iter() {
                     elements.add(key.clone(), value.clone());
                 }

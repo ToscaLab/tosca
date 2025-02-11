@@ -115,7 +115,7 @@ impl Parameters {
     #[must_use]
     #[inline]
     pub fn new() -> Self {
-        Self(Map::empty())
+        Self(Map::new())
     }
 
     /// Adds a [`bool`] parameter.
@@ -253,7 +253,7 @@ impl Parameters {
     #[must_use]
     #[inline]
     pub fn serialize_data(self) -> ParametersData {
-        let mut data = ParametersData::empty();
+        let mut data = ParametersData::new();
         for (key, value) in self.0 {
             data.add(key.to_string(), value);
         }
@@ -267,7 +267,7 @@ impl Parameters {
     #[must_use]
     #[inline]
     pub fn serialize_data(self) -> ParametersData {
-        let mut data = ParametersData::empty();
+        let mut data = ParametersData::new();
         for (key, value) in &self.0 {
             data.add(key, value.clone());
         }
@@ -308,7 +308,7 @@ mod tests {
             // removed.
             .u16("u16", 0);
 
-        let parameters_data = OutputMap::empty()
+        let parameters_data = OutputMap::new()
             .insert("bool".into(), ParameterKind::Bool { default: true })
             .insert("u8".into(), ParameterKind::U8 { default: 0 })
             .insert("u16".into(), ParameterKind::U16 { default: 0 })
@@ -380,7 +380,7 @@ mod tests {
             // removed.
             .u16("u16", 0);
 
-        let parameters_data = SerialMap::empty()
+        let parameters_data = SerialMap::new()
             .insert("bool", ParameterKind::Bool { default: true })
             .insert("u8", ParameterKind::U8 { default: 0 })
             .insert("u16", ParameterKind::U16 { default: 0 })
