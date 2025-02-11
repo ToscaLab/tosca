@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::collections::Collection;
+use crate::collections::Set;
 
 /// An [`Input`] structure.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -128,11 +128,11 @@ pub struct Input {
 
 /// A collection of [`InputData`]s.
 #[cfg(feature = "alloc")]
-pub type InputsData = crate::collections::OutputCollection<InputData>;
+pub type InputsData = crate::collections::OutputSet<InputData>;
 
 /// A collection of [`InputData`]s.
 #[cfg(feature = "stack")]
-pub type InputsData = crate::collections::SerialCollection<InputData>;
+pub type InputsData = crate::collections::SerialSet<InputData>;
 
 impl core::cmp::PartialEq for InputData {
     fn eq(&self, other: &Self) -> bool {
@@ -319,7 +319,7 @@ impl Input {
 }
 
 /// A collection of [`Input`]s.
-pub type Inputs = Collection<Input>;
+pub type Inputs = Set<Input>;
 
 #[cfg(feature = "alloc")]
 #[cfg(test)]

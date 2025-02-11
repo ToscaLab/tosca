@@ -4,26 +4,26 @@ use heapless::{FnvIndexSet, IndexSetIter};
 
 use serde::{Deserialize, Serialize};
 
-/// A collection of elements for internal storage.
+/// A set of elements for internal storage.
 #[derive(Debug, PartialEq, Clone)]
-pub struct Collection<T: PartialEq + Eq + Hash>(FnvIndexSet<T, 8>);
+pub struct Set<T: PartialEq + Eq + Hash>(FnvIndexSet<T, 8>);
 
-/// A serializable collection of elements.
+/// A serializable set of elements.
 #[derive(Debug, PartialEq, Clone, Serialize)]
-pub struct SerialCollection<T: PartialEq + Eq + Hash>(FnvIndexSet<T, 8>);
+pub struct SerialSet<T: PartialEq + Eq + Hash>(FnvIndexSet<T, 8>);
 
-/// A serializable and deserializable collection of elements.
+/// A serializable and deserializable set of elements.
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
-pub struct OutputCollection<T: PartialEq + Eq + Hash>(FnvIndexSet<T, 8>);
+pub struct OutputSet<T: PartialEq + Eq + Hash>(FnvIndexSet<T, 8>);
 
 macro_rules! from_collection {
     ($for:ident) => {
-        impl<T, K> From<Collection<K>> for $for<T>
+        impl<T, K> From<Set<K>> for $for<T>
         where
             T: Clone + Copy + PartialEq + Eq + Hash + From<K>,
             K: Clone + Copy + PartialEq + Eq + Hash,
         {
-            fn from(collection: Collection<K>) -> Self {
+            fn from(collection: Set<K>) -> Self {
                 let mut elements = Self::empty();
                 for other_element in collection.iter() {
                     let _ = elements.0.insert(T::from(*other_element));
@@ -128,16 +128,16 @@ macro_rules! implementation {
 }
 
 // Collection implementation.
-implementation!(Collection, Copy);
+implementation!(Set, Copy);
 
 // Serial collection implementation.
-implementation!(SerialCollection);
+implementation!(SerialSet);
 
 // Output collection implementation.
-implementation!(OutputCollection);
+implementation!(OutputSet);
 
 // Convert from collection into serial collection.
-from_collection!(SerialCollection);
+from_collection!(SerialSet);
 
 // Convert from collection into output collection.
-from_collection!(OutputCollection);
+from_collection!(OutputSet);

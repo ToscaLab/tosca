@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::collections::Collection;
+use crate::collections::Set;
 use crate::hazards::{Hazard, Hazards};
 use crate::input::{Input, Inputs, InputsData};
 use crate::response::ResponseKind;
@@ -102,11 +102,11 @@ pub struct RouteConfig {
 
 /// A collection of [`RouteConfig`]s.
 #[cfg(feature = "alloc")]
-pub type RouteConfigs = crate::collections::OutputCollection<RouteConfig>;
+pub type RouteConfigs = crate::collections::OutputSet<RouteConfig>;
 
 /// A collection of [`RouteConfig`]s.
 #[cfg(feature = "stack")]
-pub type RouteConfigs = crate::collections::SerialCollection<RouteConfig>;
+pub type RouteConfigs = crate::collections::SerialSet<RouteConfig>;
 
 impl PartialEq for RouteConfig {
     fn eq(&self, other: &Self) -> bool {
@@ -296,7 +296,7 @@ impl Route {
 }
 
 /// A collection of [`Route`]s.
-pub type Routes = Collection<Route>;
+pub type Routes = Set<Route>;
 
 #[cfg(feature = "alloc")]
 #[cfg(test)]
