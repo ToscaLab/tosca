@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::collections::OutputCollection;
+use crate::collections::OutputSet;
 use crate::energy::EnergyClass;
 
 /// Timespan for a cost computation.
@@ -68,7 +68,7 @@ impl Cost {
 }
 
 /// A collection of [`Cost`]s.
-pub type Costs = OutputCollection<Cost>;
+pub type Costs = OutputSet<Cost>;
 
 /// Return on investments (ROI).
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy, Serialize, Deserialize)]
@@ -115,7 +115,7 @@ impl Roi {
 }
 
 /// A collection of [`Roi`]s.
-pub type Rois = OutputCollection<Roi>;
+pub type Rois = OutputSet<Roi>;
 
 /// Economy data for a device.
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]

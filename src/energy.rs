@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::collections::OutputCollection;
+use crate::collections::OutputSet;
 
 /// Energy efficiency class.
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy, Serialize, Deserialize)]
@@ -111,7 +111,7 @@ impl EnergyEfficiency {
 }
 
 /// A collection of [`EnergyEfficiency`]s.
-pub type EnergyEfficiencies = OutputCollection<EnergyEfficiency>;
+pub type EnergyEfficiencies = OutputSet<EnergyEfficiency>;
 
 /// Carbon footprint.
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy, Serialize, Deserialize)]
@@ -168,7 +168,7 @@ impl CarbonFootprint {
 }
 
 /// A collection of [`CarbonFootprints`]s.
-pub type CarbonFootprints = OutputCollection<CarbonFootprint>;
+pub type CarbonFootprints = OutputSet<CarbonFootprint>;
 
 /// Water-Use efficiency data.
 ///
