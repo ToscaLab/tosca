@@ -168,7 +168,7 @@ where
 mod tests {
 
     use ascot_library::hazards::Hazard;
-    use ascot_library::input::Input;
+    use ascot_library::parameters::Parameters;
     use ascot_library::route::Route;
 
     use axum::extract::{Json, State};
@@ -251,18 +251,20 @@ mod tests {
             light_on: Route::put("/on")
                 .description("Turn light on.")
                 .with_hazard(Hazard::ElectricEnergyConsumption)
-                .with_inputs([
-                    Input::rangef64("brightness", (0., 20., 0.1)),
-                    Input::bool("save-energy", false),
-                ]),
+                .with_parameters(
+                    Parameters::empty()
+                        .rangef64("brightness", (0., 20., 0.1))
+                        .bool("save-energy", false),
+                ),
 
             light_on_post: Route::post("/on")
                 .description("Turn light on.")
                 .with_hazard(Hazard::ElectricEnergyConsumption)
-                .with_inputs([
-                    Input::rangef64("brightness", (0., 20., 0.1)),
-                    Input::bool("save-energy", false),
-                ]),
+                .with_parameters(
+                    Parameters::empty()
+                        .rangef64("brightness", (0., 20., 0.1))
+                        .bool("save-energy", false),
+                ),
 
             light_off: Route::put("/off").description("Turn light off."),
 

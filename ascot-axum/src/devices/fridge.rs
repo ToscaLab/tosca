@@ -167,7 +167,7 @@ where
 mod tests {
 
     use ascot_library::hazards::Hazard;
-    use ascot_library::input::Input;
+    use ascot_library::parameters::Parameters;
     use ascot_library::route::Route;
 
     use axum::extract::{Json, State};
@@ -246,17 +246,29 @@ mod tests {
             increase_temp: Route::put("/increase-temperature")
                 .description("Increase temperature.")
                 .with_slice_hazards(&[Hazard::ElectricEnergyConsumption, Hazard::SpoiledFood])
-                .with_input(Input::rangef64_with_default("increment", (1., 4., 0.1), 2.)),
+                .with_parameters(Parameters::empty().rangef64_with_default(
+                    "increment",
+                    (1., 4., 0.1),
+                    2.,
+                )),
 
             decrease_temp: Route::put("/decrease-temperature")
                 .description("Decrease temperature.")
                 .with_slice_hazards(&[Hazard::ElectricEnergyConsumption, Hazard::SpoiledFood])
-                .with_input(Input::rangef64_with_default("decrement", (1., 4., 0.1), 2.)),
+                .with_parameters(Parameters::empty().rangef64_with_default(
+                    "decrement",
+                    (1., 4., 0.1),
+                    2.,
+                )),
 
             increase_temp_post: Route::post("/increase-temperature")
                 .description("Increase temperature.")
                 .with_slice_hazards(&[Hazard::ElectricEnergyConsumption, Hazard::SpoiledFood])
-                .with_input(Input::rangef64_with_default("increment", (1., 4., 0.1), 2.)),
+                .with_parameters(Parameters::empty().rangef64_with_default(
+                    "increment",
+                    (1., 4., 0.1),
+                    2.,
+                )),
         }
     }
 
