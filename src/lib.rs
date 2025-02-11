@@ -47,7 +47,7 @@ pub mod error;
 /// Hazards descriptions and methods.
 pub mod hazards;
 /// Route input parameters.
-pub mod input;
+pub mod parameters;
 /// All supported responses returned by a device action.
 pub mod response;
 /// Definition of device routes.
