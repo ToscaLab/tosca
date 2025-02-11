@@ -48,6 +48,15 @@ macro_rules! set_implementation {
             }
         }
 
+        impl<T> Default for $impl<T>
+        where
+            T: Clone + $($trait +)? PartialEq + Eq + Hash,
+        {
+            fn default() -> Self {
+                Self::new()
+            }
+        }
+
         impl<T> $impl<T>
         where
             T: Clone + $($trait +)? PartialEq + Eq + Hash,
@@ -122,7 +131,6 @@ macro_rules! set_implementation {
             pub fn merge(&mut self, element: &Self) {
                 self.0 = self.0.union(&element.0).cloned().collect();
             }
-
         }
     };
 }
@@ -190,9 +198,19 @@ macro_rules! map_implementation {
             }
         }
 
+        impl<K, V> Default for $impl<K, V>
+        where
+            K: Clone + PartialEq + Eq + Hash,
+            V: Clone
+        {
+            fn default() -> Self {
+                Self::new()
+            }
+        }
+
         impl<K, V> $impl<K, V>
         where
-            K: Clone + PartialEq + Eq +  Hash,
+            K: Clone + PartialEq + Eq + Hash,
             V: Clone
         {
             #[doc = concat!("Creates a [`", stringify!($impl), "`].")]
@@ -261,8 +279,6 @@ macro_rules! map_implementation {
                 }
                 elements
             }
-
-
         }
     };
 }
