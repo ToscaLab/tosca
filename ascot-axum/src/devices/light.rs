@@ -252,7 +252,7 @@ mod tests {
                 .description("Turn light on.")
                 .with_hazard(Hazard::ElectricEnergyConsumption)
                 .with_parameters(
-                    Parameters::empty()
+                    Parameters::new()
                         .rangef64("brightness", (0., 20., 0.1))
                         .bool("save-energy", false),
                 ),
@@ -261,7 +261,7 @@ mod tests {
                 .description("Turn light on.")
                 .with_hazard(Hazard::ElectricEnergyConsumption)
                 .with_parameters(
-                    Parameters::empty()
+                    Parameters::new()
                         .rangef64("brightness", (0., 20., 0.1))
                         .bool("save-energy", false),
                 ),

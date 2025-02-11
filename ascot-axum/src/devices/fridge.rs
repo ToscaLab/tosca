@@ -246,7 +246,7 @@ mod tests {
             increase_temp: Route::put("/increase-temperature")
                 .description("Increase temperature.")
                 .with_slice_hazards(&[Hazard::ElectricEnergyConsumption, Hazard::SpoiledFood])
-                .with_parameters(Parameters::empty().rangef64_with_default(
+                .with_parameters(Parameters::new().rangef64_with_default(
                     "increment",
                     (1., 4., 0.1),
                     2.,
@@ -255,7 +255,7 @@ mod tests {
             decrease_temp: Route::put("/decrease-temperature")
                 .description("Decrease temperature.")
                 .with_slice_hazards(&[Hazard::ElectricEnergyConsumption, Hazard::SpoiledFood])
-                .with_parameters(Parameters::empty().rangef64_with_default(
+                .with_parameters(Parameters::new().rangef64_with_default(
                     "decrement",
                     (1., 4., 0.1),
                     2.,
@@ -264,7 +264,7 @@ mod tests {
             increase_temp_post: Route::post("/increase-temperature")
                 .description("Increase temperature.")
                 .with_slice_hazards(&[Hazard::ElectricEnergyConsumption, Hazard::SpoiledFood])
-                .with_parameters(Parameters::empty().rangef64_with_default(
+                .with_parameters(Parameters::new().rangef64_with_default(
                     "increment",
                     (1., 4., 0.1),
                     2.,
