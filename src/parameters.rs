@@ -104,11 +104,17 @@ pub type ParametersData = crate::collections::SerialMap<&'static str, ParameterK
 #[derive(Debug, Clone)]
 pub struct Parameters(Map<&'static str, ParameterKind>);
 
+impl Default for Parameters {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Parameters {
-    /// Creates an empty [`Parameters`].
+    /// Creates a [`Parameters`].
     #[must_use]
     #[inline]
-    pub fn empty() -> Self {
+    pub fn new() -> Self {
         Self(Map::empty())
     }
 
@@ -285,7 +291,7 @@ mod tests {
 
     #[test]
     fn test_parameters() {
-        let parameters = Parameters::empty()
+        let parameters = Parameters::new()
             .bool("bool", true)
             .u8("u8", 0)
             .u16("u16", 0)
@@ -360,7 +366,7 @@ mod tests {
 
     #[test]
     fn test_parameters() {
-        let parameters = Parameters::empty()
+        let parameters = Parameters::new()
             .bool("bool", true)
             .u8("u8", 0)
             .u16("u16", 0)

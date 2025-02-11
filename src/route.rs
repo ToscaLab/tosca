@@ -280,7 +280,7 @@ impl Route {
             rest_kind,
             description: None,
             hazards: Hazards::empty(),
-            parameters: Parameters::empty(),
+            parameters: Parameters::new(),
         }
     }
 }
@@ -443,7 +443,7 @@ mod tests {
                 Route::get("/route")
                     .description("A GET route")
                     .with_parameters(
-                        Parameters::empty()
+                        Parameters::new()
                             .rangeu64_with_default("rangeu64", (0, 20, 1), 5)
                             .rangef64("rangef64", (0., 20., 0.1))
                     )
@@ -618,7 +618,7 @@ mod tests {
                 Route::get("/route")
                     .description("A GET route")
                     .with_parameters(
-                        Parameters::empty()
+                        Parameters::new()
                             .rangeu64_with_default("rangeu64", (0, 20, 1), 5)
                             .rangef64("rangef64", (0., 20., 0.1))
                     )
