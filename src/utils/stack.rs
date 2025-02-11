@@ -6,29 +6,29 @@ use serde::{Deserialize, Serialize};
 
 /// A set of elements for internal storage.
 #[derive(Debug, PartialEq, Clone)]
-pub struct Set<T: PartialEq + Eq + Hash>(FnvIndexSet<T, 8>);
+pub struct Set<V: PartialEq + Eq + Hash>(FnvIndexSet<V, 8>);
 
 /// A serializable set of elements.
 #[derive(Debug, PartialEq, Clone, Serialize)]
-pub struct SerialSet<T: PartialEq + Eq + Hash>(FnvIndexSet<T, 8>);
+pub struct SerialSet<V: PartialEq + Eq + Hash>(FnvIndexSet<V, 8>);
 
 /// A serializable and deserializable set of elements.
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
-pub struct OutputSet<T: PartialEq + Eq + Hash>(FnvIndexSet<T, 8>);
+pub struct OutputSet<V: PartialEq + Eq + Hash>(FnvIndexSet<V, 8>);
 
 macro_rules! from_set {
     ($for:ident) => {
-        impl<T, K> From<Set<K>> for $for<T>
+        impl<V, V1> From<Set<V1>> for $for<V>
         where
-            T: Clone + Copy + PartialEq + Eq + Hash + From<K>,
-            K: Clone + Copy + PartialEq + Eq + Hash,
+            V: Clone + Copy + PartialEq + Eq + Hash + From<V1>,
+            V1: Clone + Copy + PartialEq + Eq + Hash,
         {
-            fn from(collection: Set<K>) -> Self {
-                let mut elements = Self::new();
-                for other_element in collection.iter() {
-                    let _ = elements.0.insert(T::from(*other_element));
+            fn from(set: Set<V1>) -> Self {
+                let mut new_set = Self::new();
+                for element in set.iter() {
+                    let _ = new_set.0.insert(V::from(*element));
                 }
-                elements
+                new_set
             }
         }
     };
@@ -36,30 +36,30 @@ macro_rules! from_set {
 
 macro_rules! set_implementation {
     ($impl:ident $(,$trait:ident)?) => {
-        impl<'a, T> IntoIterator for &'a $impl<T>
+        impl<'a, V> IntoIterator for &'a $impl<V>
         where
-            T: Clone + $($trait +)? PartialEq + Eq + Hash,
+            V: Clone + $($trait +)? PartialEq + Eq + Hash,
         {
-            type Item = &'a T;
-            type IntoIter = heapless::IndexSetIter<'a, T>;
+            type Item = &'a V;
+            type IntoIter = heapless::IndexSetIter<'a, V>;
 
             fn into_iter(self) -> Self::IntoIter {
                 self.iter()
             }
         }
 
-        impl<T> Default for $impl<T>
+        impl<V> Default for $impl<V>
         where
-            T: Clone + $($trait +)? PartialEq + Eq + Hash,
+            V: Clone + $($trait +)? PartialEq + Eq + Hash,
         {
             fn default() -> Self {
                 Self::new()
             }
         }
 
-        impl<T> $impl<T>
+        impl<V> $impl<V>
         where
-            T: Clone + $($trait +)? PartialEq + Eq + Hash,
+            V: Clone + $($trait +)? PartialEq + Eq + Hash,
         {
             #[doc = concat!("Creates a [`", stringify!($impl), "`].")]
             #[must_use]
@@ -70,7 +70,7 @@ macro_rules! set_implementation {
             #[doc = concat!("Initializes a [`", stringify!($impl), "`] with a determined element.")]
             #[must_use]
             #[inline]
-            pub fn init(element: T) -> Self {
+            pub fn init(element: V) -> Self {
                 let mut elements = Self::new();
                 elements.add(element);
                 elements
@@ -79,14 +79,14 @@ macro_rules! set_implementation {
             #[doc = concat!("Inserts an element to a [`", stringify!($impl), "`].")]
             #[must_use]
             #[inline]
-            pub fn insert(mut self, element: T) -> Self {
+            pub fn insert(mut self, element: V) -> Self {
                 let _ = self.0.insert(element);
                 self
             }
 
             #[doc = concat!("Adds an element to a [`", stringify!($impl), "`].")]
             #[inline]
-            pub fn add(&mut self, element: T) {
+            pub fn add(&mut self, element: V) {
                 let _ = self.0.insert(element);
             }
 
@@ -104,21 +104,21 @@ macro_rules! set_implementation {
 
             #[doc = concat!("Checks whether the [`", stringify!($impl), "`] contains the given element.")]
             #[inline]
-            pub fn contains(&self, element: impl AsRef<T>) -> bool {
-                self.0.contains(element.as_ref())
+            pub fn contains(&self, element: &V) -> bool {
+                self.0.contains(element)
             }
 
             #[doc = concat!("Returns an iterator over the [`", stringify!($impl), "`].")]
             #[doc = ""]
             #[doc = "**It iterates in the insertion order.**"]
             #[inline]
-            pub fn iter(&self) -> heapless::IndexSetIter<'_, T> {
+            pub fn iter(&self) -> heapless::IndexSetIter<'_, V> {
                 self.0.iter()
             }
 
             #[doc = concat!("Initializes [`", stringify!($impl), "`] with a list of elements.")]
             #[inline]
-            pub fn init_with_elements(input_elements: &[T]) -> Self {
+            pub fn init_with_elements(input_elements: &[V]) -> Self {
                 let mut elements = Self::new();
                 for element in input_elements.iter() {
                     elements.add(element.clone());

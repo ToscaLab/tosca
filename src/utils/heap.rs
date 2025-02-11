@@ -7,29 +7,29 @@ use serde::{Deserialize, Serialize};
 
 /// A set of elements for internal storage.
 #[derive(Debug, PartialEq, Eq, Clone)]
-pub struct Set<T: PartialEq + Eq + Hash>(IndexSet<T>);
+pub struct Set<V: PartialEq + Eq + Hash>(IndexSet<V>);
 
 /// A serializable set of elements.
 #[derive(Debug, PartialEq, Eq, Clone, Serialize)]
-pub struct SerialSet<T: PartialEq + Eq + Hash>(IndexSet<T>);
+pub struct SerialSet<V: PartialEq + Eq + Hash>(IndexSet<V>);
 
 /// A serializable and deserializable set of elements.
 #[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize)]
-pub struct OutputSet<T: PartialEq + Eq + Hash>(IndexSet<T>);
+pub struct OutputSet<V: PartialEq + Eq + Hash>(IndexSet<V>);
 
 macro_rules! from_set {
     ($for:ident) => {
-        impl<T, K> From<Set<K>> for $for<T>
+        impl<V, V1> From<Set<V1>> for $for<V>
         where
-            T: Clone + PartialEq + Eq + Hash + From<K>,
-            K: Clone + PartialEq + Eq + Hash,
+            V: Clone + PartialEq + Eq + Hash + From<V1>,
+            V1: Clone + PartialEq + Eq + Hash,
         {
-            fn from(set: Set<K>) -> Self {
-                let mut elements = Self::new();
-                for other_element in set.iter() {
-                    elements.0.insert(T::from(other_element.clone()));
+            fn from(set: Set<V1>) -> Self {
+                let mut new_set = Self::new();
+                for element in set.iter() {
+                    new_set.0.insert(V::from(element.clone()));
                 }
-                elements
+                new_set
             }
         }
     };
@@ -37,42 +37,42 @@ macro_rules! from_set {
 
 macro_rules! set_implementation {
     ($impl:ident) => {
-        impl<T> IntoIterator for $impl<T>
+        impl<V> IntoIterator for $impl<V>
         where
-            T: Clone + PartialEq + Eq + Hash,
+            V: Clone + PartialEq + Eq + Hash,
         {
-            type Item = T;
-            type IntoIter = indexmap::set::IntoIter<T>;
+            type Item = V;
+            type IntoIter = indexmap::set::IntoIter<V>;
 
             fn into_iter(self) -> Self::IntoIter {
                 self.0.into_iter()
             }
         }
 
-        impl<'a, T> IntoIterator for &'a $impl<T>
+        impl<'a, V> IntoIterator for &'a $impl<V>
         where
-            T: Clone + PartialEq + Eq + Hash,
+            V: Clone + PartialEq + Eq + Hash,
         {
-            type Item = &'a T;
-            type IntoIter = indexmap::set::Iter<'a, T>;
+            type Item = &'a V;
+            type IntoIter = indexmap::set::Iter<'a, V>;
 
             fn into_iter(self) -> Self::IntoIter {
                 self.iter()
             }
         }
 
-        impl<T> Default for $impl<T>
+        impl<V> Default for $impl<V>
         where
-            T: Clone + PartialEq + Eq + Hash,
+            V: Clone + PartialEq + Eq + Hash,
         {
             fn default() -> Self {
                 Self::new()
             }
         }
 
-        impl<T> $impl<T>
+        impl<V> $impl<V>
         where
-            T: Clone + PartialEq + Eq +  Hash,
+            V: Clone + PartialEq + Eq +  Hash,
         {
             #[doc = concat!("Creates a [`", stringify!($impl), "`].")]
             #[must_use]
@@ -84,21 +84,21 @@ macro_rules! set_implementation {
             #[doc = concat!("Initializes a [`", stringify!($impl), "`] with a determined element.")]
             #[must_use]
             #[inline]
-            pub fn init(element: T) -> Self {
+            pub fn init(element: V) -> Self {
                 Self::new().insert(element)
             }
 
             #[doc = concat!("Inserts an element to a [`", stringify!($impl), "`].")]
             #[must_use]
             #[inline]
-            pub fn insert(mut self, element: T) -> Self {
+            pub fn insert(mut self, element: V) -> Self {
                 self.0.insert(element);
                 self
             }
 
             #[doc = concat!("Adds an element to a [`", stringify!($impl), "`].")]
             #[inline]
-            pub fn add(&mut self, element: T) {
+            pub fn add(&mut self, element: V) {
                 self.0.insert(element);
             }
 
@@ -118,8 +118,8 @@ macro_rules! set_implementation {
 
             #[doc = concat!("Checks whether the [`", stringify!($impl), "`] contains the given element.")]
             #[inline]
-            pub fn contains(&self, element: impl AsRef<T>) -> bool {
-                self.0.contains(element.as_ref())
+            pub fn contains(&self, element: &V) -> bool {
+                self.0.contains(element)
             }
 
             #[doc = concat!("Returns an iterator over the [`", stringify!($impl), "`].")]
@@ -127,13 +127,13 @@ macro_rules! set_implementation {
             #[doc = "**It iterates in the insertion order.**"]
             #[must_use]
             #[inline]
-            pub fn iter(&self) -> indexmap::set::Iter<'_, T> {
+            pub fn iter(&self) -> indexmap::set::Iter<'_, V> {
                 self.0.iter()
             }
 
             #[doc = concat!("Initializes [`", stringify!($impl), "`] with a list of elements.")]
             #[inline]
-            pub fn init_with_elements(input_elements: &[T]) -> Self {
+            pub fn init_with_elements(input_elements: &[V]) -> Self {
                 let mut elements = Self::new();
                 for element in input_elements.iter() {
                     elements.add(element.clone());
