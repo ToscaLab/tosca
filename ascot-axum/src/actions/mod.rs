@@ -11,7 +11,7 @@ pub mod serial;
 pub mod stream;
 
 use ascot_library::hazards::{Hazard, Hazards};
-use ascot_library::input::{InputStructure, InputsData};
+use ascot_library::parameters::{ParameterKind, ParametersData};
 use ascot_library::response::ResponseKind;
 use ascot_library::route::{RestKind, Route, RouteConfig};
 
@@ -44,14 +44,14 @@ macro_rules! all_the_tuples {
 
 pub(super) use all_the_tuples;
 
-fn build_get_route(route: &str, inputs: &InputsData) -> String {
+fn build_get_route(route: &str, parameters: &ParametersData) -> String {
     let mut route = String::from(route);
-    for input in inputs {
-        if input.structure == InputStructure::ByteStream {
-            warn!("An stream of bytes input is not accepted for `GET` requests, skip it");
+    for (name, parameter_kind) in parameters {
+        if matches!(parameter_kind, ParameterKind::ByteStream) {
+            warn!("A bytes stream is not accepted for `GET` requests, skip it");
             continue;
         }
-        route.push_str(&format!("/{{{}}}", input.name));
+        route.push_str(&format!("/{{{}}}", name));
     }
     info!("Build GET route: {}", route);
     route
@@ -125,9 +125,9 @@ impl DeviceAction {
 
         // Create the GET route for the axum architecture.
         let route = if matches!(route_config.rest_kind, RestKind::Get)
-            && !route_config.data.inputs.is_empty()
+            && !route_config.data.parameters.is_empty()
         {
-            &build_get_route(&route_config.data.name, &route_config.data.inputs)
+            &build_get_route(&route_config.data.name, &route_config.data.parameters)
         } else {
             route_config.data.name.as_ref()
         };
@@ -185,7 +185,7 @@ impl MandatoryAction<true> {
 
 #[cfg(test)]
 mod tests {
-    use ascot_library::input::Input;
+    use ascot_library::parameters::Parameters;
 
     use super::{build_get_route, Route};
 
@@ -193,14 +193,15 @@ mod tests {
     fn test_build_get_route() {
         let route = Route::get("/route")
             .description("A GET route.")
-            .with_inputs([
-                Input::rangeu64_with_default("rangeu64", (0, 20, 1), 5),
-                Input::rangef64("rangef64", (0., 20., 0.1)),
-            ])
+            .with_parameters(
+                Parameters::empty()
+                    .rangeu64_with_default("rangeu64", (0, 20, 1), 5)
+                    .rangef64("rangef64", (0., 20., 0.1)),
+            )
             .serialize_data();
 
         assert_eq!(
-            &build_get_route(&route.data.name, &route.data.inputs),
+            &build_get_route(&route.data.name, &route.data.parameters),
             "/route/{rangeu64}/{rangef64}"
         );
     }

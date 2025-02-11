@@ -7,7 +7,7 @@ use std::net::Ipv4Addr;
 use std::sync::Arc;
 
 use ascot_library::hazards::Hazard;
-use ascot_library::input::Input;
+use ascot_library::parameters::Parameters;
 use ascot_library::route::Route;
 
 use ascot_axum::actions::error::ErrorResponse;
@@ -138,7 +138,7 @@ fn change_format(device: Device<InternalState>) -> Device<InternalState> {
     // Route to change camera index.
     let change_camera_route = Route::get("/change-camera")
         .description("Change camera.")
-        .with_input(Input::characters_sequence("index", "0"));
+        .with_parameters(Parameters::empty().characters_sequence("index", "0"));
 
     // Route to change format type to random.
     let change_format_random_route =
@@ -156,32 +156,34 @@ fn change_format(device: Device<InternalState>) -> Device<InternalState> {
     // Route to change format type to highest resolution.
     let change_format_highest_resolution_route = Route::post("/highest-resolution")
         .description("Change stream format to highest resolution.")
-        .with_inputs([Input::u32("x", 1920), Input::u32("y", 1080)]);
+        .with_parameters(Parameters::empty().u32("x", 1920).u32("y", 1080));
 
     // Route to change format type to highest framerate.
     let change_format_highest_framerate_route = Route::post("/highest-framerate")
         .description("Change stream format to highest framerate.")
-        .with_input(Input::u32("fps", 30));
+        .with_parameters(Parameters::empty().u32("fps", 30));
 
     // Route to change format type to exact type.
     let change_format_exact_route = Route::post("/exact")
         .description("Change stream format to exact type.")
-        .with_inputs([
-            Input::u32("x", 1920),
-            Input::u32("y", 1080),
-            Input::u32("fps", 30),
-            Input::characters_sequence("fourcc", "YUYV"),
-        ]);
+        .with_parameters(
+            Parameters::empty()
+                .u32("x", 1920)
+                .u32("y", 1080)
+                .u32("fps", 30)
+                .characters_sequence("fourcc", "YUYV"),
+        );
 
     // Route to change format type to closest type.
     let change_format_closest_route = Route::post("/closest")
         .description("Change stream to closest type.")
-        .with_inputs([
-            Input::u32("x", 1920),
-            Input::u32("y", 1080),
-            Input::u32("fps", 30),
-            Input::characters_sequence("fourcc", "YUYV"),
-        ]);
+        .with_parameters(
+            Parameters::empty()
+                .u32("x", 1920)
+                .u32("y", 1080)
+                .u32("fps", 30)
+                .characters_sequence("fourcc", "YUYV"),
+        );
 
     device
         .add_action(serial_stateful(change_camera_route, change_camera))
@@ -242,7 +244,7 @@ fn screenshot(device: Device<InternalState>) -> Device<InternalState> {
             Hazard::TakeDeviceScreenshots,
             Hazard::TakePictures,
         ])
-        .with_inputs([Input::u32("x", 1920), Input::u32("y", 1080)]);
+        .with_parameters(Parameters::empty().u32("x", 1920).u32("y", 1080));
 
     // Route to view screenshot with highest framerate.
     let screenshot_highest_framerate_route = Route::post("/screenshot-highest-framerate")
@@ -252,7 +254,7 @@ fn screenshot(device: Device<InternalState>) -> Device<InternalState> {
             Hazard::TakeDeviceScreenshots,
             Hazard::TakePictures,
         ])
-        .with_input(Input::u32("fps", 30));
+        .with_parameters(Parameters::empty().u32("fps", 30));
 
     // Route to view screenshot with exact approach.
     let screenshot_exact_route = Route::post("/screenshot-exact")
@@ -262,12 +264,13 @@ fn screenshot(device: Device<InternalState>) -> Device<InternalState> {
             Hazard::TakeDeviceScreenshots,
             Hazard::TakePictures,
         ])
-        .with_inputs([
-            Input::u32("x", 1920),
-            Input::u32("y", 1080),
-            Input::u32("fps", 30),
-            Input::characters_sequence("fourcc", "YUYV"),
-        ]);
+        .with_parameters(
+            Parameters::empty()
+                .u32("x", 1920)
+                .u32("y", 1080)
+                .u32("fps", 30)
+                .characters_sequence("fourcc", "YUYV"),
+        );
 
     // Route to view screenshot with closest type.
     let screenshot_closest_route = Route::post("/screenshot-closest")
@@ -277,12 +280,13 @@ fn screenshot(device: Device<InternalState>) -> Device<InternalState> {
             Hazard::TakeDeviceScreenshots,
             Hazard::TakePictures,
         ])
-        .with_inputs([
-            Input::u32("x", 1920),
-            Input::u32("y", 1080),
-            Input::u32("fps", 30),
-            Input::characters_sequence("fourcc", "YUYV"),
-        ]);
+        .with_parameters(
+            Parameters::empty()
+                .u32("x", 1920)
+                .u32("y", 1080)
+                .u32("fps", 30)
+                .characters_sequence("fourcc", "YUYV"),
+        );
 
     device
         .add_action(stream_stateful(screenshot_random_route, screenshot_random))

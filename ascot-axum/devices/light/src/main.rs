@@ -6,7 +6,7 @@ use std::sync::Arc;
 use ascot_library::device::DeviceInfo;
 use ascot_library::energy::{EnergyClass, EnergyEfficiencies, EnergyEfficiency};
 use ascot_library::hazards::Hazard;
-use ascot_library::input::Input;
+use ascot_library::parameters::Parameters;
 use ascot_library::route::Route;
 
 use ascot_axum::actions::error::ErrorResponse;
@@ -226,19 +226,21 @@ async fn main() -> Result<(), Error> {
     let light_on_route = Route::put("/on")
         .description("Turn light on.")
         .with_hazard(Hazard::ElectricEnergyConsumption)
-        .with_inputs([
-            Input::rangef64("brightness", (0., 20., 0.1)),
-            Input::bool("save-energy", false),
-        ]);
+        .with_parameters(
+            Parameters::empty()
+                .rangef64("brightness", (0., 20., 0.1))
+                .bool("save-energy", false),
+        );
 
     // Turn light on `POST` route.
     let light_on_post_route = Route::post("/on")
         .description("Turn light on.")
         .with_hazard(Hazard::ElectricEnergyConsumption)
-        .with_inputs([
-            Input::rangef64("brightness", (0., 20., 0.1)),
-            Input::bool("save-energy", false),
-        ]);
+        .with_parameters(
+            Parameters::empty()
+                .rangef64("brightness", (0., 20., 0.1))
+                .bool("save-energy", false),
+        );
 
     // Turn light off `PUT` route.
     let light_off_route = Route::put("/off").description("Turn light off.");
