@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::collections::Set;
 use crate::hazards::{Hazard, Hazards};
-use crate::input::{Input, Inputs, InputsData};
+use crate::parameters::{Parameters, ParametersData};
 use crate::response::ResponseKind;
 
 /// `REST` requests kind.
@@ -50,10 +50,10 @@ pub struct RouteData {
     #[serde(skip_serializing_if = "Hazards::is_empty")]
     #[serde(default = "Hazards::empty")]
     pub hazards: Hazards,
-    /// Inputs associated with a route..
-    #[serde(skip_serializing_if = "InputsData::is_empty")]
-    #[serde(default = "InputsData::empty")]
-    pub inputs: InputsData,
+    /// Input parameters associated with a route.
+    #[serde(skip_serializing_if = "ParametersData::is_empty")]
+    #[serde(default = "ParametersData::empty")]
+    pub parameters: ParametersData,
 }
 
 impl PartialEq for RouteData {
@@ -69,7 +69,7 @@ impl PartialEq for RouteData {
 }
 
 impl RouteData {
-    pub(super) fn new(route: Route) -> Self {
+    fn new(route: Route) -> Self {
         Self {
             #[cfg(feature = "alloc")]
             name: route.route.into(),
@@ -80,7 +80,7 @@ impl RouteData {
             #[cfg(feature = "stack")]
             description: route.description,
             hazards: route.hazards,
-            inputs: InputsData::from(route.inputs),
+            parameters: route.parameters.serialize_data(),
         }
     }
 }
@@ -145,8 +145,8 @@ pub struct Route {
     rest_kind: RestKind,
     // Description.
     description: Option<&'static str>,
-    // Inputs.
-    inputs: Inputs,
+    // Input route parameters.
+    parameters: Parameters,
     // Hazards.
     hazards: Hazards,
 }
@@ -209,24 +209,6 @@ impl Route {
         self
     }
 
-    /// Adds a single [`Input`] to a [`Route`].
-    #[must_use]
-    #[inline]
-    pub fn with_input(mut self, input: Input) -> Self {
-        self.inputs.add(input);
-        self
-    }
-
-    /// Adds [`Input`] array to a [`Route`].
-    #[must_use]
-    #[inline]
-    pub fn with_inputs<const N: usize>(mut self, inputs: [Input; N]) -> Self {
-        for input in inputs {
-            self.inputs.add(input);
-        }
-        self
-    }
-
     /// Adds [`Hazards`] to a [`Route`].
     #[must_use]
     #[inline]
@@ -251,6 +233,14 @@ impl Route {
         self
     }
 
+    /// Adds [`Parameters`] to a [`Route`].
+    #[must_use]
+    #[inline]
+    pub fn with_parameters(mut self, parameters: Parameters) -> Self {
+        self.parameters = parameters;
+        self
+    }
+
     /// Returns route.
     #[must_use]
     pub fn route(&self) -> &str {
@@ -269,10 +259,10 @@ impl Route {
         &self.hazards
     }
 
-    /// Returns [`Inputs`].
+    /// Returns [`Parameters`].
     #[must_use]
-    pub const fn inputs(&self) -> &Inputs {
-        &self.inputs
+    pub const fn parameters(&self) -> &Parameters {
+        &self.parameters
     }
 
     /// Serializes [`Route`] data.
@@ -290,7 +280,7 @@ impl Route {
             rest_kind,
             description: None,
             hazards: Hazards::empty(),
-            inputs: Inputs::empty(),
+            parameters: Parameters::empty(),
         }
     }
 }
@@ -301,11 +291,12 @@ pub type Routes = Set<Route>;
 #[cfg(feature = "alloc")]
 #[cfg(test)]
 mod tests {
-    use crate::input::InputData;
+    use crate::parameters::ParameterKind;
     use crate::{deserialize, serialize};
 
     use super::{
-        Hazard, Hazards, Input, InputsData, ResponseKind, RestKind, Route, RouteConfig, RouteData,
+        Hazard, Hazards, Parameters, ParametersData, ResponseKind, RestKind, Route, RouteConfig,
+        RouteData,
     };
 
     fn route_config_empty(rest_kind: RestKind, desc: &'static str) -> RouteConfig {
@@ -317,14 +308,14 @@ mod tests {
         hazards: Hazards,
         desc: &'static str,
     ) -> RouteConfig {
-        route_config_inputs(rest_kind, hazards, desc, InputsData::empty())
+        route_config_inputs(rest_kind, hazards, desc, ParametersData::empty())
     }
 
     fn route_config_inputs(
         rest_kind: RestKind,
         hazards: Hazards,
         desc: &'static str,
-        inputs: InputsData,
+        parameters: ParametersData,
     ) -> RouteConfig {
         RouteConfig {
             rest_kind,
@@ -333,7 +324,7 @@ mod tests {
                 name: "/route".into(),
                 description: Some(desc.into()),
                 hazards,
-                inputs,
+                parameters,
             },
         }
     }
@@ -436,32 +427,26 @@ mod tests {
             RestKind::Get,
             Hazards::empty(),
             "A GET route",
-            InputsData::empty().insert(InputData::from(Input::rangeu64_with_default(
-                "rangeu64",
-                (0, 20, 1),
-                5,
-            ))),
+            ParametersData::empty().insert(
+                "rangeu64".into(),
+                ParameterKind::RangeU64 {
+                    min: 0,
+                    max: 20,
+                    step: 1,
+                    default: 5,
+                },
+            ),
         );
 
         assert_eq!(
             deserialize::<RouteConfig>(serialize(
                 Route::get("/route")
                     .description("A GET route")
-                    .with_input(Input::rangeu64_with_default("rangeu64", (0, 20, 1), 5))
-                    .with_input(Input::rangef64("rangef64", (0., 20., 0.1)))
-                    .serialize_data()
-            )),
-            expected
-        );
-
-        assert_eq!(
-            deserialize::<RouteConfig>(serialize(
-                Route::get("/route")
-                    .description("A GET route")
-                    .with_inputs([
-                        Input::rangeu64_with_default("rangeu64", (0, 20, 1), 5),
-                        Input::rangef64("rangef64", (0., 20., 0.1))
-                    ])
+                    .with_parameters(
+                        Parameters::empty()
+                            .rangeu64_with_default("rangeu64", (0, 20, 1), 5)
+                            .rangef64("rangef64", (0., 20., 0.1))
+                    )
                     .serialize_data()
             )),
             expected
@@ -476,7 +461,7 @@ mod tests {
 
     use crate::serialize;
 
-    use super::{Hazard, Hazards, Input, Route};
+    use super::{Hazard, Hazards, Parameters, Route};
 
     #[test]
     fn test_all_routes() {
@@ -607,21 +592,16 @@ mod tests {
             "description": "A GET route",
             "REST kind": "Get",
             "response kind": "Ok",
-            "inputs": [
-                {
-                    "name": "rangeu64",
-                    "structure": {
+            "parameters": {
+                    "rangeu64": {
                         "RangeU64": {
                             "min": 0,
                             "max": 20,
                             "step": 1,
                             "default": 5
                         }
-                    }
-                },
-                {
-                    "name": "rangef64",
-                    "structure": {
+                    },
+                    "rangef64": {
                         "RangeF64": {
                             "min": 0.0,
                             "max": 20.0,
@@ -629,8 +609,7 @@ mod tests {
                             "default": 0.0
                         }
                     }
-                }
-            ],
+             },
             "REST kind": "Get"
         });
 
@@ -638,21 +617,11 @@ mod tests {
             serialize(
                 Route::get("/route")
                     .description("A GET route")
-                    .with_input(Input::rangeu64_with_default("rangeu64", (0, 20, 1), 5))
-                    .with_input(Input::rangef64("rangef64", (0., 20., 0.1)))
-                    .serialize_data()
-            ),
-            expected
-        );
-
-        assert_eq!(
-            serialize(
-                Route::get("/route")
-                    .description("A GET route")
-                    .with_inputs([
-                        Input::rangeu64_with_default("rangeu64", (0, 20, 1), 5),
-                        Input::rangef64("rangef64", (0., 20., 0.1))
-                    ])
+                    .with_parameters(
+                        Parameters::empty()
+                            .rangeu64_with_default("rangeu64", (0, 20, 1), 5)
+                            .rangef64("rangef64", (0., 20., 0.1))
+                    )
                     .serialize_data()
             ),
             expected
