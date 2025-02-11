@@ -81,7 +81,7 @@ where
             main_route: DEFAULT_MAIN_ROUTE,
             router: Router::new(),
             kind,
-            route_configs: RouteConfigs::empty(),
+            route_configs: RouteConfigs::new(),
             state,
         }
     }
