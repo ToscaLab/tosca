@@ -51,7 +51,7 @@ fn build_get_route(route: &str, parameters: &ParametersData) -> String {
             warn!("A bytes stream is not accepted for `GET` requests, skip it");
             continue;
         }
-        route.push_str(&format!("/{{{}}}", name));
+        route.push_str(&format!("/{{{name}}}"));
     }
     info!("Build GET route: {}", route);
     route
