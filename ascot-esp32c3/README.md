@@ -14,9 +14,6 @@ directory. These APIs are specifically thought to guide a developer in defining
 a correct and a safe device, such as the addition of mandatory and optional 
 actions which are possible on that device.
 
-This library also provides a thin-layer over the [ascot-library](../README) to
-manage routes, errors, and hazards.
-
 ## Building Prerequisites
 
 Follow the [Prerequisites](https://github.com/esp-rs/esp-idf-template#prerequisites)
