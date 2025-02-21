@@ -1,4 +1,4 @@
-# ascot-stack
+# `ascot-stack`
 
 [![LICENSE][license badge]][license]
 
