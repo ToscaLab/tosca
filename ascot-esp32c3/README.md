@@ -14,6 +14,9 @@ directory. These APIs are specifically thought to guide a developer in defining
 a correct and a safe device, such as the addition of mandatory and optional 
 actions which are possible on that device.
 
+The implemented devices can be found inside the [examples](./examples)
+directory.
+
 ## Building Prerequisites
 
 Follow the [Prerequisites](https://github.com/esp-rs/esp-idf-template#prerequisites)
