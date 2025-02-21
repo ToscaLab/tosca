@@ -1,17 +1,27 @@
 [package]
 name = "light"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
+authors = ["Michele Valsesia <luni-4@hotmail.it>"]
+description = "A light running on an ESP32-C3 microcontroller."
+license = "MIT"
+resolver = "2"
+publish = false
 
 [dependencies]
-ascot-library = { version = "0.1.0", path = "../../../", default-features = false }
-ascot-esp32c3 = { version = "0.1.0", path = "../../" }
-esp-idf-svc = "0.50.1"
-toml-cfg = "0.2.0"
+ascot-library.version = "0.1.0"
+ascot-library.path = "../../../"
+
+ascot-esp32c3.version = "0.1.0"
+ascot-esp32c3.path = "../../"
+
+esp-idf-svc.version = "0.50.1"
+
+toml-cfg.version = "0.2.0"
 
 [build-dependencies]
-embuild  = "0.33.0"
-toml-cfg = "0.2.0"
+embuild.version  = "0.33.0"
+toml-cfg.version = "0.2.0"
 
 [profile.dev]
 # Enable debug symbols

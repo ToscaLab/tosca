@@ -1,4 +1,4 @@
-# Light Ascot Firmware
+# ascot-esp32c3-light
 
 [![LICENSE][license badge]][license]
 
