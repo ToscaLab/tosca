@@ -1,13 +1,12 @@
-#[cfg(feature = "alloc")]
-use crate::alloc::string::ToString;
+use alloc::borrow::Cow;
+use alloc::string::{String, ToString};
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
-use crate::collections::Map;
+use crate::collections::{Map, OutputMap};
 
 /// All supported kinds of route input parameters.
-#[derive(Debug, Clone, PartialEq, Serialize)]
-#[cfg_attr(feature = "alloc", derive(serde::Deserialize))]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum ParameterKind {
     /// A [`bool`] value.
     Bool {
@@ -79,26 +78,19 @@ pub enum ParameterKind {
     ///
     /// This kind of input parameter can contain an unknown or a precise
     /// sequence of characters.
-    #[cfg(feature = "alloc")]
     CharsSequence {
         /// Initial characters sequence, which also represents the default
         /// value.
-        default: alloc::borrow::Cow<'static, str>,
+        default: Cow<'static, str>,
     },
     /// A byte stream input.
     ///
     /// This kind of input parameter can be used to send files to a receiver.
-    #[cfg(feature = "alloc")]
     ByteStream,
 }
 
 /// A map of serializable and deserializable [`Parameters`] data.
-#[cfg(feature = "alloc")]
-pub type ParametersData = crate::collections::OutputMap<alloc::string::String, ParameterKind>;
-
-/// A map of serializable [`Parameters`] data.
-#[cfg(feature = "stack")]
-pub type ParametersData = crate::collections::SerialMap<&'static str, ParameterKind>;
+pub type ParametersData = OutputMap<String, ParameterKind>;
 
 /// Route input parameters.
 #[derive(Debug, Clone)]
@@ -224,11 +216,10 @@ impl Parameters {
     /// Adds a characters sequence.
     #[must_use]
     #[inline]
-    #[cfg(feature = "alloc")]
     pub fn characters_sequence(
         self,
         name: &'static str,
-        default: impl Into<alloc::borrow::Cow<'static, str>>,
+        default: impl Into<Cow<'static, str>>,
     ) -> Self {
         self.create_parameter(
             name,
@@ -241,7 +232,6 @@ impl Parameters {
     /// Adds a bytes stream input.
     #[must_use]
     #[inline]
-    #[cfg(feature = "alloc")]
     pub fn byte_stream(self, name: &'static str) -> Self {
         self.create_parameter(name, ParameterKind::ByteStream)
     }
@@ -249,7 +239,6 @@ impl Parameters {
     /// Serializes [`Parameters`] data.
     ///
     /// It consumes the data.
-    #[cfg(feature = "alloc")]
     #[must_use]
     #[inline]
     pub fn serialize_data(self) -> ParametersData {
@@ -260,34 +249,18 @@ impl Parameters {
         data
     }
 
-    /// Serializes [`Parameters`] data.
-    ///
-    /// It consumes the data.
-    #[cfg(feature = "stack")]
-    #[must_use]
-    #[inline]
-    pub fn serialize_data(self) -> ParametersData {
-        let mut data = ParametersData::new();
-        for (key, value) in &self.0 {
-            data.add(key, value.clone());
-        }
-        data
-    }
-
     fn create_parameter(self, name: &'static str, parameter_kind: ParameterKind) -> Self {
         Self(self.0.insert(name, parameter_kind))
     }
 }
 
-#[cfg(feature = "alloc")]
 #[cfg(test)]
 mod tests {
     use crate::alloc::string::ToString;
-    use crate::collections::OutputMap;
 
     use crate::{deserialize, serialize};
 
-    use super::{ParameterKind, Parameters, ParametersData};
+    use super::{OutputMap, ParameterKind, Parameters, ParametersData};
 
     #[test]
     fn test_parameters() {
@@ -351,65 +324,6 @@ mod tests {
         assert_eq!(
             deserialize::<ParametersData>(serialize(parameters.serialize_data())),
             parameters_data,
-        );
-    }
-}
-
-#[cfg(feature = "stack")]
-#[cfg(test)]
-mod tests {
-    use crate::collections::SerialMap;
-
-    use crate::serialize;
-
-    use super::{ParameterKind, Parameters};
-
-    #[test]
-    fn test_parameters() {
-        let parameters = Parameters::new()
-            .bool("bool", true)
-            .u8("u8", 0)
-            .u16("u16", 0)
-            .u32("u32", 0)
-            .u64("u64", 0)
-            .f32("f32", 0.)
-            .f64("f64", 0.)
-            .rangeu64_with_default("rangeu64", (0, 20, 1), 5)
-            .rangef64_with_default("rangef64", (0., 20., 0.1), 5.)
-            // Adds a duplicate to see whether that value is maintained or
-            // removed.
-            .u16("u16", 0);
-
-        let parameters_data = SerialMap::new()
-            .insert("bool", ParameterKind::Bool { default: true })
-            .insert("u8", ParameterKind::U8 { default: 0 })
-            .insert("u16", ParameterKind::U16 { default: 0 })
-            .insert("u32", ParameterKind::U32 { default: 0 })
-            .insert("u64", ParameterKind::U64 { default: 0 })
-            .insert("f32", ParameterKind::F32 { default: 0. })
-            .insert("f64", ParameterKind::F64 { default: 0. })
-            .insert(
-                "rangeu64",
-                ParameterKind::RangeU64 {
-                    min: 0,
-                    max: 20,
-                    step: 1,
-                    default: 5,
-                },
-            )
-            .insert(
-                "rangef64",
-                ParameterKind::RangeF64 {
-                    min: 0.,
-                    max: 20.,
-                    step: 0.1,
-                    default: 5.,
-                },
-            );
-
-        assert_eq!(
-            serialize(parameters.serialize_data()),
-            serialize(parameters_data),
         );
     }
 }
