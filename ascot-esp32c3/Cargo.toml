@@ -26,7 +26,7 @@ embassy-sync.default-features = false
 
 embassy-time.version = "0.3.2"
 embassy-time.default-features = false
-embassy-time.features = ["std", "generic-queue-8"]
+embassy-time.features = ["generic-queue-8", "std"]
 
 esp-idf-svc.version = "0.50.1"
 esp-idf-svc.default-features = false
