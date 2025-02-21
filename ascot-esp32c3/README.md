@@ -50,7 +50,7 @@ might be added or removed.
 
 ## Building complete firmware devices
 
-The directory [devices](../devices) contains firmware implemented with
+The directory [examples](./examples) contains firmware implemented with
 the `ascot-esp32c3` crate. Each firmware is independent from another and it can
 be moved in a separate repository.
 
@@ -60,17 +60,17 @@ and then run `cargo update` to update all dependencies.
 To build a firmware run:
 
 ```console
-cd devices/[firmware directory name]
+cd examples/[firmware directory name]
 cargo build
 ```
 
-It is necessary to enter the `devices/[firmware directory name]` to use the
+It is necessary to enter the `examples/[firmware directory name]` to use the
 `sdkconfig.defaults` file specific for that firmware.
 
 To flash and run the firmware on an `ESP32-C3` board:
 
 ```console
-cd devices/[firmware directory name]
+cd examples/[firmware directory name]
 cargo run [--release]
 ```
 
