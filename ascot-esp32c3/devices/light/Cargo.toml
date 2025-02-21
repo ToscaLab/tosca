@@ -16,12 +16,17 @@ ascot-esp32c3.version = "0.1.0"
 ascot-esp32c3.path = "../../"
 
 esp-idf-svc.version = "0.50.1"
+esp-idf-svc.default-features = false
 
 toml-cfg.version = "0.2.0"
+toml-cfg.default-features = false
 
 [build-dependencies]
 embuild.version  = "0.33.0"
+embuild.default-features = false
+
 toml-cfg.version = "0.2.0"
+toml-cfg.default-features = false
 
 [profile.dev]
 # Enable debug symbols
