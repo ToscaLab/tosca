@@ -2,21 +2,41 @@
 name = "ascot-esp32c3"
 version = "0.1.0"
 edition = "2024"
+authors = ["Michele Valsesia <luni-4@hotmail.it>"]
+description = "Ascot firmware library for ESP32-C3 architectures."
+license = "MIT"
+resolver = "2"
 
 [dependencies]
+ascot-library.version = "0.1.0"
+ascot-library.path = "../"
 
-# Esp
-esp-idf-svc = { version = "0.50.1", default-features = false, features = ["alloc"] }
+edge-mdns.version = "0.4.0"
+edge-mdns.default-features = false
+edge-mdns.features = ["io"]
 
-# Mdns-sd
-edge-mdns = { version = "0.4.0", default-features = false, features = ["io"] }
-edge-nal = { version = "0.4.2", default-features = false }
-edge-nal-std = { version = "0.4.0", default-features = false }
-embassy-sync = { version = "0.6", default-features = false }
-embassy-time = { version = "0.3.2", features = ["std", "generic-queue-8"] }
-rand = "0.8.5"
+edge-nal.version = "0.4.2"
+edge-nal.default-features = false
 
-# Other dependencies
-ascot-library = { path = "../" }
-log = { version = "0.4", default-features = false }
-serde_json = { version =  "1", default-features = false, features = ["preserve_order"] }
+edge-nal-std.version = "0.4.0"
+edge-nal-std.default-features = false
+
+embassy-sync.version = "0.6"
+embassy-sync.default-features = false
+
+embassy-time.version = "0.3.2"
+embassy-time.default-features = false
+embassy-time.features = ["std", "generic-queue-8"]
+
+esp-idf-svc.version = "0.50.1"
+esp-idf-svc.default-features = false
+esp-idf-svc.features = ["alloc"]
+
+log.version = "0.4"
+log.default-features = false
+
+rand.version = "0.8.5"
+
+serde_json.version =  "1"
+serde_json.default-features = false
+serde_json.features = ["preserve_order"]
