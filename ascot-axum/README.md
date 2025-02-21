@@ -1,4 +1,4 @@
-# ascot-axum
+# `ascot-axum`
 
 [![LICENSE][license badge]][license]
 
