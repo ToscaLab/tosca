@@ -2,30 +2,57 @@
 name = "ascot-axum"
 version = "0.1.0"
 edition = "2024"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+authors = ["Michele Valsesia <luni-4@hotmail.it>"]
+description = "Ascot firmware library for architectures supporting axum crate."
+license = "MIT"
+resolver = "2"
 
 [dependencies]
-ascot-library = { version = "0.1", path = "../" }
-axum = "0.8.0"
-# Just for the TryStream trait.
-futures-core = "0.3"
-serde = { version = "1.0", features = ["derive"] }
-serde_json = { version =  "1", features = ["preserve_order"] }
-tokio = "1.0"
-tokio-util = { version = "0.7", features = ["io"] }
-tracing = "0.1"
+ascot-library.version = "0.1.0"
+ascot-library.path = "../"
 
-# Service dependencies
-gethostname = { version = "0.5", optional = true }
-if-addrs = { version = "0.13", optional = true }
-mdns-sd = { version = "0.13", optional = true }
+axum.version = "0.8.0"
+axum.default-features = false
+axum.features = ["tokio", "http1", "http2", "json"]
+
+# Just for the TryStream trait.
+futures-core.version = "0.3"
+
+gethostname.version = "0.5"
+gethostname.default-features = false
+gethostname.optional = true
+
+if-addrs.version = "0.13"
+if-addrs.default-features = false
+if-addrs.optional = true
+
+mdns-sd.version = "0.13"
+mdns-sd.default-features = false
+mdns-sd.optional = true
+
+serde.version = "1.0"
+serde.default-features = false
+serde.features = ["derive"]
+
+serde_json.version = "1"
+serde_json.default-features = false
+serde_json.features = ["preserve_order"]
+
+tokio.version = "1.0"
+tokio.default-features = false
+
+tokio-util.version = "0.7"
+tokio-util.default-features = false
+tokio-util.features = ["io"]
+
+tracing.version = "0.1"
+tracing.default-features = false
 
 [dev-dependencies]
-async-lock = "3.3"
+async-lock.version = "3.3"
+async-lock.default-features = false
 
 [features]
 default = ["mdns-sd-service"]
 
-# Services
 mdns-sd-service = ["dep:mdns-sd", "dep:gethostname", "dep:if-addrs"]
