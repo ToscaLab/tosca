@@ -96,7 +96,7 @@ impl Server {
                     },
                 )?;
             } else {
-                server.fn_handler(route.route_config.data.name, method, move |req| {
+                server.fn_handler(&route.route_config.data.name, method, move |req| {
                     // Write only response.
                     (route.response)(req)?.write_all(route.content.as_bytes())
                 })?;

@@ -17,6 +17,6 @@ embassy-time = { version = "0.3.2", features = ["std", "generic-queue-8"] }
 rand = "0.8.5"
 
 # Other dependencies
-ascot-library = { path = "../", default-features = false, features = ["stack"] }
+ascot-library = { path = "../" }
 log = { version = "0.4", default-features = false }
 serde_json = { version =  "1", default-features = false, features = ["preserve_order"] }
