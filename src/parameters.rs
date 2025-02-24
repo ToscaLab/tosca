@@ -1,5 +1,5 @@
 use alloc::borrow::Cow;
-use alloc::string::{String, ToString};
+use alloc::string::String;
 
 use serde::{Deserialize, Serialize};
 
@@ -244,7 +244,7 @@ impl Parameters {
     pub fn serialize_data(self) -> ParametersData {
         let mut data = ParametersData::new();
         for (key, value) in self.0 {
-            data.add(key.to_string(), value);
+            data.add(key.into(), value);
         }
         data
     }
