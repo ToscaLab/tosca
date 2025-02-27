@@ -1,5 +1,5 @@
-use ascot_library::device::{DeviceData, DeviceEnvironment, DeviceKind};
-use ascot_library::route::RouteConfigs;
+use ascot::device::{DeviceData, DeviceEnvironment, DeviceKind};
+use ascot::route::RouteConfigs;
 
 use axum::Router;
 
@@ -119,9 +119,9 @@ mod tests {
 
     use core::ops::{Deref, DerefMut};
 
-    use ascot_library::device::DeviceInfo;
-    use ascot_library::energy::Energy;
-    use ascot_library::route::Route;
+    use ascot::device::DeviceInfo;
+    use ascot::energy::Energy;
+    use ascot::route::Route;
 
     use async_lock::Mutex;
 

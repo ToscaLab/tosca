@@ -1,5 +1,5 @@
-use ascot_library::collections::Map;
-use ascot_library::parameters::{ParameterKind, ParametersData};
+use ascot::collections::Map;
+use ascot::parameters::{ParameterKind, ParametersData};
 
 use tracing::error;
 

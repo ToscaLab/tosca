@@ -1,5 +1,5 @@
-use ascot_library::device::DeviceKind;
-use ascot_library::hazards::Hazard;
+use ascot::device::DeviceKind;
+use ascot::hazards::Hazard;
 
 use crate::device::{Device, DeviceAction, DeviceBuilder};
 use crate::error::{Error, ErrorKind, Result};

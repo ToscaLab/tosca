@@ -1,8 +1,8 @@
 use core::result::Result;
 
-use ascot_library::device::{DeviceData, DeviceEnvironment, DeviceKind};
-use ascot_library::hazards::Hazard;
-use ascot_library::route::{Route, RouteConfig, RouteConfigs};
+use ascot::device::{DeviceData, DeviceEnvironment, DeviceKind};
+use ascot::hazards::Hazard;
+use ascot::route::{Route, RouteConfig, RouteConfigs};
 
 use esp_idf_svc::http::server::{EspHttpConnection, Request, Response};
 use esp_idf_svc::io::EspIOError;

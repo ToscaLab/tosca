@@ -5,8 +5,8 @@
 use std::sync::{Arc, Mutex};
 
 // Ascot library
-use ascot_library::hazards::Hazard;
-use ascot_library::route::Route;
+use ascot::hazards::Hazard;
+use ascot::route::Route;
 
 // Ascot Esp32
 use ascot_esp32c3::device::{DeviceAction, ResponseBuilder};

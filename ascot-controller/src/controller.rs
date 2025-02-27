@@ -238,8 +238,8 @@ impl Controller {
 mod tests {
     use std::fmt::Debug;
 
-    use ascot_library::hazards::{Hazard, Hazards};
-    use ascot_library::response::{OkResponse, SerialResponse};
+    use ascot::hazards::{Hazard, Hazards};
+    use ascot::response::{OkResponse, SerialResponse};
 
     use serde::{de::DeserializeOwned, Serialize};
     use serde_json::json;

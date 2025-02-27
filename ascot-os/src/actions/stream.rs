@@ -1,8 +1,8 @@
 use std::error::Error;
 use std::future::Future;
 
-use ascot_library::response::ResponseKind;
-use ascot_library::route::Route;
+use ascot::response::ResponseKind;
+use ascot::route::Route;
 
 use axum::{
     body::{Body, Bytes},

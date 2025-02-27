@@ -2,9 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::collections::OutputSet;
 
-pub use ascot_library::energy::{
-    CarbonFootprint, EnergyClass, EnergyEfficiency, WaterUseEfficiency,
-};
+pub use ascot::energy::{CarbonFootprint, EnergyClass, EnergyEfficiency, WaterUseEfficiency};
 
 /// A collection of [`EnergyEfficiency`]s.
 pub type EnergyEfficiencies<const E: usize> = OutputSet<EnergyEfficiency, E>;

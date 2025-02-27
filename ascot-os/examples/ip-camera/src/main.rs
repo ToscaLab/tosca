@@ -6,9 +6,9 @@ mod stream;
 use std::net::Ipv4Addr;
 use std::sync::Arc;
 
-use ascot_library::hazards::Hazard;
-use ascot_library::parameters::Parameters;
-use ascot_library::route::Route;
+use ascot::hazards::Hazard;
+use ascot::parameters::Parameters;
+use ascot::route::Route;
 
 use ascot_os::actions::error::ErrorResponse;
 use ascot_os::actions::ok::ok_stateful;

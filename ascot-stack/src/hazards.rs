@@ -1,6 +1,6 @@
 use crate::collections::OutputSet;
 
-pub use ascot_library::hazards::{Category, Hazard, HazardData, ALL_HAZARDS};
+pub use ascot::hazards::{Category, Hazard, HazardData, ALL_HAZARDS};
 
 /// A collection of [`Hazard`]s.
 ///

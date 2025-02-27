@@ -1,5 +1,5 @@
-use ascot_library::actions::ActionError;
-use ascot_library::response::ErrorResponse as AscotErrorResponse;
+use ascot::actions::ActionError;
+use ascot::response::ErrorResponse as AscotErrorResponse;
 
 use axum::{
     extract::Json,

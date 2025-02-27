@@ -1,5 +1,5 @@
-use ascot_library::device::DeviceKind;
-use ascot_library::hazards::Hazard;
+use ascot::device::DeviceKind;
+use ascot::hazards::Hazard;
 
 use crate::actions::{DeviceAction, MandatoryAction};
 use crate::device::Device;
@@ -166,9 +166,9 @@ where
 #[cfg(test)]
 mod tests {
 
-    use ascot_library::hazards::Hazard;
-    use ascot_library::parameters::Parameters;
-    use ascot_library::route::Route;
+    use ascot::hazards::Hazard;
+    use ascot::parameters::Parameters;
+    use ascot::route::Route;
 
     use axum::extract::{Json, State};
 

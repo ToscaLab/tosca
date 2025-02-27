@@ -8,8 +8,8 @@ license = "MIT"
 resolver = "2"
 
 [dependencies]
-ascot-library.version = "0.1.0"
-ascot-library.path = "../"
+ascot.version = "0.1.0"
+ascot.path = "../"
 
 axum.version = "0.8.0"
 axum.default-features = false

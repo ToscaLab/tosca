@@ -8,8 +8,8 @@ license = "MIT"
 resolver = "2"
 
 [dependencies]
-ascot-library.path = ".."
-ascot-library.version = "0.1.0"
+ascot.path = ".."
+ascot.version = "0.1.0"
 
 bytes.version = "1.10.0"
 bytes.default-features = false

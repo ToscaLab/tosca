@@ -1,4 +1,4 @@
-use ascot_library::response::{InfoResponse, OkResponse, SerialResponse};
+use ascot::response::{InfoResponse, OkResponse, SerialResponse};
 
 use reqwest::Response as ReqwestResponse;
 

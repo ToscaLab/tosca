@@ -1,8 +1,8 @@
 use core::future::Future;
 
-use ascot_library::device::DeviceInfo;
-use ascot_library::response::{InfoResponse as AscotInfoResponse, ResponseKind};
-use ascot_library::route::Route;
+use ascot::device::DeviceInfo;
+use ascot::response::{InfoResponse as AscotInfoResponse, ResponseKind};
+use ascot::route::Route;
 
 use axum::{
     extract::Json,

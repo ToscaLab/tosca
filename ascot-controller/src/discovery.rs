@@ -1,7 +1,7 @@
 use std::net::IpAddr;
 use std::time::Duration;
 
-use ascot_library::device::DeviceData;
+use ascot::device::DeviceData;
 
 use mdns_sd::{IfKind, ServiceDaemon, ServiceEvent, ServiceInfo};
 
