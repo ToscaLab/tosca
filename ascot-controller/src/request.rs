@@ -304,19 +304,18 @@ impl Request {
 
 #[cfg(test)]
 mod tests {
+    use std::collections::HashMap;
 
-    use ascot_library::hazards::Hazard;
+    use ascot_library::device::DeviceEnvironment;
+    use ascot_library::hazards::{Hazard, Hazards};
     use ascot_library::parameters::{
         ParameterKind, Parameters as LibraryParameters, ParametersData,
     };
-    use ascot_library::route::Route;
+    use ascot_library::route::{RestKind, Route, RouteConfig};
 
     use crate::parameters::{parameter_error, Parameters};
 
-    use super::{
-        DeviceEnvironment, HashMap, Hazards, Request, RequestData, ResponseKind, RestKind,
-        RouteConfig,
-    };
+    use super::{Request, RequestData, ResponseKind};
 
     const ADDRESS_ROUTE: &str = "http://ascot.local/";
     const ADDRESS_ROUTE_WITHOUT_SLASH: &str = "http://ascot.local/";
