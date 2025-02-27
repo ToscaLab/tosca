@@ -45,11 +45,11 @@ curl -X PUT 127.0.0.1:3000/light/off
 curl -X PUT 127.0.0.1:3000/light/toggle
 ```
 
-At the server startup, an initial message signalling its effective execution and
-port number is printed.
+At server startup, an initial message signalling its effective execution
+is printed.
 
 ```
-Starting the Ascot server at 0.0.0.0:3000
+Starting server...
 ```
 
 <!-- Links -->
