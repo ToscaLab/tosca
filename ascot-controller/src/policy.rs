@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use ascot_library::hazards::Hazards;
+use ascot::hazards::Hazards;
 
 // TODO: Eventually rewrite policy IDs as &'static str.
 
@@ -80,7 +80,7 @@ impl Policy {
 mod tests {
     use std::collections::HashMap;
 
-    use ascot_library::hazards::{Hazard, Hazards};
+    use ascot::hazards::{Hazard, Hazards};
 
     use super::Policy;
 

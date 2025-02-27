@@ -1,11 +1,11 @@
 use std::net::Ipv4Addr;
 use std::time::Duration;
 
-use ascot_library::device::{DeviceEnvironment, DeviceKind};
-use ascot_library::hazards::{Hazard, Hazards};
-use ascot_library::parameters::{ParameterKind, Parameters, ParametersData};
-use ascot_library::response::ResponseKind;
-use ascot_library::route::{RestKind, Route};
+use ascot::device::{DeviceEnvironment, DeviceKind};
+use ascot::hazards::{Hazard, Hazards};
+use ascot::parameters::{ParameterKind, Parameters, ParametersData};
+use ascot::response::ResponseKind;
+use ascot::route::{RestKind, Route};
 
 use ascot_os::actions::error::ErrorResponse;
 use ascot_os::actions::ok::{mandatory_ok_stateless, OkResponse};

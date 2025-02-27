@@ -1,7 +1,7 @@
 use core::future::Future;
 
-use ascot_library::response::{OkResponse as AscotOkResponse, ResponseKind};
-use ascot_library::route::Route;
+use ascot::response::{OkResponse as AscotOkResponse, ResponseKind};
+use ascot::route::Route;
 
 use axum::{
     extract::Json,

@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 use std::net::IpAddr;
 
-use ascot_library::device::{DeviceEnvironment, DeviceKind};
-use ascot_library::route::RouteConfigs;
+use ascot::device::{DeviceEnvironment, DeviceKind};
+use ascot::route::RouteConfigs;
 
 use crate::request::{create_requests, Request, RequestInfo};
 
@@ -243,10 +243,10 @@ impl Devices {
 pub(crate) mod tests {
     use std::collections::HashMap;
 
-    use ascot_library::device::{DeviceEnvironment, DeviceKind};
-    use ascot_library::hazards::{Hazard, Hazards};
-    use ascot_library::parameters::Parameters;
-    use ascot_library::route::{Route, RouteConfigs};
+    use ascot::device::{DeviceEnvironment, DeviceKind};
+    use ascot::hazards::{Hazard, Hazards};
+    use ascot::parameters::Parameters;
+    use ascot::route::{Route, RouteConfigs};
 
     use super::{build_device_address, Description, Device, Devices, NetworkInformation};
 

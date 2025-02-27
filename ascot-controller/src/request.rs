@@ -1,11 +1,11 @@
 use std::collections::HashMap;
 use std::future::Future;
 
-use ascot_library::device::DeviceEnvironment;
-use ascot_library::hazards::Hazards;
-use ascot_library::parameters::ParametersData;
-use ascot_library::response::ResponseKind;
-use ascot_library::route::{RestKind, RouteConfig, RouteConfigs};
+use ascot::device::DeviceEnvironment;
+use ascot::hazards::Hazards;
+use ascot::parameters::ParametersData;
+use ascot::response::ResponseKind;
+use ascot::route::{RestKind, RouteConfig, RouteConfigs};
 
 use crate::error::Error;
 use crate::parameters::{convert_to_parameter_value, Parameters};
@@ -306,12 +306,10 @@ impl Request {
 mod tests {
     use std::collections::HashMap;
 
-    use ascot_library::device::DeviceEnvironment;
-    use ascot_library::hazards::{Hazard, Hazards};
-    use ascot_library::parameters::{
-        ParameterKind, Parameters as LibraryParameters, ParametersData,
-    };
-    use ascot_library::route::{RestKind, Route, RouteConfig};
+    use ascot::device::DeviceEnvironment;
+    use ascot::hazards::{Hazard, Hazards};
+    use ascot::parameters::{ParameterKind, Parameters as LibraryParameters, ParametersData};
+    use ascot::route::{RestKind, Route, RouteConfig};
 
     use crate::parameters::{parameter_error, Parameters};
 

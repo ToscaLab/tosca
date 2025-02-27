@@ -9,8 +9,8 @@ resolver = "2"
 publish = false
 
 [dependencies]
-ascot-library.version = "0.1.0"
-ascot-library.path = "../../../"
+ascot.version = "0.1.0"
+ascot.path = "../../../"
 
 ascot-esp32c3.version = "0.1.0"
 ascot-esp32c3.path = "../../"

@@ -1,11 +1,11 @@
-use ascot_library::actions::ActionError;
+use ascot::actions::ActionError;
 
 use serde::{Deserialize, Serialize};
 
 use crate::device::DeviceInfo;
 use crate::string::String;
 
-pub use ascot_library::response::{OkResponse, ResponseKind, SerialResponse};
+pub use ascot::response::{OkResponse, ResponseKind, SerialResponse};
 
 /// Informative response.
 ///
@@ -116,7 +116,7 @@ impl<const N: usize> ErrorResponse<N> {
 mod tests {
     use crate::{deserialize, serialize};
 
-    use ascot_library::actions::ActionError;
+    use ascot::actions::ActionError;
 
     use super::{ErrorResponse, String};
 

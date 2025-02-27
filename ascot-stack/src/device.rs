@@ -4,7 +4,7 @@ use crate::economy::Economy;
 use crate::energy::Energy;
 use crate::route::RouteConfigs;
 
-pub use ascot_library::device::{DeviceEnvironment, DeviceKind};
+pub use ascot::device::{DeviceEnvironment, DeviceKind};
 
 /// Device information.
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]

@@ -1,6 +1,6 @@
 use core::hash::{Hash, Hasher};
 
-use ascot_library::response::ResponseKind;
+use ascot::response::ResponseKind;
 
 use serde::Serialize;
 
@@ -8,7 +8,7 @@ use crate::collections::{SerialSet, Set};
 use crate::hazards::Hazards;
 use crate::parameters::{Parameters, ParametersData};
 
-pub use ascot_library::route::RestKind;
+pub use ascot::route::RestKind;
 
 /// Route data.
 #[derive(Debug, Clone, Serialize)]
@@ -240,7 +240,7 @@ pub type Routes<const H: usize, const P: usize, const N: usize> = Set<Route<H, P
 
 #[cfg(test)]
 mod tests {
-    use ascot_library::hazards::Hazard;
+    use ascot::hazards::Hazard;
     use serde_json::json;
 
     use crate::serialize;

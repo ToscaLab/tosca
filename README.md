@@ -1,4 +1,4 @@
-# `ascot-library`
+# `ascot`
 
 [![LICENSE][license badge]][license]
 

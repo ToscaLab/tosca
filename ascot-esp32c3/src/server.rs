@@ -2,7 +2,7 @@ use esp_idf_svc::http::server::{Configuration, EspHttpServer};
 use esp_idf_svc::http::Method;
 use esp_idf_svc::io::Write;
 
-use ascot_library::route::RestKind;
+use ascot::route::RestKind;
 
 use crate::device::Device;
 use crate::error::Result;

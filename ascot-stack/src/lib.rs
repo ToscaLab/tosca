@@ -32,7 +32,7 @@
 
 /// All methods to interact with an action.
 pub mod actions {
-    pub use ascot_library::actions::ActionError;
+    pub use ascot::actions::ActionError;
 }
 /// Description of a device with its routes information.
 pub mod device;

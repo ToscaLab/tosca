@@ -10,10 +10,10 @@ pub mod serial;
 /// of bytes.
 pub mod stream;
 
-use ascot_library::hazards::{Hazard, Hazards};
-use ascot_library::parameters::{ParameterKind, ParametersData};
-use ascot_library::response::ResponseKind;
-use ascot_library::route::{RestKind, Route, RouteConfig};
+use ascot::hazards::{Hazard, Hazards};
+use ascot::parameters::{ParameterKind, ParametersData};
+use ascot::response::ResponseKind;
+use ascot::route::{RestKind, Route, RouteConfig};
 
 use axum::{handler::Handler, Router};
 
@@ -185,7 +185,7 @@ impl MandatoryAction<true> {
 
 #[cfg(test)]
 mod tests {
-    use ascot_library::parameters::Parameters;
+    use ascot::parameters::Parameters;
 
     use super::{build_get_route, Route};
 

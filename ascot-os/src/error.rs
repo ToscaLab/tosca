@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 
-use ascot_library::device::DeviceKind;
+use ascot::device::DeviceKind;
 
 /// All possible error kinds.
 #[derive(Debug, Copy, Clone)]
@@ -98,7 +98,7 @@ pub type Result<T> = std::result::Result<T, Error>;
 
 #[cfg(test)]
 mod tests {
-    use ascot_library::device::DeviceKind;
+    use ascot::device::DeviceKind;
 
     use super::Error;
 
