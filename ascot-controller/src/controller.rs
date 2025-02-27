@@ -250,7 +250,8 @@ mod tests {
     use crate::response::Response;
 
     use crate::device::tests::{create_fridge, create_light, create_unknown};
-    use crate::tests::{check_function_with_device, configure_discovery, Brightness};
+    use crate::discovery::tests::configure_discovery;
+    use crate::tests::{check_function_with_device, Brightness};
 
     use super::{sender_error, Controller, DeviceSender, Devices, Error, Policy, RequestSender};
 
