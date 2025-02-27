@@ -39,11 +39,11 @@ curl -X POST 127.0.0.1:3000/fridge/increase-temperature/1.0
 curl -X PUT 127.0.0.1:3000/fridge/decrease-temperature/1.0
 ```
 
-At the server startup, an initial message signalling its effective execution and
-port number is printed.
+At server startup, an initial message signalling its effective execution
+is printed.
 
 ```
-Starting the Ascot server at 0.0.0.0:3000
+Starting server...
 ```
 
 <!-- Links -->
