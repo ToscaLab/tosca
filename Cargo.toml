@@ -5,7 +5,7 @@ edition = "2024"
 authors = ["Michele Valsesia <luni-4@hotmail.it>"]
 description = "Ascot communication interface for general-purpose devices."
 license = "MIT"
-resolver = "2"
+resolver = "3"
 
 [dependencies]
 indexmap.version = "2.7"

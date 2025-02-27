@@ -5,7 +5,7 @@ authors = ["Michele Valsesia <luni-4@hotmail.it>"]
 edition = "2024"
 description = "Ascot communication interface for stack-oriented devices."
 license = "MIT"
-resolver = "2"
+resolver = "3"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
