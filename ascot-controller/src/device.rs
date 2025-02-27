@@ -28,7 +28,9 @@ pub struct NetworkInformation {
 }
 
 impl NetworkInformation {
-    pub(crate) const fn new(
+    /// Creates a [`NetworkInformation`].
+    #[must_use]
+    pub const fn new(
         name: String,
         addresses: Vec<IpAddr>,
         port: u16,
@@ -59,11 +61,9 @@ pub struct Description {
 }
 
 impl Description {
-    pub(crate) const fn new(
-        kind: DeviceKind,
-        environment: DeviceEnvironment,
-        main_route: String,
-    ) -> Self {
+    /// Creates a [`Description`].
+    #[must_use]
+    pub const fn new(kind: DeviceKind, environment: DeviceEnvironment, main_route: String) -> Self {
         Self {
             kind,
             environment,
@@ -236,5 +236,164 @@ impl Devices {
     #[inline]
     pub fn iter(&self) -> std::slice::Iter<'_, Device> {
         self.0.iter()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::collections::HashMap;
+
+    use ascot_library::device::{DeviceEnvironment, DeviceKind};
+    use ascot_library::hazards::{Hazard, Hazards};
+    use ascot_library::parameters::Parameters;
+    use ascot_library::route::{Route, RouteConfigs};
+
+    use super::{build_device_address, Description, Device, Devices, NetworkInformation};
+
+    fn create_network_info(address: &str, port: u16) -> NetworkInformation {
+        let ip_address = address.parse().unwrap();
+
+        let complete_address = build_device_address("http", &ip_address, port);
+
+        let mut properties = HashMap::new();
+        properties.insert("scheme".into(), "http".into());
+
+        NetworkInformation::new(
+            "device-name1._ascot._tcp.local.".into(),
+            vec![ip_address, "172.0.0.1".parse().unwrap()],
+            port,
+            properties,
+            complete_address,
+        )
+    }
+
+    fn create_description(device_kind: DeviceKind, main_route: &str) -> Description {
+        Description::new(device_kind, DeviceEnvironment::Os, main_route.into())
+    }
+
+    pub(crate) fn create_light() -> Device {
+        let network_info = create_network_info("192.168.1.174", 5000);
+        let description = create_description(DeviceKind::Light, "light/");
+
+        let light_on_route = Route::put("/on")
+            .description("Turn light on.")
+            .with_hazard(Hazard::ElectricEnergyConsumption);
+
+        let light_off_route = Route::put("/off")
+            .description("Turn light off.")
+            .with_hazard(Hazard::LogEnergyConsumption);
+
+        let toggle_route = Route::get("/toggle")
+            .description("Toggle a light.")
+            .with_hazards(
+                Hazards::new()
+                    .insert(Hazard::FireHazard)
+                    .insert(Hazard::ElectricEnergyConsumption),
+            )
+            .with_parameters(Parameters::new().rangeu64("brightness", (0, 20, 1)));
+
+        let route_configs = RouteConfigs::new()
+            .insert(light_on_route.serialize_data())
+            .insert(light_off_route.serialize_data())
+            .insert(toggle_route.serialize_data());
+
+        Device::new(network_info, description, route_configs)
+    }
+
+    pub(crate) fn create_fridge() -> Device {
+        let network_info = create_network_info("192.168.1.175", 6000);
+        let description = create_description(DeviceKind::Fridge, "fridge/");
+
+        let increase_temperature_route = Route::put("/increase-temperature")
+            .description("Increase temperature.")
+            .with_hazards(
+                Hazards::new()
+                    .insert(Hazard::ElectricEnergyConsumption)
+                    .insert(Hazard::SpoiledFood),
+            )
+            .with_parameters(Parameters::new().rangef64_with_default(
+                "increment",
+                (1., 4., 0.1),
+                2.,
+            ));
+
+        let decrease_temperature_route = Route::put("/decrease-temperature")
+            .description("Decrease temperature.")
+            .with_hazards(
+                Hazards::new()
+                    .insert(Hazard::ElectricEnergyConsumption)
+                    .insert(Hazard::SpoiledFood),
+            )
+            .with_parameters(Parameters::new().rangef64_with_default(
+                "decrement",
+                (1., 4., 0.1),
+                2.,
+            ));
+
+        let route_configs = RouteConfigs::new()
+            .insert(increase_temperature_route.serialize_data())
+            .insert(decrease_temperature_route.serialize_data());
+
+        Device::new(network_info, description, route_configs)
+    }
+
+    pub(crate) fn create_unknown() -> Device {
+        let network_info = create_network_info("192.168.1.176", 5500);
+        let description = create_description(DeviceKind::Unknown, "ip-camera/");
+
+        let camera_stream_route = Route::get("/stream")
+            .description("View camera stream.")
+            .with_hazards(
+                Hazards::new()
+                    .insert(Hazard::ElectricEnergyConsumption)
+                    .insert(Hazard::VideoDisplay)
+                    .insert(Hazard::VideoRecordAndStore),
+            );
+
+        let screenshot_route = Route::get("/take-screenshot")
+            .description("Take a screenshot.")
+            .with_hazards(
+                Hazards::new()
+                    .insert(Hazard::ElectricEnergyConsumption)
+                    .insert(Hazard::TakeDeviceScreenshots)
+                    .insert(Hazard::TakePictures),
+            );
+
+        let route_configs = RouteConfigs::new()
+            .insert(camera_stream_route.serialize_data())
+            .insert(screenshot_route.serialize_data());
+
+        Device::new(network_info, description, route_configs)
+    }
+
+    #[test]
+    fn check_devices() {
+        let devices_vector = vec![create_light(), create_fridge(), create_unknown()];
+
+        let devices_from_vector = Devices::from_devices(devices_vector);
+
+        let mut devices = Devices::new();
+
+        // A device is empty when being created.
+        assert!(devices.is_empty());
+
+        devices.add(create_light());
+        devices.add(create_fridge());
+        devices.add(create_unknown());
+
+        // Compare devices created with two different methods.
+        assert_eq!(devices_from_vector, devices);
+
+        // A device must not be empty.
+        assert!(!devices.is_empty());
+
+        // Check number of elements in devices.
+        assert_eq!(devices.len(), 3);
+
+        // Get a non-existent device.
+        assert_eq!(devices.get(1000), None);
+
+        // Get a reference to a device. The order is important.
+        assert_eq!(devices.get(2), Some(&create_unknown()));
     }
 }
