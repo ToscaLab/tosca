@@ -5,7 +5,7 @@ edition = "2024"
 authors = ["Michele Valsesia <luni-4@hotmail.it>"]
 description = "Ascot firmware library for ESP32-C3 architectures."
 license = "MIT"
-resolver = "2"
+resolver = "3"
 
 [dependencies]
 ascot.version = "0.1.0"
