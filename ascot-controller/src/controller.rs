@@ -248,6 +248,8 @@ mod tests {
 
     use crate::parameters::Parameters;
     use crate::response::Response;
+
+    use crate::device::tests::{create_fridge, create_light, create_unknown};
     use crate::tests::{check_function_with_device, configure_discovery, Brightness};
 
     use super::{sender_error, Controller, DeviceSender, Devices, Error, Policy, RequestSender};
@@ -269,7 +271,26 @@ mod tests {
         assert_eq!(controller.device(0), Err(sender_error("No devices found.")));
     }
 
-    // TODO: Create a test for database function.
+    #[test]
+    fn controller_from_devices() {
+        let devices =
+            Devices::from_devices(vec![create_light(), create_fridge(), create_unknown()]);
+
+        let controller = Controller::from_devices(configure_discovery(), devices);
+
+        assert_eq!(
+            controller,
+            Controller {
+                discovery: configure_discovery(),
+                devices: Devices::from_devices(vec![
+                    create_light(),
+                    create_fridge(),
+                    create_unknown()
+                ]),
+                privacy_policy: Policy::init(),
+            }
+        );
+    }
 
     async fn check_ok_response_plain(device_sender: &DeviceSender<'_>, route: &str) {
         check_ok_response(device_sender, route, async move |request_sender| {
