@@ -246,14 +246,17 @@ mod tests {
 
     use serial_test::serial;
 
+    use crate::device::Devices;
+    use crate::error::Error;
     use crate::parameters::Parameters;
+    use crate::policy::Policy;
     use crate::response::Response;
 
     use crate::device::tests::{create_fridge, create_light, create_unknown};
     use crate::discovery::tests::configure_discovery;
     use crate::tests::{check_function_with_device, Brightness};
 
-    use super::{sender_error, Controller, DeviceSender, Devices, Error, Policy, RequestSender};
+    use super::{sender_error, Controller, DeviceSender, RequestSender};
 
     #[test]
     fn empty_controller() {

@@ -78,9 +78,11 @@ impl Policy {
 
 #[cfg(test)]
 mod tests {
-    use ascot_library::hazards::Hazard;
+    use std::collections::HashMap;
 
-    use super::{HashMap, Hazards, Policy};
+    use ascot_library::hazards::{Hazard, Hazards};
+
+    use super::Policy;
 
     fn create_policy() -> (Hazards, Policy) {
         let hazards = Hazards::new().insert(Hazard::ElectricEnergyConsumption);
