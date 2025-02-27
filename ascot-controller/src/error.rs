@@ -85,3 +85,19 @@ impl From<mdns_sd::Error> for Error {
 
 /// A specialized [`Result`] type for [`Error`].
 pub type Result<T> = std::result::Result<T, Error>;
+
+#[cfg(test)]
+mod tests {
+    use super::{Error, ErrorKind};
+
+    #[test]
+    fn controller_error() {
+        let error = Error::new(ErrorKind::Discovery, "Discovery process failed.");
+
+        assert_eq!(
+            error.to_string(),
+            r"Error: Discovery
+Cause: Discovery process failed."
+        );
+    }
+}
