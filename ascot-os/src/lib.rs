@@ -7,7 +7,7 @@
 //! As of now, only `x86_64` and `ARM` devices have been tested as hardware
 //! architectures.
 //!
-//! `ascot-axum` models devices firmware on real use cases. Each device is
+//! `ascot-os` models devices firmware on real use cases. Each device is
 //! identified by a description and a set of actions, each with their own
 //! hazards associated.
 //!
