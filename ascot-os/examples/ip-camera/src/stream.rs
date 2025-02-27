@@ -1,10 +1,9 @@
 use std::io::Cursor;
 
-// Ascot axum.
-use ascot_axum::actions::error::ErrorResponse;
-use ascot_axum::actions::stream::StreamResponse;
+use ascot_os::actions::error::ErrorResponse;
+use ascot_os::actions::stream::StreamResponse;
 
-use ascot_axum::extract::{header, State};
+use ascot_os::extract::{header, State};
 
 use image::ImageFormat;
 

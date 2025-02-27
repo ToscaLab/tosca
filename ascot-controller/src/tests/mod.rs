@@ -7,13 +7,13 @@ use ascot_library::parameters::{ParameterKind, Parameters, ParametersData};
 use ascot_library::response::ResponseKind;
 use ascot_library::route::{RestKind, Route};
 
-use ascot_axum::actions::error::ErrorResponse;
-use ascot_axum::actions::ok::{mandatory_ok_stateless, OkResponse};
-use ascot_axum::actions::serial::{serial_stateless, SerialResponse};
-use ascot_axum::devices::light::Light;
-use ascot_axum::extract::Path;
-use ascot_axum::server::Server;
-use ascot_axum::service::ServiceConfig;
+use ascot_os::actions::error::ErrorResponse;
+use ascot_os::actions::ok::{mandatory_ok_stateless, OkResponse};
+use ascot_os::actions::serial::{serial_stateless, SerialResponse};
+use ascot_os::devices::light::Light;
+use ascot_os::extract::Path;
+use ascot_os::server::Server;
+use ascot_os::service::ServiceConfig;
 
 use serde::{Deserialize, Serialize};
 

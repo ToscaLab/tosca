@@ -1,9 +1,9 @@
 [package]
-name = "ascot-axum"
+name = "ascot-os"
 version = "0.1.0"
 edition = "2024"
 authors = ["Michele Valsesia <luni-4@hotmail.it>"]
-description = "Ascot firmware library for architectures supporting axum crate."
+description = "Ascot library for building firmware running on operating systems."
 license = "MIT"
 resolver = "2"
 

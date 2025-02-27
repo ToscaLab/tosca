@@ -1,8 +1,8 @@
 use std::io::Cursor;
 
-use ascot_axum::actions::error::ErrorResponse;
-use ascot_axum::actions::stream::StreamResponse;
-use ascot_axum::extract::{header, Json, State};
+use ascot_os::actions::error::ErrorResponse;
+use ascot_os::actions::stream::StreamResponse;
+use ascot_os::extract::{header, Json, State};
 
 use image::ImageFormat;
 

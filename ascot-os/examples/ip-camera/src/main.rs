@@ -10,14 +10,14 @@ use ascot_library::hazards::Hazard;
 use ascot_library::parameters::Parameters;
 use ascot_library::route::Route;
 
-use ascot_axum::actions::error::ErrorResponse;
-use ascot_axum::actions::ok::ok_stateful;
-use ascot_axum::actions::serial::{serial_stateful, serial_stateless};
-use ascot_axum::actions::stream::stream_stateful;
-use ascot_axum::device::Device;
-use ascot_axum::error::Error;
-use ascot_axum::server::Server;
-use ascot_axum::service::{ServiceConfig, TransportProtocol};
+use ascot_os::actions::error::ErrorResponse;
+use ascot_os::actions::ok::ok_stateful;
+use ascot_os::actions::serial::{serial_stateful, serial_stateless};
+use ascot_os::actions::stream::stream_stateful;
+use ascot_os::device::Device;
+use ascot_os::error::Error;
+use ascot_os::server::Server;
+use ascot_os::service::{ServiceConfig, TransportProtocol};
 
 use async_lock::Mutex;
 

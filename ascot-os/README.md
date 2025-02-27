@@ -1,9 +1,9 @@
-# `ascot-axum`
+# `ascot-os`
 
 [![LICENSE][license badge]][license]
 
-This library crate provides a series of APIs to build an `axum` server which
-represents the firmware of an IoT device.
+This library crate provides a series of APIs to build a server which
+represents the firmware of an IoT device running on an operating system.
 
 Among its functionalities, it can interact send and receive data through
 REST APIs.
@@ -14,7 +14,7 @@ directory.
 ## Building complete firmware devices
 
 The directory [examples](./examples) contains firmware implemented with
-the `ascot-axum` crate. Each firmware is independent from another one and it can
+the `ascot-os` crate. Each firmware is independent from another one and it can
 be moved in a separate repository.
 
 Before any kind of build, run `cargo clean` to remove old builds configurations,
