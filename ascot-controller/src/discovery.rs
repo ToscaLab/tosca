@@ -292,13 +292,24 @@ impl Discovery {
 }
 
 #[cfg(test)]
-mod tests {
+pub(crate) mod tests {
+    use std::net::Ipv4Addr;
+    use std::time::Duration;
+
     use serial_test::serial;
 
     use crate::tests::{
-        check_function_with_device, check_function_with_two_devices, compare_device_data,
-        configure_discovery,
+        check_function_with_device, check_function_with_two_devices, compare_device_data, DOMAIN,
     };
+
+    use super::Discovery;
+
+    pub(crate) fn configure_discovery() -> Discovery {
+        Discovery::new(DOMAIN)
+            .timeout(Duration::from_secs(1))
+            .disable_ipv6()
+            .disable_ip(Ipv4Addr::new(172, 17, 0, 1))
+    }
 
     async fn discovery_comparison(devices_len: usize) {
         let devices = configure_discovery().discover().await.unwrap();

@@ -20,7 +20,6 @@ use serde::{Deserialize, Serialize};
 use tracing::info;
 
 use crate::device::Device;
-use crate::discovery::Discovery;
 use crate::request::Request;
 
 const PORT_ONE: u16 = 3000;
@@ -228,13 +227,6 @@ pub(crate) fn compare_device_data(device: &Device) {
         ParametersData::new(),
         ResponseKind::Ok,
     );
-}
-
-pub(crate) fn configure_discovery() -> Discovery {
-    Discovery::new(DOMAIN)
-        .timeout(Duration::from_secs(1))
-        .disable_ipv6()
-        .disable_ip(Ipv4Addr::new(172, 17, 0, 1))
 }
 
 pub(crate) async fn check_function_with_device<F>(function: F)
