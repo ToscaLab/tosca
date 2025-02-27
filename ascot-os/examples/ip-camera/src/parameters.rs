@@ -1,7 +1,7 @@
-use ascot_axum::actions::error::ErrorResponse;
-use ascot_axum::actions::ok::OkResponse;
-use ascot_axum::actions::serial::SerialResponse;
-use ascot_axum::extract::{Json, Path, State};
+use ascot_os::actions::error::ErrorResponse;
+use ascot_os::actions::ok::OkResponse;
+use ascot_os::actions::serial::SerialResponse;
+use ascot_os::extract::{Json, Path, State};
 
 use nokhwa::{
     query,

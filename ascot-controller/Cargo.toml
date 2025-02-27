@@ -37,8 +37,8 @@ tracing.version = "0.1"
 tracing.default-features = false
 
 [dev-dependencies]
-ascot-axum.path = "../ascot-axum"
-ascot-axum.version = "0.1.0"
+ascot-os.path = "../ascot-os"
+ascot-os.version = "0.1.0"
 
 serial_test.version = "3.2.0"
 serial_test.default-features = false

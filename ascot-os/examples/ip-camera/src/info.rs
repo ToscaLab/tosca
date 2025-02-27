@@ -1,9 +1,7 @@
-// Ascot axum.
-use ascot_axum::actions::error::ErrorResponse;
-use ascot_axum::actions::serial::SerialResponse;
-use ascot_axum::extract::State;
+use ascot_os::actions::error::ErrorResponse;
+use ascot_os::actions::serial::SerialResponse;
+use ascot_os::extract::State;
 
-// Nokhwa library
 use nokhwa::{
     pixel_format::RgbFormat,
     query,

@@ -10,14 +10,14 @@ This Rust library contains a series of APIs and interfaces to:
 
 It can even run on an embedded system since it is a `no_std` library.
 
-The [ascot-axum](./ascot-axum) and [ascot-esp32c3](./ascot-esp32c3) are two Rust
+The [ascot-os](./ascot-os) and [ascot-esp32c3](./ascot-esp32c3) are two Rust
 libraries which make use of the `ascot-library` as dependency to define the
 APIs for their respective architectures.
 
-The `ascot-axum` library is thought for firmware which run on operating systems.
-In the [ascot-axum/examples](./ascot-axum/examples) directory, two different
+The `ascot-os` library is thought for firmware which run on operating systems.
+In the [ascot-os/examples](./ascot-os/examples) directory, two different
 device firmware have been implemented as examples: a
-[light](./ascot-axum/examples/light) and a [fridge](./ascot-axum/examples/fridge).
+[light](./ascot-os/examples/light) and a [fridge](./ascot-os/examples/fridge).
 
 The `ascot-esp32c3` library is thought for firmware which run on a `ESP32-C3`
 board.

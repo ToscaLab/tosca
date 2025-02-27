@@ -9,14 +9,14 @@ use ascot_library::hazards::Hazard;
 use ascot_library::parameters::Parameters;
 use ascot_library::route::Route;
 
-use ascot_axum::actions::error::ErrorResponse;
-use ascot_axum::actions::info::{info_stateful, InfoResponse};
-use ascot_axum::actions::serial::{mandatory_serial_stateful, serial_stateful, SerialResponse};
-use ascot_axum::devices::fridge::Fridge;
-use ascot_axum::error::Error;
-use ascot_axum::extract::{FromRef, Json, State};
-use ascot_axum::server::Server;
-use ascot_axum::service::{ServiceConfig, TransportProtocol};
+use ascot_os::actions::error::ErrorResponse;
+use ascot_os::actions::info::{info_stateful, InfoResponse};
+use ascot_os::actions::serial::{mandatory_serial_stateful, serial_stateful, SerialResponse};
+use ascot_os::devices::fridge::Fridge;
+use ascot_os::error::Error;
+use ascot_os::extract::{FromRef, Json, State};
+use ascot_os::server::Server;
+use ascot_os::service::{ServiceConfig, TransportProtocol};
 
 use async_lock::Mutex;
 
