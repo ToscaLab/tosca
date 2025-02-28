@@ -20,7 +20,7 @@
 //! To share data among a device and a controller, each structure of this
 //! interface must be both serializable and deserializable.
 //! A device fills in these structures with the desired data, while a controller
-//! consumes their content in order to retrieve the device data.
+//! consumes their content to retrieve the device information.
 //!
 //! This crate can be used both on `std` and `no_std` environments. The `alloc`
 //! feature allows heap-allocations and it is enabled by default.
