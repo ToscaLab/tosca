@@ -2,7 +2,7 @@
 
 [![LICENSE][license badge]][license]
 
-A Rust library to create an `Ascot` firmware for an `ESP32-C3` board.
+A Rust library crate to create `Ascot` firmware for `ESP32-C3` boards.
 
 It provides some APIs to connect the board to a router through Wi-Fi,
 configure and run an HTTP server with some of the implemented discovery service.
@@ -39,13 +39,12 @@ cargo build --release
 
 ## Usage Prerequisites
 
-Below some prerequisites for those projects which are going to make use of this
-library:
+Below some prerequisites for those projects interested in using this crate:
 
 - The [sdkconfig.defaults](./sdkconfig.defaults) configuration file will
 probably be different from firmware to firmware, so copy this file into your
 project, and then change its values according to your needs.
-For example, the stack size might be increased or some options of this file
+For example, the stack size might be increased or some of these file options
 might be added or removed.
 
 ## Building complete firmware devices
