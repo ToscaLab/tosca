@@ -1,30 +1,43 @@
-//! The communication interface between a stack-oriented device and a more
-//! general-purpose device which acts as controller.
+//! The communication interface among an Ascot device and an Ascot controller
+//! for stack-oriented Ascot devices.
 //!
-//! This interface is thought to be used **only** on the stack-oriented device
-//! side because not all structures cannot be deserialized.
-//! However, it guarantees a correct data serialization for information sent to
-//! a controller.
+//! This interface must be used **only** by stack-oriented Ascot devices, and
+//! not by Ascot controllers, since **not** all structures can be deserialized.
+//! This choice has been made to avoid allocations, reduce the crate size and
+//! the number of operations performed.
+//! However, a correct structures serialization process is **always**
+//! guaranteed.
 //!
-//! For a heap-oriented device, the main `ascot` crate is more suitable.
+//! For heap-oriented Ascot devices, the main
+//! [ascot](https://github.com/SoftengPoliTo/ascot/tree/master/src)
+//! crate is more suitable.
 //!
 //! This crate contains a series of APIs to:
 //!
-//! - Encode and decode the description file containing a device structure and
-//!   all of its routes. A route is expressed as an address which can be invoked
-//!   by a controller to execute an action on a device.
-//! - Manage the hazards which might occur on a device when a determined route
-//!   is being invoked. Hazards can also be employed to manage the events
-//!   happening on a device.
-//! - Manage the input parameters of a route. An input parameter represents
-//!   an argument for a device action. For example, a boolean which
-//!   controls the state of a light, or a range of floats to control the
-//!   brightness of a light.
+//! - Encode and decode the information about a device structure and
+//!   all of its routes. A route is an address which a controller can invoke
+//!   to execute one or more device operations.
+//! - Manage the hazards which might occur when the operations invoked by a
+//!   route are executed. Hazards describe all safety, privacy, and financial
+//!   problems associated with a route invocation. They can also be employed
+//!   to manage the events occurring on a device.
+//! - Manage the possible input parameters of a route. An input parameter
+//!   might represent an external information needed to perform a device
+//!   operation or a condition to block or allow determined instructions.
+//!   For example, a boolean parameter might delineate the on/off states of a
+//!   light, but also a condition to discriminate among these two states.
+//!   Instead, a range-of-floats parameter might be adopted to control the
+//!   light brightness state.
 //!
-//! It also provides some structures to share data among a device and
-//! a controller. Each of these structures must be both serializable and
-//! deserializable. A device fills in these structures, while a controller
-//! consumes them.
+//! To share data among a device and a controller, this interface provides the
+//! same `ascot` crate structures. A stack-oriented device fills in
+//! these structures with the desired data, while a controller consumes their
+//! content to retrieve the device information.
+//!
+//! This crate can be used **ONLY** on `no_std` environments. If a `std`
+//! environment is requested, better to use the main
+//! [ascot](https://github.com/SoftengPoliTo/ascot/tree/master/src)
+//! crate.
 
 #![forbid(unsafe_code)]
 #![deny(missing_docs)]
