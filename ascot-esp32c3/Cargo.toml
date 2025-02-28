@@ -3,7 +3,7 @@ name = "ascot-esp32c3"
 version = "0.1.0"
 edition = "2024"
 authors = ["Michele Valsesia <luni-4@hotmail.it>"]
-description = "Ascot firmware library for ESP32-C3 architectures."
+description = "Ascot library crate for building ESP32-C3 boards firmware."
 license = "MIT"
 resolver = "3"
 
