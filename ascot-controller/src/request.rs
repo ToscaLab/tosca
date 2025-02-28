@@ -308,7 +308,7 @@ mod tests {
 
     use ascot::device::DeviceEnvironment;
     use ascot::hazards::{Hazard, Hazards};
-    use ascot::parameters::{ParameterKind, Parameters as LibraryParameters, ParametersData};
+    use ascot::parameters::{ParameterKind, Parameters as AscotParameters, ParametersData};
     use ascot::route::{RestKind, Route, RouteConfig};
 
     use crate::parameters::{parameter_error, Parameters};
@@ -340,7 +340,7 @@ mod tests {
     fn request_with_parameters(route: Route, kind: RestKind, hazards: &Hazards) {
         let route = route
             .with_parameters(
-                LibraryParameters::new()
+                AscotParameters::new()
                     .rangeu64_with_default("rangeu64", (0, 20, 1), 5)
                     .rangef64("rangef64", (0., 20., 0.1)),
             )
