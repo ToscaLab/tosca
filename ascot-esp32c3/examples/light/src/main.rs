@@ -4,18 +4,15 @@
 
 use std::sync::{Arc, Mutex};
 
-// Ascot library
 use ascot::hazards::Hazard;
 use ascot::route::Route;
 
-// Ascot Esp32
 use ascot_esp32c3::device::{DeviceAction, ResponseBuilder};
 use ascot_esp32c3::devices::light::Light;
 use ascot_esp32c3::server::Server;
 use ascot_esp32c3::service::ServiceConfig;
 use ascot_esp32c3::wifi::Wifi;
 
-// Esp idf
 use esp_idf_svc::hal::delay::Ets;
 use esp_idf_svc::hal::gpio::PinDriver;
 use esp_idf_svc::hal::prelude::Peripherals;
