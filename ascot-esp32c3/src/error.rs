@@ -42,7 +42,7 @@ impl core::fmt::Display for ErrorKind {
     }
 }
 
-/// Library error.
+/// A firmware error.
 pub struct Error {
     kind: ErrorKind,
     info: Cow<'static, str>,
