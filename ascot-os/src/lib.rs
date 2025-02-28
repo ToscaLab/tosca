@@ -1,34 +1,39 @@
-//! A library to develop firmware which might be run on an any operating system.
+//! A crate library for building Ascot devices firmware running on
+//! operating systems.
 //!
 //! This crate has been conceived for those devices which require a great amount
 //! of resources for their execution, in terms of computing times, memory size,
 //! and connected components.
 //!
-//! As of now, only `x86_64` and `ARM` devices have been tested as hardware
-//! architectures.
+//! As of now, only devices for `x86_64` and `ARM` hardware architectures have
+//! been tested.
 //!
-//! `ascot-os` models devices firmware on real use cases. Each device is
-//! identified by a description and a set of actions, each with their own
+//! All devices firmware are modelled on real use cases. Each device is
+//! composed of a description and a set of operations with their own
 //! hazards associated.
 //!
-//! A description is defined as a fixed structure subdivided in fields, such as
-//! the device name, kind, and other information about the security of
-//! the communication channel. However, the set of actions are the ones which
-//! mainly characterize a device.
+//! A description is defined as a sequence of fields, such as
+//! the device name, kind, and other information to set a secure
+//! communication channel. However, the sets of actions are the ones which
+//! better characterize a device.
 //!
-//! An **action** represents the sequence of operations which are going to be
-//! executed on a device whenever an external device invokes a determined
-//! server route. Each action is **always** coupled with a route and it can
-//! have zero or more hazards.
+//! An **action** represents a sequence of one or more operations executed
+//! on a device when an external device invokes a determined server route.
+//! Each action is **always** coupled with a route which can have zero or
+//! more hazards.
 //!
-//! If no hazards have been defined for an action, that action might have
-//! unknown dangers.
+//! If an action has no hazards, that action might arise unknown dangers. It
+//! will be a controller responsibility to evaluate if the invoked action must
+//! be blocked or not.
 //!
-//! This crate is not able to check at compile time all possible effects which
-//! might occur in a determined environment during the execution of an action.
-//! Indeed, hazards represent only informative data usable by another device,
-//! such as a controller, to block or allow the invocation of an action
-//! depending on some privacy policies.
+//! This crate cannot check at compile time all possible effects which
+//! might occur in a determined environment while an action is executed.
+//! Indeed, hazards represent only informative data usable by a controller,
+//! to block or allow the invocation of an action according to
+//! some privacy policies.
+//!
+//! An `std` environment is mandatory to make a full usage of the provided
+//! functionalities.
 
 #![forbid(unsafe_code)]
 #![deny(missing_docs)]
