@@ -37,7 +37,7 @@ impl std::fmt::Display for ErrorKind {
     }
 }
 
-/// Library error.
+/// A firmware error.
 pub struct Error {
     kind: ErrorKind,
     description: Cow<'static, str>,
