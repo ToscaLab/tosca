@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::net::IpAddr;
 
 use ascot::device::{DeviceEnvironment, DeviceKind};
@@ -18,7 +18,7 @@ pub struct NetworkInformation {
     /// Device complete name.
     pub name: String,
     /// Device addresses.
-    pub addresses: Vec<IpAddr>,
+    pub addresses: HashSet<IpAddr>,
     /// Device port.
     pub port: u16,
     /// Device properties.
@@ -32,7 +32,7 @@ impl NetworkInformation {
     #[must_use]
     pub const fn new(
         name: String,
-        addresses: Vec<IpAddr>,
+        addresses: HashSet<IpAddr>,
         port: u16,
         properties: HashMap<String, String>,
         last_reachable_address: String,
@@ -241,7 +241,7 @@ impl Devices {
 
 #[cfg(test)]
 pub(crate) mod tests {
-    use std::collections::HashMap;
+    use std::collections::{HashMap, HashSet};
 
     use ascot::device::{DeviceEnvironment, DeviceKind};
     use ascot::hazards::{Hazard, Hazards};
@@ -255,12 +255,16 @@ pub(crate) mod tests {
 
         let complete_address = build_device_address("http", &ip_address, port);
 
+        let mut addresses = HashSet::new();
+        addresses.insert(ip_address);
+        addresses.insert("172.0.0.1".parse().unwrap());
+
         let mut properties = HashMap::new();
         properties.insert("scheme".into(), "http".into());
 
         NetworkInformation::new(
             "device-name1._ascot._tcp.local.".into(),
-            vec![ip_address, "172.0.0.1".parse().unwrap()],
+            addresses,
             port,
             properties,
             complete_address,
