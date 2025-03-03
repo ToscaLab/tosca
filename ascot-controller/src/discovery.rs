@@ -3,7 +3,7 @@ use std::time::Duration;
 
 use ascot::device::DeviceData;
 
-use mdns_sd::{IfKind, ServiceDaemon, ServiceEvent, ServiceInfo};
+use mdns_sd::{IfKind, ResolvedService, ServiceDaemon, ServiceEvent, ServiceInfo};
 
 use tracing::{info, warn};
 
@@ -128,7 +128,7 @@ impl Discovery {
         Self::obtain_devices_data(discovery_info).await
     }
 
-    fn discover_devices(&self) -> Result<Vec<ServiceInfo>, Error> {
+    fn discover_devices(&self) -> Result<Vec<ResolvedService>, Error> {
         // Create a mdns daemon
         let mdns = ServiceDaemon::new()?;
 
@@ -158,8 +158,8 @@ impl Discovery {
         // Detects devices.
         let receiver = mdns.browse(&service_type)?;
 
-        // Discovery information.
-        let mut discovery_info: Vec<ServiceInfo> = Vec::new();
+        // Discovery service.
+        let mut discovery_service = Vec::new();
 
         // Run for n-seconds in search of devices and saves their information
         // in memory.
@@ -182,33 +182,38 @@ impl Discovery {
                 }
 
                 // If two devices are equal, skip to the next one.
-                if Self::check_device_duplicates(&discovery_info, &info) {
+                if Self::check_device_duplicates(&discovery_service, &info) {
                     continue;
                 }
 
-                discovery_info.push(info);
+                discovery_service.push(info.as_resolved_service());
             }
         }
 
         // Stop detection.
         mdns.stop_browse(&service_type)?;
 
-        Ok(discovery_info)
+        Ok(discovery_service)
     }
 
-    async fn obtain_devices_data(discovery_info: Vec<ServiceInfo>) -> Result<Devices, Error> {
+    async fn obtain_devices_data(
+        discovery_service: Vec<ResolvedService>,
+    ) -> Result<Devices, Error> {
         // Devices collection.
         let mut devices = Devices::new();
 
         // Iterate over discovered metadata
-        for info in discovery_info {
+        for service in discovery_service {
             // Try to contact each available address for a device
             // to retrieve data.
-            for address in info.get_addresses() {
+            for address in &service.addresses {
                 let complete_address = build_device_address(
-                    info.get_property("scheme").map_or("http", |v| v.val_str()),
+                    service
+                        .txt_properties
+                        .get_property_val_str("scheme")
+                        .unwrap_or("http"),
                     address,
-                    info.get_port(),
+                    service.port,
                 );
                 info!("Complete address: {complete_address}");
 
@@ -231,13 +236,10 @@ impl Discovery {
                         );
 
                         let network_info = NetworkInformation::new(
-                            info.get_fullname().to_string(),
-                            info.get_addresses().iter().copied().collect(),
-                            info.get_port(),
-                            info.get_properties()
-                                .iter()
-                                .map(|v| (v.key().to_string(), v.val_str().to_string()))
-                                .collect(),
+                            service.fullname,
+                            service.addresses,
+                            service.port,
+                            service.txt_properties.into_property_map_str(),
                             complete_address,
                         );
 
@@ -269,21 +271,21 @@ impl Discovery {
     // - It has the same full name of another device belonging to the same
     //   network. A full name, in this case, represents the device ID.
     //   Two devices belonging to the same network CANNOT HAVE the same ID.
-    fn check_device_duplicates(discovery_info: &[ServiceInfo], info: &ServiceInfo) -> bool {
-        for disco_info in discovery_info {
+    fn check_device_duplicates(discovery_service: &[ResolvedService], info: &ServiceInfo) -> bool {
+        for disco_service in discovery_service {
             // When the addresses have distinct ports, they are always
             // different, so they are not considered.
-            if disco_info.get_port() != info.get_port() {
+            if disco_service.port != info.get_port() {
                 continue;
             }
 
-            for address in disco_info.get_addresses() {
+            for address in &disco_service.addresses {
                 if info.get_addresses().contains(address) {
                     return true;
                 }
             }
 
-            if disco_info.get_fullname() == info.get_fullname() {
+            if disco_service.fullname == info.get_fullname() {
                 return true;
             }
         }
