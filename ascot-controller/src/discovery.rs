@@ -295,7 +295,6 @@ impl Discovery {
 
 #[cfg(test)]
 pub(crate) mod tests {
-    use std::net::Ipv4Addr;
     use std::time::Duration;
 
     use serial_test::serial;
@@ -310,7 +309,7 @@ pub(crate) mod tests {
         Discovery::new(DOMAIN)
             .timeout(Duration::from_secs(1))
             .disable_ipv6()
-            .disable_ip(Ipv4Addr::new(172, 17, 0, 1))
+            .disable_network_interface("docker0")
     }
 
     async fn discovery_comparison(devices_len: usize) {
