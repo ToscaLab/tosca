@@ -37,6 +37,15 @@ where `--release` is an option which enables all time and memory optimizations
 needed for having a binary usable in production. If the option is not inserted,
 the binary will be built with all debug symbols inside.
 
+To build a binary for a `RISCV64GC` architecture run:
+
+```console
+cross build [--release] --target=riscv64gc-unknown-linux-gnu
+```
+
+This build is based on `gnu` since `musl` is not supported yet. Therefore, the
+usage on an embedded system is limited.
+
 # Usage
 
 To run the Ip-camera, the command is:
