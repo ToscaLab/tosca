@@ -77,7 +77,7 @@ The optional `--release` parameter enables all optimizations and makes the
 final firmware smaller.
 
 <!-- Links -->
-[license]: https://github.com/SoftengPoliTo/ascot/blob/master/LICENSE-MIT
+[license]: https://github.com/SoftengPoliTo/ascot/blob/master/LICENSE
 
 <!-- Badges -->
 [license badge]: https://img.shields.io/badge/license-MIT-blue.svg
