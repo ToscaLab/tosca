@@ -1,6 +1,6 @@
 #[derive(Clone)]
 pub(crate) struct LightMockup {
-    pub(crate) brightness: i64,
+    pub(crate) brightness: u64,
     pub(crate) save_energy: bool,
     state: bool,
 }
@@ -12,7 +12,7 @@ impl Default for LightMockup {
 }
 
 impl LightMockup {
-    pub(crate) const fn init(brightness: i64, save_energy: bool) -> Self {
+    pub(crate) const fn init(brightness: u64, save_energy: bool) -> Self {
         Self {
             brightness,
             save_energy,
@@ -20,7 +20,7 @@ impl LightMockup {
         }
     }
 
-    pub(crate) fn turn_light_on(&mut self, brightness: i64, save_energy: bool) {
+    pub(crate) fn turn_light_on(&mut self, brightness: u64, save_energy: bool) {
         self.brightness = brightness;
         self.save_energy = save_energy;
         println!("Run turn light on with brightness={brightness} and save energy={save_energy}");
