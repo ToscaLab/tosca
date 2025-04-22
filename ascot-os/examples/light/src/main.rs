@@ -109,14 +109,14 @@ impl FromRef<LightState> for LightInfoState {
 
 #[derive(Serialize, Deserialize)]
 struct LightOnResponse {
-    brightness: i64,
+    brightness: u64,
     #[serde(rename = "save-energy")]
     save_energy: bool,
 }
 
 #[derive(Deserialize)]
 struct Inputs {
-    brightness: i64,
+    brightness: u64,
     #[serde(alias = "save-energy")]
     save_energy: bool,
 }
@@ -228,7 +228,7 @@ async fn main() -> Result<(), Error> {
         .with_hazard(Hazard::ElectricEnergyConsumption)
         .with_parameters(
             Parameters::new()
-                .rangef64("brightness", (0., 20., 0.1))
+                .rangeu64("brightness", (0, 20, 1))
                 .bool("save-energy", false),
         );
 
@@ -238,7 +238,7 @@ async fn main() -> Result<(), Error> {
         .with_hazard(Hazard::ElectricEnergyConsumption)
         .with_parameters(
             Parameters::new()
-                .rangef64("brightness", (0., 20., 0.1))
+                .rangeu64("brightness", (0, 20, 1))
                 .bool("save-energy", false),
         );
 
