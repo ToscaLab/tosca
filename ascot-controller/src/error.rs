@@ -83,6 +83,12 @@ impl From<mdns_sd::Error> for Error {
     }
 }
 
+impl std::error::Error for Error {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        Some(self)
+    }
+}
+
 /// A specialized [`Result`] type for [`Error`].
 pub type Result<T> = std::result::Result<T, Error>;
 
