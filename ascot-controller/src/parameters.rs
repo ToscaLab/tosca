@@ -21,7 +21,7 @@ const fn str_type(parameter_kind: &ParameterKind) -> &'static str {
         ParameterKind::F64 { .. } | ParameterKind::RangeF64 { .. } => "f64",
         ParameterKind::CharsSequence { .. } => "String",
         // FIXME: Find a way to manage this variant.
-        ParameterKind::ByteStream { .. } => "Vec<u8>",
+        ParameterKind::ByteStream => "Vec<u8>",
     }
 }
 
