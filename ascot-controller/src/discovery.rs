@@ -250,7 +250,6 @@ impl Discovery {
                     }
                     Err(e) => {
                         warn!("Impossible to contact address {complete_address}: {e}");
-                        continue;
                     }
                 }
             }

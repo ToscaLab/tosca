@@ -1,5 +1,8 @@
 use std::collections::HashMap;
+use std::fmt::Write;
 use std::future::Future;
+
+use tracing::error;
 
 use ascot::device::DeviceEnvironment;
 use ascot::hazards::Hazards;
@@ -247,7 +250,10 @@ impl Request {
                 // TODO: Skip bytes stream
                 continue;
             };
-            route.push_str(&format!("/{}", value.as_string()));
+            if let Err(e) = write!(route, "/{}", value.as_string()) {
+                error!("Error in adding a path to a route : {e}");
+                break;
+            }
         }
         route
     }
@@ -278,7 +284,10 @@ impl Request {
                 };
                 value.as_string()
             };
-            route.push_str(&format!("/{value}"));
+            if let Err(e) = write!(route, "/{value}") {
+                error!("Error in adding a path to a route : {e}");
+                break;
+            }
         }
 
         route
