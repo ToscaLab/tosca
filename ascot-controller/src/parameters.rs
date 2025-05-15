@@ -118,7 +118,7 @@ impl<'a> Parameters<'a> {
     }
 
     /// Adds a [`bool`] value.
-    #[must_use]
+    #[inline]
     pub fn bool(&mut self, name: &'a str, value: bool) -> &mut Self {
         self.add_value_parameter(name, ParameterValue::Bool(value))
     }
