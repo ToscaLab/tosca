@@ -49,7 +49,7 @@ impl RequestSender<'_> {
     /// affect the returned response.
     pub async fn send_with_parameters(
         &self,
-        parameters: Parameters<'_>,
+        parameters: &Parameters<'_>,
     ) -> Result<Response, Error> {
         if self.request.parameters_data.is_empty() {
             warn!("The request does not have input parameters.");
@@ -58,7 +58,7 @@ impl RequestSender<'_> {
 
         self.request
             .retrieve_response(self.skip, || async {
-                self.request.create_response(&parameters).await
+                self.request.create_response(parameters).await
             })
             .await
     }
@@ -309,7 +309,7 @@ mod tests {
     async fn check_ok_response_with_parameters(
         device_sender: &DeviceSender<'_>,
         route: &str,
-        parameters: Parameters<'_>,
+        parameters: &Parameters<'_>,
     ) {
         check_ok_response(device_sender, route, async move |request_sender| {
             request_sender.send_with_parameters(parameters).await
@@ -358,7 +358,7 @@ mod tests {
     >(
         device_sender: &DeviceSender<'_>,
         route: &str,
-        parameters: Parameters<'_>,
+        parameters: &Parameters<'_>,
         value: T,
     ) {
         check_serial_response(
@@ -431,19 +431,20 @@ mod tests {
         .await;
 
         // With parameters
-        let parameters = Parameters::new().u64("brightness", 5);
+        let mut parameters = Parameters::new();
+        parameters.u64("brightness", 5);
 
         // Run "/on" request and get an "Ok" response with parameters.
-        check_ok_response_with_parameters(&device_sender, "/on", parameters.clone()).await;
+        check_ok_response_with_parameters(&device_sender, "/on", &parameters).await;
 
         // Run "/off" request and get an "Ok" response with parameters.
-        check_ok_response_with_parameters(&device_sender, "/off", parameters.clone()).await;
+        check_ok_response_with_parameters(&device_sender, "/off", &parameters).await;
 
         // Run "/toggle" request and get an "Ok" response with parameters.
         check_serial_response_with_parameters(
             &device_sender,
             "/toggle",
-            parameters,
+            &parameters,
             Brightness { brightness: 5 },
         )
         .await;
