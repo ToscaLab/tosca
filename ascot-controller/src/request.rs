@@ -193,7 +193,7 @@ impl Request {
 
     pub(crate) async fn create_response(
         &self,
-        parameters: &Parameters,
+        parameters: &Parameters<'_>,
     ) -> Result<reqwest::Response, Error> {
         let request_data = self.create_request(parameters)?;
         self.parameters_send(request_data).await
@@ -293,7 +293,7 @@ impl Request {
         route
     }
 
-    fn create_params(&self, parameters: &Parameters) -> HashMap<String, String> {
+    fn create_params(&self, parameters: &Parameters<'_>) -> HashMap<String, String> {
         let mut params = HashMap::new();
         for (name, parameter_kind) in &self.parameters_data {
             let (name, value) = if let Some(value) = parameters.get(name) {

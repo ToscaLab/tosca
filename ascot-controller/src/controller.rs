@@ -47,7 +47,10 @@ impl RequestSender<'_> {
     /// While sending a request to a device, some network failures or timeouts
     /// can prevent the effective sending. Moreover, the same issues can also
     /// affect the returned response.
-    pub async fn send_with_parameters(&self, parameters: Parameters) -> Result<Response, Error> {
+    pub async fn send_with_parameters(
+        &self,
+        parameters: Parameters<'_>,
+    ) -> Result<Response, Error> {
         if self.request.parameters_data.is_empty() {
             warn!("The request does not have input parameters.");
             return self.send().await;
@@ -306,7 +309,7 @@ mod tests {
     async fn check_ok_response_with_parameters(
         device_sender: &DeviceSender<'_>,
         route: &str,
-        parameters: Parameters,
+        parameters: Parameters<'_>,
     ) {
         check_ok_response(device_sender, route, async move |request_sender| {
             request_sender.send_with_parameters(parameters).await
@@ -355,7 +358,7 @@ mod tests {
     >(
         device_sender: &DeviceSender<'_>,
         route: &str,
-        parameters: Parameters,
+        parameters: Parameters<'_>,
         value: T,
     ) {
         check_serial_response(
