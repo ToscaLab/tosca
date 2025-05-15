@@ -119,68 +119,57 @@ impl<'a> Parameters<'a> {
 
     /// Adds a [`bool`] value.
     #[must_use]
-    #[inline]
-    pub fn bool(self, name: &'a str, value: bool) -> Self {
+    pub fn bool(&mut self, name: &'a str, value: bool) -> &mut Self {
         self.add_value_parameter(name, ParameterValue::Bool(value))
     }
 
     /// Adds an [`u8`] parameter.
-    #[must_use]
     #[inline]
-    pub fn u8(self, name: &'a str, value: u8) -> Self {
+    pub fn u8(&mut self, name: &'a str, value: u8) -> &mut Self {
         self.add_value_parameter(name, ParameterValue::U8(value))
     }
 
     /// Adds an [`u16`] parameter.
-    #[must_use]
     #[inline]
-    pub fn u16(self, name: &'a str, value: u16) -> Self {
+    pub fn u16(&mut self, name: &'a str, value: u16) -> &mut Self {
         self.add_value_parameter(name, ParameterValue::U16(value))
     }
 
     /// Adds an [`u32`] parameter.
-    #[must_use]
     #[inline]
-    pub fn u32(self, name: &'a str, value: u32) -> Self {
+    pub fn u32(&mut self, name: &'a str, value: u32) -> &mut Self {
         self.add_value_parameter(name, ParameterValue::U32(value))
     }
 
     /// Adds an [`u64`] parameter.
-    #[must_use]
     #[inline]
-    pub fn u64(self, name: &'a str, value: u64) -> Self {
+    pub fn u64(&mut self, name: &'a str, value: u64) -> &mut Self {
         self.add_value_parameter(name, ParameterValue::U64(value))
     }
 
     /// Adds a [`f32`] parameter.
-    #[must_use]
     #[inline]
-    pub fn f32(self, name: &'a str, value: f32) -> Self {
+    pub fn f32(&mut self, name: &'a str, value: f32) -> &mut Self {
         self.add_value_parameter(name, ParameterValue::F32(value))
     }
 
     /// Adds a [`f64`] parameter.
-    #[must_use]
     #[inline]
-    pub fn f64(self, name: &'a str, value: f64) -> Self {
+    pub fn f64(&mut self, name: &'a str, value: f64) -> &mut Self {
         self.add_value_parameter(name, ParameterValue::F64(value))
     }
 
     /// Adds a characters sequence.
-    #[must_use]
     #[inline]
-    pub fn characters_sequence(self, name: &'a str, value: String) -> Self {
+    pub fn characters_sequence(&mut self, name: &'a str, value: String) -> &mut Self {
         self.add_value_parameter(name, ParameterValue::String(value))
     }
 
     /// Adds a bytes stream input.
-    #[must_use]
     #[inline]
-    pub fn byte_stream(self, name: &'a str, value: Vec<u8>) -> Self {
-        Self {
-            values: self.values,
-            files: self.files.insert(name, value),
-        }
+    pub fn byte_stream(&mut self, name: &'a str, value: Vec<u8>) -> &mut Self {
+        self.files.add(name, value);
+        self
     }
 
     pub(crate) fn get<'b>(&'b self, name: &'b str) -> Option<&'b ParameterValue> {
@@ -203,10 +192,8 @@ impl<'a> Parameters<'a> {
         Ok(())
     }
 
-    fn add_value_parameter(self, name: &'a str, parameter_value: ParameterValue) -> Self {
-        Self {
-            values: self.values.insert(name, parameter_value),
-            files: self.files,
-        }
+    fn add_value_parameter(&mut self, name: &'a str, parameter_value: ParameterValue) -> &mut Self {
+        self.values.add(name, parameter_value);
+        self
     }
 }

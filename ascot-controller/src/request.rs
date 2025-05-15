@@ -391,13 +391,13 @@ mod tests {
 
         // Non-existent parameter.
         assert_eq!(
-            request.create_request(&Parameters::new().u64("wrong", 0)),
+            request.create_request(Parameters::new().u64("wrong", 0)),
             Err(parameter_error("`wrong` does not exist".into()))
         );
 
         // Wrong parameter type.
         assert_eq!(
-            request.create_request(&Parameters::new().f64("rangeu64", 0.)),
+            request.create_request(Parameters::new().f64("rangeu64", 0.)),
             Err(parameter_error("`rangeu64` must be of type `u64`".into()))
         );
 
@@ -406,7 +406,7 @@ mod tests {
         parameters.insert("rangef64".into(), "0".into());
 
         assert_eq!(
-            request.create_request(&Parameters::new().u64("rangeu64", 3)),
+            request.create_request(Parameters::new().u64("rangeu64", 3)),
             Ok(RequestData {
                 request: if kind == RestKind::Get {
                     format!("{COMPLETE_ROUTE}/3/0")
