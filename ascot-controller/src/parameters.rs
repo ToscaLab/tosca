@@ -95,18 +95,18 @@ impl ParameterValue {
 
 /// Route input parameters.
 #[derive(Debug, Clone)]
-pub struct Parameters {
-    values: Map<&'static str, ParameterValue>,
-    files: Map<&'static str, Vec<u8>>,
+pub struct Parameters<'a> {
+    values: Map<&'a str, ParameterValue>,
+    files: Map<&'a str, Vec<u8>>,
 }
 
-impl Default for Parameters {
+impl Default for Parameters<'_> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl Parameters {
+impl<'a> Parameters<'a> {
     /// Creates [`Parameters`].
     #[must_use]
     #[inline]
@@ -120,70 +120,70 @@ impl Parameters {
     /// Adds a [`bool`] value.
     #[must_use]
     #[inline]
-    pub fn bool(self, name: &'static str, value: bool) -> Self {
+    pub fn bool(self, name: &'a str, value: bool) -> Self {
         self.add_value_parameter(name, ParameterValue::Bool(value))
     }
 
     /// Adds an [`u8`] parameter.
     #[must_use]
     #[inline]
-    pub fn u8(self, name: &'static str, value: u8) -> Self {
+    pub fn u8(self, name: &'a str, value: u8) -> Self {
         self.add_value_parameter(name, ParameterValue::U8(value))
     }
 
     /// Adds an [`u16`] parameter.
     #[must_use]
     #[inline]
-    pub fn u16(self, name: &'static str, value: u16) -> Self {
+    pub fn u16(self, name: &'a str, value: u16) -> Self {
         self.add_value_parameter(name, ParameterValue::U16(value))
     }
 
     /// Adds an [`u32`] parameter.
     #[must_use]
     #[inline]
-    pub fn u32(self, name: &'static str, value: u32) -> Self {
+    pub fn u32(self, name: &'a str, value: u32) -> Self {
         self.add_value_parameter(name, ParameterValue::U32(value))
     }
 
     /// Adds an [`u64`] parameter.
     #[must_use]
     #[inline]
-    pub fn u64(self, name: &'static str, value: u64) -> Self {
+    pub fn u64(self, name: &'a str, value: u64) -> Self {
         self.add_value_parameter(name, ParameterValue::U64(value))
     }
 
     /// Adds a [`f32`] parameter.
     #[must_use]
     #[inline]
-    pub fn f32(self, name: &'static str, value: f32) -> Self {
+    pub fn f32(self, name: &'a str, value: f32) -> Self {
         self.add_value_parameter(name, ParameterValue::F32(value))
     }
 
     /// Adds a [`f64`] parameter.
     #[must_use]
     #[inline]
-    pub fn f64(self, name: &'static str, value: f64) -> Self {
+    pub fn f64(self, name: &'a str, value: f64) -> Self {
         self.add_value_parameter(name, ParameterValue::F64(value))
     }
 
     /// Adds a characters sequence.
     #[must_use]
     #[inline]
-    pub fn characters_sequence(self, name: &'static str, value: String) -> Self {
+    pub fn characters_sequence(self, name: &'a str, value: String) -> Self {
         self.add_value_parameter(name, ParameterValue::String(value))
     }
 
     /// Adds a bytes stream input.
     #[must_use]
     #[inline]
-    pub fn byte_stream(self, name: &'static str, value: Vec<u8>) -> Self {
+    pub fn byte_stream(self, name: &'a str, value: Vec<u8>) -> Self {
         Self {
             values: self.values,
             files: self.files.insert(name, value),
         }
     }
 
-    pub(crate) fn get<'a>(&'a self, name: &'a str) -> Option<&'a ParameterValue> {
+    pub(crate) fn get<'b>(&'b self, name: &'b str) -> Option<&'b ParameterValue> {
         self.values.get(name)
     }
 
@@ -203,7 +203,7 @@ impl Parameters {
         Ok(())
     }
 
-    fn add_value_parameter(self, name: &'static str, parameter_value: ParameterValue) -> Self {
+    fn add_value_parameter(self, name: &'a str, parameter_value: ParameterValue) -> Self {
         Self {
             values: self.values.insert(name, parameter_value),
             files: self.files,
