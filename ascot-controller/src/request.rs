@@ -74,6 +74,8 @@ pub(crate) fn create_requests(
 pub struct RequestInfo<'device> {
     /// Route name.
     pub route: &'device str,
+    /// Route description.
+    pub description: Option<&'device str>,
     /// Rest kind.
     pub rest_kind: RestKind,
     /// Route hazards.
@@ -88,6 +90,7 @@ impl<'device> RequestInfo<'device> {
     pub(crate) fn new(route: &'device str, request: &'device Request) -> Self {
         Self {
             route,
+            description: request.description.as_deref(),
             rest_kind: request.kind,
             hazards: &request.hazards,
             parameters_data: &request.parameters_data,
@@ -107,6 +110,7 @@ pub struct Request {
     pub(crate) kind: RestKind,
     pub(crate) hazards: Hazards,
     pub(crate) route: String,
+    pub(crate) description: Option<String>,
     pub(crate) parameters_data: ParametersData,
     pub(crate) response_kind: ResponseKind,
     pub(crate) device_environment: DeviceEnvironment,
@@ -157,6 +161,7 @@ impl Request {
             kind,
             hazards,
             route,
+            description: route_config.data.description.map(|s| s.to_string()),
             parameters_data,
             response_kind,
             device_environment,
@@ -332,6 +337,11 @@ mod tests {
 
     fn plain_request(route: Route, kind: RestKind, hazards: Hazards) {
         let route = route.serialize_data();
+        let description = route
+            .data
+            .description
+            .as_ref()
+            .map(std::string::ToString::to_string);
 
         let request = Request::new(ADDRESS_ROUTE, "light/", DeviceEnvironment::Os, route);
 
@@ -341,6 +351,7 @@ mod tests {
                 kind,
                 hazards,
                 route: COMPLETE_ROUTE.into(),
+                description,
                 parameters_data: ParametersData::new(),
                 response_kind: ResponseKind::Ok,
                 device_environment: DeviceEnvironment::Os,
@@ -356,6 +367,11 @@ mod tests {
                     .rangef64("rangef64", (0., 20., 0.1)),
             )
             .serialize_data();
+        let description = route
+            .data
+            .description
+            .as_ref()
+            .map(std::string::ToString::to_string);
 
         let parameters_data = ParametersData::new()
             .insert(
@@ -385,6 +401,7 @@ mod tests {
                 kind,
                 hazards: hazards.clone(),
                 route: COMPLETE_ROUTE.into(),
+                description,
                 parameters_data,
                 response_kind: ResponseKind::Ok,
                 device_environment: DeviceEnvironment::Os,
@@ -432,6 +449,7 @@ mod tests {
                 kind: RestKind::Put,
                 hazards: Hazards::new(),
                 route: COMPLETE_ROUTE.into(),
+                description: None,
                 parameters_data: ParametersData::new(),
                 response_kind: ResponseKind::Ok,
                 device_environment: DeviceEnvironment::Os,
