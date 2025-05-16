@@ -131,6 +131,7 @@ fn build_route(device: &Device, route: &str) -> String {
 fn check_request(
     device: &Device,
     route: &str,
+    description: &str,
     kind: RestKind,
     hazards: Hazards,
     parameters_data: ParametersData,
@@ -144,6 +145,7 @@ fn check_request(
             kind,
             hazards,
             route: build_route(device, route),
+            description: Some(description.to_string()),
             parameters_data,
             response_kind,
             device_environment: DeviceEnvironment::Os,
@@ -199,6 +201,7 @@ pub(crate) fn compare_device_data(device: &Device) {
         check_request(
             device,
             "/toggle",
+            "Toggle a light.",
             RestKind::Get,
             Hazards::new()
                 .insert(Hazard::FireHazard)
@@ -212,6 +215,7 @@ pub(crate) fn compare_device_data(device: &Device) {
     check_request(
         device,
         "/on",
+        "Turn light on.",
         RestKind::Put,
         Hazards::init(Hazard::ElectricEnergyConsumption),
         ParametersData::new(),
@@ -222,6 +226,7 @@ pub(crate) fn compare_device_data(device: &Device) {
     check_request(
         device,
         "/off",
+        "Turn light off.",
         RestKind::Put,
         Hazards::init(Hazard::LogEnergyConsumption),
         ParametersData::new(),
