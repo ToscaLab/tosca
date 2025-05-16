@@ -2,6 +2,8 @@ use std::collections::HashMap;
 use std::fmt::Write;
 use std::future::Future;
 
+use serde::Serialize;
+
 use tracing::error;
 
 use ascot::device::DeviceEnvironment;
@@ -100,7 +102,7 @@ impl<'device> RequestInfo<'device> {
 ///
 /// A request can be plain, hence without any input parameter, or with some
 /// parameters which are used to personalize device operations.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize)]
 pub struct Request {
     pub(crate) kind: RestKind,
     pub(crate) hazards: Hazards,

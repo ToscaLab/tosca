@@ -1,6 +1,8 @@
 use std::collections::{HashMap, HashSet};
 use std::net::IpAddr;
 
+use serde::Serialize;
+
 use ascot::device::{DeviceEnvironment, DeviceKind};
 use ascot::route::RouteConfigs;
 
@@ -13,7 +15,7 @@ pub(crate) fn build_device_address(scheme: &str, address: &IpAddr, port: u16) ->
 /// Device network information.
 ///
 /// All data needed to contact a device in a network.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize)]
 pub struct NetworkInformation {
     /// Device complete name.
     pub name: String,
@@ -50,7 +52,7 @@ impl NetworkInformation {
 /// Device description.
 ///
 /// All properties which describe a device.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize)]
 pub struct Description {
     /// Device kind.
     pub kind: DeviceKind,
@@ -73,7 +75,7 @@ impl Description {
 }
 
 /// A compliant device.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize)]
 pub struct Device {
     // Information needed to contact a device in a network.
     network_info: NetworkInformation,
@@ -165,7 +167,7 @@ impl Device {
 }
 
 /// A collection of [`Device`]s.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize)]
 pub struct Devices(Vec<Device>);
 
 impl Default for Devices {
