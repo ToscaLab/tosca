@@ -5,11 +5,21 @@ edition = "2024"
 authors = ["Michele Valsesia <luni-4@hotmail.it>"]
 description = "A controller to orchestrate Ascot devices in a network."
 license = "MIT"
-resolver = "3"
 
 [dependencies]
-ascot.path = ".."
+ascot.path = "../ascot"
 ascot.version = "0.1.0"
+
+indexmap.workspace = true
+
+mdns-sd.workspace = true
+
+serde.workspace = true
+
+serde_json.workspace = true
+serde_json.features = ["alloc"]
+
+tracing.workspace = true
 
 bytes.version = "1.10.0"
 bytes.default-features = false
@@ -17,34 +27,18 @@ bytes.default-features = false
 futures-util.version = "0.3.31"
 futures-util.default-features = false
 
-indexmap.version = "2.7.0"
-indexmap.default-features = false
-
-mdns-sd.version = "0.13.1"
-
 reqwest.version = "0.12.12"
 reqwest.default-features = false
 reqwest.features = ["blocking", "json", "stream"]
-
-serde.version = "1.0"
-serde.default-features = false
-
-serde_json.version = "1"
-serde_json.default-features = false
-serde_json.features = ["alloc"]
-
-tracing.version = "0.1"
-tracing.default-features = false
 
 [dev-dependencies]
 ascot-os.path = "../ascot-os"
 ascot-os.version = "0.1.0"
 
+tokio.workspace = true
+tokio.features = ["rt", "rt-multi-thread", "macros"]
+
 serial_test.version = "3.2.0"
 serial_test.default-features = false
-
-tokio.version = "1.0"
-tokio.default-features = false
-tokio.features = ["rt", "rt-multi-thread", "macros"]
 
 tracing-subscriber.version = "0.3"

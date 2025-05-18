@@ -1,26 +1,28 @@
-[package]
-name = "ascot"
-version = "0.1.0"
-edition = "2024"
-authors = ["Michele Valsesia <luni-4@hotmail.it>"]
-description = "Ascot communication interface for general-purpose devices."
-license = "MIT"
-resolver = "3"
+[workspace]
+members = [
+    "crates/ascot",
+    "crates/ascot-controller",
+    "crates/ascot-os",
+    "crates/ascot-stack"
+]
+exclude = ["crates/ascot-esp32c3"]
+resolver = "2"
 
-[dependencies]
+[workspace.dependencies]
 indexmap.version = "2.7"
 indexmap.default-features = false
-indexmap.optional = true
 
 serde.version = "1.0"
 serde.default-features = false
-serde.features = ["derive"]
 
 serde_json.version = "1"
 serde_json.default-features = false
-serde_json.features = ["alloc"]
 
-[features]
-# Preserve_order feature is mandatory and necessary for indexmap.
-alloc = ["indexmap/serde", "serde_json/preserve_order"]
-default = ["alloc"]
+tokio.version = "1.0"
+tokio.default-features = false
+
+tracing.version = "0.1"
+tracing.default-features = false
+
+mdns-sd.version = "0.13"
+mdns-sd.default-features = false

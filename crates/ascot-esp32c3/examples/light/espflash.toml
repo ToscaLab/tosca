@@ -1,0 +1,10 @@
+# Temporarily ignored because current firmware doesn't fit the defined partition
+# partition_table = "partitions.csv"
+
+[connection]
+
+[[usb_device]]
+vid = "303a"
+pid = "1001"
+
+[flash]
