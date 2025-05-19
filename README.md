@@ -43,9 +43,10 @@ cargo build --release
 ```
 
 To build only a specific crate, navigate to its corresponding subdirectory
-inside [crates](./crates) and run the appropriate build commands.
+inside [crates](./crates) and run the same build commands described above.
 
-> **Note:** The `ascot-esp32c3` crate is not part of the workspace. It must
+> [!NOTE]
+> The `ascot-esp32c3` crate is not part of the workspace. It must
 be built separately because it targets a specific architecture
 (`riscv32imc-esp-espidf`) and requires a different build process.
 
