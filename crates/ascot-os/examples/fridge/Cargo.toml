@@ -1,16 +1,16 @@
 [package]
-name = "light"
+name = "fridge"
 version = "0.1.0"
 edition = "2024"
 authors = ["Michele Valsesia <luni-4@hotmail.it>"]
-description = "A light implemented with the ascot-os crate."
+description = "A fridge implemented with the ascot-os crate."
 license = "MIT"
-resolver = "3"
+resolver = "2"
 publish = false
 
 [dependencies]
 ascot.version = "0.1"
-ascot.path = "../../../"
+ascot.path = "../../../ascot"
 
 ascot-os.version = "0.1"
 ascot-os.path = "../../"
@@ -44,3 +44,5 @@ panic = "unwind"
 incremental = false
 overflow-checks = false
 strip = "debuginfo"
+
+[workspace]

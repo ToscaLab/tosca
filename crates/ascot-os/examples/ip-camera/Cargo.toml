@@ -1,16 +1,16 @@
 [package]
-name = "fridge"
+name = "ip-camera"
 version = "0.1.0"
 edition = "2024"
 authors = ["Michele Valsesia <luni-4@hotmail.it>"]
-description = "A fridge implemented with the ascot-os crate."
+description = "An ip-camera implemented with the ascot-os crate."
 license = "MIT"
-resolver = "3"
+resolver = "2"
 publish = false
 
 [dependencies]
 ascot.version = "0.1"
-ascot.path = "../../../"
+ascot.path = "../../../ascot"
 
 ascot-os.version = "0.1"
 ascot-os.path = "../../"
@@ -29,9 +29,25 @@ tokio.version = "1.0"
 tokio.default-features = false
 tokio.features = ["rt", "rt-multi-thread"]
 
+tokio-stream.version = "0.1"
+tokio-stream.default-features = false
+
+tracing.version = "0.1"
+tracing.default-features = false
+
 tracing-subscriber.version = "0.3"
 tracing-subscriber.default-features = false
 tracing-subscriber.features = ["env-filter", "fmt", "std"]
+
+[dependencies.image]
+version = "0.25"
+default-features = false
+features = ["png"]
+
+[dependencies.nokhwa]
+version = "0.10"
+default-features = false
+features = ["input-native", "serialize", "output-threaded"]
 
 [profile.release]
 opt-level = 3
@@ -44,3 +60,5 @@ panic = "unwind"
 incremental = false
 overflow-checks = false
 strip = "debuginfo"
+
+[workspace]

@@ -5,11 +5,10 @@ edition = "2024"
 authors = ["Michele Valsesia <luni-4@hotmail.it>"]
 description = "Ascot library crate for building ESP32-C3 boards firmware."
 license = "MIT"
-resolver = "3"
 
 [dependencies]
 ascot.version = "0.1.0"
-ascot.path = "../"
+ascot.path = "../ascot"
 
 edge-mdns.version = "0.4.0"
 edge-mdns.default-features = false
