@@ -1,13 +1,14 @@
-// All maps collections needed for internal storage and I/O tasks.
-mod maps;
-// All sets collections needed for internal storage and I/O tasks.
-mod sets;
+// An internal set implmentation.
+mod set;
+// An internal map implementation.
+mod map;
 
 /// A fixed-capacity string.
 pub mod string;
 
 /// All supported collections.
 pub mod collections {
-    pub use super::maps::{Map, OutputMap, SerialMap};
-    pub use super::sets::{OutputSet, SerialSet, Set};
+    pub(crate) use super::map::create_map;
+    pub(crate) use super::set::create_set;
+    pub use super::set::{OutputSet, SerialSet, Set};
 }

@@ -1,4 +1,4 @@
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
 use crate::economy::Economy;
 use crate::energy::Energy;
@@ -7,7 +7,7 @@ use crate::route::RouteConfigs;
 pub use ascot::device::{DeviceEnvironment, DeviceKind};
 
 /// Device information.
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Clone, Serialize)]
 pub struct DeviceInfo<const C: usize, const R: usize, const E: usize, const CF: usize> {
     /// Economy information.
     #[serde(skip_serializing_if = "Economy::is_empty")]
@@ -63,6 +63,9 @@ impl<const C: usize, const R: usize, const E: usize, const CF: usize> DeviceInfo
 pub struct DeviceData<const H: usize, const I: usize, const N: usize> {
     /// Device kind.
     pub kind: DeviceKind,
+    /// Device product identifier, better known as product ID.
+    #[serde(rename = "product ID")]
+    pub product_id: Option<&'static str>,
     /// Device environment.
     pub environment: DeviceEnvironment,
     /// Device main route.
@@ -83,9 +86,134 @@ impl<const H: usize, const I: usize, const N: usize> DeviceData<H, I, N> {
     ) -> Self {
         Self {
             kind,
+            product_id: None,
             environment,
             main_route,
             route_configs,
         }
+    }
+
+    /// Adds a device product identifier, better known as product ID.
+    #[must_use]
+    pub const fn product_id(mut self, product_id: &'static str) -> Self {
+        self.product_id = Some(product_id);
+        self
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use serde_json::{json, Value};
+
+    use crate::hazards::{Hazard, Hazards};
+    use crate::parameters::{ParameterKind, Parameters};
+    use crate::route::{Route, RouteConfigs};
+    use crate::serialize;
+
+    use super::{DeviceData, DeviceEnvironment, DeviceKind};
+
+    const PRODUCT_ID: &str = "00000018283";
+
+    fn create_route_configs() -> RouteConfigs<2, 2, 4> {
+        let light_on_route = Route::put("/on")
+            .description("Turn light on.")
+            .with_hazards(Hazards::one(Hazard::ElectricEnergyConsumption));
+
+        let light_off_route = Route::put("/off")
+            .description("Turn light off.")
+            .with_hazards(Hazards::one(Hazard::LogEnergyConsumption));
+
+        let toggle_route = Route::get("/toggle")
+            .description("Toggle a light.")
+            .with_hazards(Hazards::two((
+                Hazard::FireHazard,
+                Hazard::ElectricEnergyConsumption,
+            )))
+            .with_parameters(Parameters::one((
+                "brightness",
+                ParameterKind::rangeu64((0, 20, 1)),
+            )));
+
+        RouteConfigs::new()
+            .insert(light_on_route.serialize_data())
+            .insert(light_off_route.serialize_data())
+            .insert(toggle_route.serialize_data())
+    }
+
+    fn expected_json(product_id: &Value) -> Value {
+        json!(
+            {
+                "kind": "Light",
+                "product ID": product_id,
+                "environment": "Os",
+                "main route": "light/",
+                "route_configs":[
+                    {
+                        "name": "/on",
+                        "description": "Turn light on.",
+                        "REST kind": "Put",
+                        "hazards": [
+                            "ElectricEnergyConsumption"
+                        ],
+                        "response kind": "Ok"
+                    },
+                    {
+                        "name": "/off",
+                        "description": "Turn light off.",
+                        "REST kind": "Put",
+                        "hazards": [
+                            "LogEnergyConsumption"
+                        ],
+                        "response kind": "Ok"
+                    },
+                    {
+                        "name": "/toggle",
+                        "description": "Toggle a light.",
+                        "REST kind": "Get",
+                        "hazards": [
+                            "FireHazard",
+                            "ElectricEnergyConsumption"
+                        ],
+                        "parameters": {
+                            "brightness": {
+                                "RangeU64": {
+                                    "default":0,
+                                    "max":20,
+                                    "min":0,
+                                    "step":1
+                                }
+                            }
+                        },
+                        "response kind": "Ok"
+                    }
+                ]
+            }
+        )
+    }
+
+    #[test]
+    fn test_device_data() {
+        assert_eq!(
+            serialize(DeviceData::new(
+                DeviceKind::Light,
+                DeviceEnvironment::Os,
+                "light/",
+                create_route_configs(),
+            )),
+            expected_json(&json!(null))
+        );
+
+        assert_eq!(
+            serialize(
+                DeviceData::new(
+                    DeviceKind::Light,
+                    DeviceEnvironment::Os,
+                    "light/",
+                    create_route_configs(),
+                )
+                .product_id(PRODUCT_ID)
+            ),
+            expected_json(&json!(PRODUCT_ID))
+        );
     }
 }

@@ -1,9 +1,11 @@
-use serde::{Deserialize, Serialize};
+use heapless::FnvIndexMap;
 
-use crate::collections::{Map, SerialMap};
+use serde::Serialize;
+
+use crate::collections::create_map;
 
 /// All supported kinds of route input parameters.
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize)]
 pub enum ParameterKind {
     /// A [`bool`] value.
     Bool {
@@ -73,200 +75,232 @@ pub enum ParameterKind {
     },
 }
 
-/// A map of serializable [`Parameters`] data.
-pub type ParametersData<const N: usize> = SerialMap<&'static str, ParameterKind, N>;
+impl Eq for ParameterKind {}
 
-/// Route input parameters.
-#[derive(Debug, Clone)]
-pub struct Parameters<const N: usize>(Map<&'static str, ParameterKind, N>);
+impl ParameterKind {
+    /// Creates a [`bool`] parameter.
+    #[must_use]
+    #[inline]
+    pub fn bool(default: bool) -> Self {
+        Self::Bool { default }
+    }
 
-impl<const N: usize> Default for Parameters<N> {
-    fn default() -> Self {
-        Self::new()
+    /// Creates an [`u8`] parameter.
+    #[must_use]
+    #[inline]
+    pub fn u8(default: u8) -> Self {
+        Self::U8 { default }
+    }
+
+    /// Creates an [`u16`] parameter.
+    #[must_use]
+    #[inline]
+    pub fn u16(default: u16) -> Self {
+        Self::U16 { default }
+    }
+
+    /// Creates an [`u32`] parameter.
+    #[must_use]
+    #[inline]
+    pub fn u32(default: u32) -> Self {
+        Self::U32 { default }
+    }
+
+    /// Creates an [`u64`] parameter.
+    #[must_use]
+    #[inline]
+    pub fn u64(default: u64) -> Self {
+        Self::U64 { default }
+    }
+
+    /// Creates a [`f32`] parameter.
+    #[must_use]
+    #[inline]
+    pub fn f32(default: f32) -> Self {
+        Self::F32 { default }
+    }
+
+    /// Creates a [`f64`] parameter.
+    #[must_use]
+    #[inline]
+    pub fn f64(default: f64) -> Self {
+        Self::F64 { default }
+    }
+
+    /// Creates an [`u64`] range without a default value.
+    #[must_use]
+    #[inline]
+    pub fn rangeu64(range: (u64, u64, u64)) -> Self {
+        Self::rangeu64_with_default(range, 0)
+    }
+
+    /// Creates an [`u64`] range with a default value.
+    #[must_use]
+    #[inline]
+    pub fn rangeu64_with_default(range: (u64, u64, u64), default: u64) -> Self {
+        Self::RangeU64 {
+            min: range.0,
+            max: range.1,
+            step: range.2,
+            default,
+        }
+    }
+
+    /// Creates a [`f64`] range without a default value.
+    #[must_use]
+    #[inline]
+    pub fn rangef64(range: (f64, f64, f64)) -> Self {
+        Self::rangef64_with_default(range, 0.0)
+    }
+
+    /// Creates a [`f64`] range with a default value.
+    #[must_use]
+    #[inline]
+    pub fn rangef64_with_default(range: (f64, f64, f64), default: f64) -> Self {
+        Self::RangeF64 {
+            min: range.0,
+            max: range.1,
+            step: range.2,
+            default,
+        }
     }
 }
 
+/// A map of serializable [`Parameters`] data.
+#[derive(Debug, Clone, Serialize)]
+pub struct ParametersData<const N: usize>(FnvIndexMap<&'static str, ParameterKind, N>);
+
+impl<const N: usize> ParametersData<N> {
+    /// Checks whether [`ParametersData`] is empty.
+    #[must_use]
+    #[inline]
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+}
+
+impl<const N: usize> From<Parameters<N>> for ParametersData<N> {
+    fn from(parameters: Parameters<N>) -> Self {
+        Self(parameters.0)
+    }
+}
+
+create_map!(
+    Parameters,
+    (&'static str, ParameterKind),
+    parameter,
+    parameters
+);
+
 impl<const N: usize> Parameters<N> {
-    /// Creates a [`Parameters`].
-    #[must_use]
-    #[inline]
-    pub fn new() -> Self {
-        Self(Map::new())
-    }
-
-    /// Adds a [`bool`] parameter.
-    #[must_use]
-    #[inline]
-    pub fn bool(self, name: &'static str, default: bool) -> Self {
-        self.create_parameter(name, ParameterKind::Bool { default })
-    }
-
-    /// Adds an [`u8`] parameter.
-    #[must_use]
-    #[inline]
-    pub fn u8(self, name: &'static str, default: u8) -> Self {
-        self.create_parameter(name, ParameterKind::U8 { default })
-    }
-
-    /// Adds an [`u16`] parameter.
-    #[must_use]
-    #[inline]
-    pub fn u16(self, name: &'static str, default: u16) -> Self {
-        self.create_parameter(name, ParameterKind::U16 { default })
-    }
-
-    /// Adds an [`u32`] parameter.
-    #[must_use]
-    #[inline]
-    pub fn u32(self, name: &'static str, default: u32) -> Self {
-        self.create_parameter(name, ParameterKind::U32 { default })
-    }
-
-    /// Adds an [`u64`] parameter.
-    #[must_use]
-    #[inline]
-    pub fn u64(self, name: &'static str, default: u64) -> Self {
-        self.create_parameter(name, ParameterKind::U64 { default })
-    }
-
-    /// Adds a [`f32`] parameter.
-    #[must_use]
-    #[inline]
-    pub fn f32(self, name: &'static str, default: f32) -> Self {
-        self.create_parameter(name, ParameterKind::F32 { default })
-    }
-
-    /// Adds a [`f64`] parameter.
-    #[must_use]
-    #[inline]
-    pub fn f64(self, name: &'static str, default: f64) -> Self {
-        self.create_parameter(name, ParameterKind::F64 { default })
-    }
-
-    /// Adds an [`u64`] range without a default value.
-    #[must_use]
-    #[inline]
-    pub fn rangeu64(self, name: &'static str, range: (u64, u64, u64)) -> Self {
-        self.rangeu64_with_default(name, range, 0)
-    }
-
-    /// Adds an [`u64`] range with a default value.
-    #[must_use]
-    #[inline]
-    pub fn rangeu64_with_default(
-        self,
-        name: &'static str,
-        range: (u64, u64, u64),
-        default: u64,
-    ) -> Self {
-        self.create_parameter(
-            name,
-            ParameterKind::RangeU64 {
-                min: range.0,
-                max: range.1,
-                step: range.2,
-                default,
-            },
-        )
-    }
-
-    /// Adds a [`f64`] range without a default value.
-    #[must_use]
-    #[inline]
-    pub fn rangef64(self, name: &'static str, range: (f64, f64, f64)) -> Self {
-        self.rangef64_with_default(name, range, 0.0)
-    }
-
-    /// Adds a [`f64`] range with a default value.
-    #[must_use]
-    #[inline]
-    pub fn rangef64_with_default(
-        self,
-        name: &'static str,
-        range: (f64, f64, f64),
-        default: f64,
-    ) -> Self {
-        self.create_parameter(
-            name,
-            ParameterKind::RangeF64 {
-                min: range.0,
-                max: range.1,
-                step: range.2,
-                default,
-            },
-        )
-    }
-
     /// Serializes [`Parameters`] data.
     ///
     /// It consumes the data.
     #[must_use]
     #[inline]
     pub fn serialize_data(self) -> ParametersData<N> {
-        let mut data = ParametersData::new();
-        for (key, value) in &self.0 {
-            data.add(key, *value);
-        }
-        data
-    }
-
-    fn create_parameter(self, name: &'static str, parameter_kind: ParameterKind) -> Self {
-        Self(self.0.insert(name, parameter_kind))
+        ParametersData::from(self)
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use serde_json::json;
+
     use crate::serialize;
 
-    use super::{ParameterKind, Parameters, SerialMap};
+    use super::{ParameterKind, Parameters};
 
     #[test]
-    fn test_parameters() {
-        let parameters = Parameters::<16>::new()
-            .bool("bool", true)
-            .u8("u8", 0)
-            .u16("u16", 0)
-            .u32("u32", 0)
-            .u64("u64", 0)
-            .f32("f32", 0.)
-            .f64("f64", 0.)
-            .rangeu64_with_default("rangeu64", (0, 20, 1), 5)
-            .rangef64_with_default("rangef64", (0., 20., 0.1), 5.)
+    fn test_numeric_parameters() {
+        let parameters = Parameters::eight((
+            ("bool", ParameterKind::bool(true)),
+            ("u8", ParameterKind::u8(0)),
+            ("u16", ParameterKind::u16(0)),
+            ("u32", ParameterKind::u32(0)),
+            ("u64", ParameterKind::u64(0)),
+            ("f32", ParameterKind::f32(0.)),
+            ("f64", ParameterKind::f64(0.)),
             // Adds a duplicate to see whether that value is maintained or
             // removed.
-            .u16("u16", 0);
-
-        let parameters_data = SerialMap::<&'static str, ParameterKind, 16>::new()
-            .insert("bool", ParameterKind::Bool { default: true })
-            .insert("u8", ParameterKind::U8 { default: 0 })
-            .insert("u16", ParameterKind::U16 { default: 0 })
-            .insert("u32", ParameterKind::U32 { default: 0 })
-            .insert("u64", ParameterKind::U64 { default: 0 })
-            .insert("f32", ParameterKind::F32 { default: 0. })
-            .insert("f64", ParameterKind::F64 { default: 0. })
-            .insert(
-                "rangeu64",
-                ParameterKind::RangeU64 {
-                    min: 0,
-                    max: 20,
-                    step: 1,
-                    default: 5,
-                },
-            )
-            .insert(
-                "rangef64",
-                ParameterKind::RangeF64 {
-                    min: 0.,
-                    max: 20.,
-                    step: 0.1,
-                    default: 5.,
-                },
-            );
+            ("u16", ParameterKind::u16(0)),
+        ));
 
         assert_eq!(
             serialize(parameters.serialize_data()),
-            serialize(parameters_data),
+            json!({
+                "bool": {
+                    "Bool": {
+                        "default": true
+                    }
+                },
+                "f32": {
+                    "F32": {
+                        "default": 0.0
+                    }
+                },
+                "f64": {
+                    "F64": {
+                        "default": 0.0
+                    }
+                },
+                "u16": {
+                    "U16": {
+                        "default": 0
+                    }
+                },
+                "u32": {
+                    "U32": {
+                        "default": 0
+                    }
+                },
+                "u64": {
+                    "U64": {
+                        "default": 0
+                    }
+                },
+                "u8": {
+                    "U8": {
+                        "default": 0
+                    }
+                }
+            })
+        );
+    }
+
+    #[test]
+    fn test_range_parameters() {
+        let parameters = Parameters::two((
+            (
+                "rangeu64",
+                ParameterKind::rangeu64_with_default((0, 20, 1), 5),
+            ),
+            (
+                "rangef64",
+                ParameterKind::rangef64_with_default((0., 20., 0.1), 5.),
+            ),
+        ));
+
+        assert_eq!(
+            serialize(parameters.serialize_data()),
+            json!({
+                "rangef64": {
+                    "RangeF64": {
+                        "default": 5.0,
+                        "max": 20.0,
+                        "min": 0.0,
+                        "step": 0.1
+                    }
+                },
+                "rangeu64": {
+                    "RangeU64": {
+                        "default": 5,
+                        "max": 20,
+                        "min": 0,
+                        "step": 1
+                    }
+                }
+            })
         );
     }
 }

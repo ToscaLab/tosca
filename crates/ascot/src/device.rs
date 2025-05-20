@@ -1,4 +1,4 @@
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
 #[cfg(feature = "alloc")]
 use crate::economy::Economy;
@@ -8,7 +8,8 @@ use crate::energy::Energy;
 use crate::route::RouteConfigs;
 
 /// A device kind.
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize)]
+#[cfg_attr(feature = "deserialize", derive(serde::Deserialize))]
 pub enum DeviceKind {
     /// Unknown.
     Unknown,
@@ -45,7 +46,8 @@ impl core::fmt::Display for DeviceKind {
 ///
 /// This enumerator allows to discriminate the different implementations among
 /// the supported architectures on a controller side.
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize)]
+#[cfg_attr(feature = "deserialize", derive(serde::Deserialize))]
 pub enum DeviceEnvironment {
     /// Operating system.
     Os,
@@ -55,7 +57,7 @@ pub enum DeviceEnvironment {
 
 /// Device information.
 #[cfg(feature = "alloc")]
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Clone, Serialize, serde::Deserialize)]
 pub struct DeviceInfo {
     /// Energy information.
     #[serde(skip_serializing_if = "Energy::is_empty")]
@@ -95,10 +97,13 @@ impl DeviceInfo {
 
 /// Device data.
 #[cfg(feature = "alloc")]
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Serialize, serde::Deserialize)]
 pub struct DeviceData {
     /// Device kind.
     pub kind: DeviceKind,
+    /// Device product identifier, better known as product ID.
+    #[serde(rename = "product ID")]
+    pub product_id: Option<alloc::borrow::Cow<'static, str>>,
     /// Device environment.
     pub environment: DeviceEnvironment,
     /// Device main route.
@@ -120,9 +125,95 @@ impl DeviceData {
     ) -> Self {
         Self {
             kind,
+            product_id: None,
             environment,
             main_route: main_route.into(),
             route_configs,
         }
+    }
+
+    /// Adds a device product identifier, better known as product ID.
+    #[must_use]
+    #[inline]
+    pub fn product_id(mut self, product_id: impl Into<alloc::borrow::Cow<'static, str>>) -> Self {
+        self.product_id = Some(product_id.into());
+        self
+    }
+}
+
+#[cfg(feature = "alloc")]
+#[cfg(test)]
+mod tests {
+    use alloc::borrow::Cow;
+
+    use crate::hazards::{Hazard, Hazards};
+    use crate::parameters::Parameters;
+    use crate::route::{Route, RouteConfigs};
+    use crate::{deserialize, serialize};
+
+    use super::{DeviceData, DeviceEnvironment, DeviceKind};
+
+    const PRODUCT_ID: &str = "00000018283";
+
+    fn create_route_configs() -> RouteConfigs {
+        let light_on_route = Route::put("/on")
+            .description("Turn light on.")
+            .with_hazard(Hazard::ElectricEnergyConsumption);
+
+        let light_off_route = Route::put("/off")
+            .description("Turn light off.")
+            .with_hazard(Hazard::LogEnergyConsumption);
+
+        let toggle_route = Route::get("/toggle")
+            .description("Toggle a light.")
+            .with_hazards(
+                Hazards::new()
+                    .insert(Hazard::FireHazard)
+                    .insert(Hazard::ElectricEnergyConsumption),
+            )
+            .with_parameters(Parameters::new().rangeu64("brightness", (0, 20, 1)));
+
+        RouteConfigs::new()
+            .insert(light_on_route.serialize_data())
+            .insert(light_off_route.serialize_data())
+            .insert(toggle_route.serialize_data())
+    }
+
+    fn expected_device_data(product_id: Option<Cow<'static, str>>) -> DeviceData {
+        DeviceData {
+            kind: DeviceKind::Light,
+            product_id,
+            environment: DeviceEnvironment::Os,
+            main_route: "light/".into(),
+            route_configs: create_route_configs(),
+        }
+    }
+
+    #[test]
+    fn test_device_data() {
+        let route_configs = create_route_configs();
+
+        assert_eq!(
+            deserialize::<DeviceData>(serialize(DeviceData::new(
+                DeviceKind::Light,
+                DeviceEnvironment::Os,
+                "light/",
+                route_configs.clone(),
+            ))),
+            expected_device_data(None)
+        );
+
+        assert_eq!(
+            deserialize::<DeviceData>(serialize(
+                DeviceData::new(
+                    DeviceKind::Light,
+                    DeviceEnvironment::Os,
+                    "light/",
+                    route_configs,
+                )
+                .product_id(PRODUCT_ID)
+            )),
+            expected_device_data(Some(PRODUCT_ID.into()))
+        );
     }
 }

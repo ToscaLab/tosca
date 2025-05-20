@@ -4,6 +4,113 @@ use heapless::{FnvIndexSet, IndexSetIter};
 
 use serde::{Deserialize, Serialize};
 
+// Creates a `set` abstraction structure.
+//
+// Inputs:
+//
+// - Structure name
+// - Types of values
+// - Function argument name for a single value
+// - Function argument name for a sequence of values
+macro_rules! create_set {
+    ($name:ident, $ty:ty, $arg:tt, $args:tt) => {
+        #[doc = concat!("A fixed-length sequence of [`", stringify!($name), "`]s.")]
+        #[derive(Debug, Clone, PartialEq, serde::Serialize)]
+        pub struct $name<const N: usize>(heapless::FnvIndexSet<$ty, N>);
+
+        impl<const N: usize> $name<N> {
+            #[doc = concat!("Checks whether [`", stringify!($name), "`] is empty.")]
+            #[must_use]
+            #[inline]
+            pub fn is_empty(&self) -> bool {
+                self.0.is_empty()
+            }
+
+            pub(crate) const fn new() -> Self {
+                Self(heapless::FnvIndexSet::new())
+            }
+
+            #[inline]
+            fn insert(mut self, $arg: $ty) -> Self {
+                let _ = self.0.insert($arg);
+                self
+            }
+        }
+
+        impl $name<2> {
+            #[doc = concat!("Creates [`", stringify!($name), "`] with one [`", stringify!($ty), "`].")]
+            #[inline]
+            #[must_use]
+            pub fn one($arg: $ty) -> Self {
+                Self::new().insert($arg)
+            }
+
+            #[doc = concat!("Creates [`", stringify!($name), "`] with two [`", stringify!($ty), "`]s.")]
+            #[inline]
+            #[must_use]
+            pub fn two($args: ($ty, $ty)) -> Self {
+                Self::one($args.0).insert($args.1)
+            }
+        }
+
+        impl $name<4> {
+            #[doc = concat!("Creates [`", stringify!($name), "`] with three [`", stringify!($ty), "`]s.")]
+            #[inline]
+            #[must_use]
+            pub fn three($args: ($ty, $ty, $ty)) -> Self {
+                Self::new().insert($args.0).insert($args.1).insert($args.2)
+            }
+
+            #[doc = concat!("Creates [`", stringify!($name), "`] with four [`", stringify!($ty), "`]s.")]
+            #[inline]
+            #[must_use]
+            pub fn four($args: ($ty, $ty, $ty, $ty)) -> Self {
+                Self::three(($args.0, $args.1, $args.2)).insert($args.3)
+            }
+        }
+
+        impl $name<8> {
+            #[doc = concat!("Creates [`", stringify!($name), "`] with five [`", stringify!($ty), "`]s.")]
+            #[inline]
+            #[must_use]
+            pub fn five($args: ($ty, $ty, $ty, $ty, $ty)) -> Self {
+                Self::new()
+                    .insert($args.0)
+                    .insert($args.1)
+                    .insert($args.2)
+                    .insert($args.3)
+                    .insert($args.4)
+            }
+
+            #[doc = concat!("Creates [`", stringify!($name), "`] with six [`", stringify!($ty), "`]s.")]
+            #[inline]
+            #[must_use]
+            pub fn six($args: ($ty, $ty, $ty, $ty, $ty, $ty)) -> Self {
+                Self::five(($args.0, $args.1, $args.2, $args.3, $args.4)).insert($args.5)
+            }
+
+            #[doc = concat!("Creates [`", stringify!($name), "`] with seven [`", stringify!($ty), "`]s.")]
+            #[inline]
+            #[must_use]
+            pub fn seven($args: ($ty, $ty, $ty, $ty, $ty, $ty, $ty)) -> Self {
+                Self::six(($args.0, $args.1, $args.2, $args.3, $args.4, $args.5)).insert($args.6)
+            }
+
+            #[doc = concat!("Creates [`", stringify!($name), "`] with eight [`", stringify!($ty), "`]s.")]
+            #[inline]
+            #[must_use]
+            pub fn eight($args: ($ty, $ty, $ty, $ty, $ty, $ty, $ty, $ty)) -> Self {
+                Self::seven((
+                    $args.0, $args.1, $args.2, $args.3, $args.4, $args.5, $args.6,
+                ))
+                .insert($args.7)
+            }
+        }
+    };
+}
+
+pub(crate) use create_set;
+
 /// A set of elements for internal storage.
 #[derive(Debug, Clone)]
 pub struct Set<V: Eq + Hash, const N: usize>(FnvIndexSet<V, N>);
@@ -59,7 +166,7 @@ macro_rules! set_implementation {
 
         impl<V, const N: usize> $impl<V, N>
         where
-            V: Clone + Copy + Eq + Hash,
+            V: Clone + Eq + Hash,
         {
             #[doc = concat!("Creates a [`", stringify!($impl), "`].")]
             #[must_use]
@@ -115,22 +222,6 @@ macro_rules! set_implementation {
             pub fn iter(&self) -> IndexSetIter<'_, V> {
                 self.0.iter()
             }
-
-            #[doc = concat!("Initializes [`", stringify!($impl), "`] with a list of elements.")]
-            #[inline]
-            pub fn init_with_elements(input_elements: &[V]) -> Self {
-                let mut elements = Self::new();
-                for element in input_elements.iter() {
-                    elements.add(*element);
-                }
-                elements
-            }
-
-            #[doc = concat!("Merges all elements from another [`", stringify!($impl), "`] into this one.")]
-            #[inline]
-            pub fn merge(&mut self, element: &Self) {
-                self.0 = self.0.union(&element.0).copied().collect();
-            }
         }
     };
 }
@@ -141,10 +232,5 @@ set_implementation!(Set);
 // Serial set implementation.
 set_implementation!(SerialSet);
 
-// Output set implementation.
-set_implementation!(OutputSet);
-
 // Convert from a set into a serial collection.
 from_set!(SerialSet);
-// Convert from a set into an output set.
-from_set!(OutputSet);
