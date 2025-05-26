@@ -34,7 +34,7 @@ impl<const H: usize, const P: usize> PartialEq for RouteData<H, P> {
 impl<const H: usize, const P: usize> RouteData<H, P> {
     fn new(route: Route<H, P>) -> Self {
         Self {
-            name: route.route,
+            name: route.name,
             description: route.description,
             hazards: route.hazards,
             parameters: route.parameters.serialize_data(),
@@ -93,7 +93,7 @@ pub type RouteConfigs<const H: usize, const P: usize, const N: usize> =
 #[derive(Debug)]
 pub struct Route<const H: usize, const P: usize> {
     // Route.
-    route: &'static str,
+    name: &'static str,
     // REST kind.
     rest_kind: RestKind,
     // Description.
@@ -106,7 +106,7 @@ pub struct Route<const H: usize, const P: usize> {
 
 impl<const H: usize, const P: usize> PartialEq for Route<H, P> {
     fn eq(&self, other: &Self) -> bool {
-        self.route == other.route && self.rest_kind == other.rest_kind
+        self.name == other.name && self.rest_kind == other.rest_kind
     }
 }
 
@@ -115,7 +115,7 @@ impl<const H: usize, const P: usize> Eq for Route<H, P> {}
 
 impl<const H: usize, const P: usize> Hash for Route<H, P> {
     fn hash<Ha: Hasher>(&self, state: &mut Ha) {
-        self.route.hash(state);
+        self.name.hash(state);
         self.rest_kind.hash(state);
         self.description.hash(state);
     }
@@ -148,7 +148,7 @@ impl Route<2, 2> {
 
     fn init(rest_kind: RestKind, route: &'static str) -> Self {
         Route::<2, 2> {
-            route,
+            name: route,
             rest_kind,
             description: None,
             parameters: Parameters::new(),
@@ -168,7 +168,7 @@ impl<const H: usize, const P: usize> Route<H, P> {
     /// Changes the route.
     #[must_use]
     pub const fn change_route(mut self, route: &'static str) -> Self {
-        self.route = route;
+        self.name = route;
         self
     }
 
@@ -177,7 +177,7 @@ impl<const H: usize, const P: usize> Route<H, P> {
     #[inline]
     pub fn with_hazards<const H2: usize>(self, hazards: Hazards<H2>) -> Route<H2, P> {
         Route::<H2, P> {
-            route: self.route,
+            name: self.name,
             rest_kind: self.rest_kind,
             description: self.description,
             parameters: self.parameters,
@@ -190,7 +190,7 @@ impl<const H: usize, const P: usize> Route<H, P> {
     #[inline]
     pub fn with_parameters<const P2: usize>(self, parameters: Parameters<P2>) -> Route<H, P2> {
         Route::<H, P2> {
-            route: self.route,
+            name: self.name,
             rest_kind: self.rest_kind,
             description: self.description,
             parameters,
@@ -201,7 +201,7 @@ impl<const H: usize, const P: usize> Route<H, P> {
     /// Returns route.
     #[must_use]
     pub const fn route(&self) -> &str {
-        self.route
+        self.name
     }
 
     /// Returns [`RestKind`].
