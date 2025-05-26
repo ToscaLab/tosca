@@ -63,7 +63,7 @@ mod internal_route {
     impl RouteData {
         fn new(route: Route) -> Self {
             Self {
-                name: route.route.into(),
+                name: route.name.into(),
                 description: route.description.map(core::convert::Into::into),
                 hazards: route.hazards,
                 parameters: route.parameters.serialize_data(),
@@ -120,7 +120,7 @@ mod internal_route {
     #[derive(Debug)]
     pub struct Route {
         // Route.
-        route: &'static str,
+        name: &'static str,
         // REST kind.
         rest_kind: RestKind,
         // Description.
@@ -133,7 +133,7 @@ mod internal_route {
 
     impl PartialEq for Route {
         fn eq(&self, other: &Self) -> bool {
-            self.route == other.route && self.rest_kind == other.rest_kind
+            self.name == other.name && self.rest_kind == other.rest_kind
         }
     }
 
@@ -141,7 +141,7 @@ mod internal_route {
 
     impl core::hash::Hash for Route {
         fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
-            self.route.hash(state);
+            self.name.hash(state);
             self.rest_kind.hash(state);
         }
     }
@@ -185,7 +185,7 @@ mod internal_route {
         /// Changes the route.
         #[must_use]
         pub const fn change_route(mut self, route: &'static str) -> Self {
-            self.route = route;
+            self.name = route;
             self
         }
 
@@ -224,7 +224,7 @@ mod internal_route {
         /// Returns route.
         #[must_use]
         pub fn route(&self) -> &str {
-            self.route
+            self.name
         }
 
         /// Returns [`RestKind`].
@@ -256,7 +256,7 @@ mod internal_route {
 
         fn init(rest_kind: RestKind, route: &'static str) -> Self {
             Self {
-                route,
+                name: route,
                 rest_kind,
                 description: None,
                 hazards: Hazards::new(),
