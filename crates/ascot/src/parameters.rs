@@ -88,6 +88,83 @@ fn f64_max() -> f64 {
     f64::MAX
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+/// All route input parameters identifiers.
+pub enum ParameterId {
+    /// A [`bool`] value.
+    Bool,
+    /// An [`u8`] value.
+    U8,
+    /// An [`u16`] value.
+    U16,
+    /// An [`u32`] value.
+    U32,
+    /// An [`u64`] value.
+    U64,
+    /// A range of [`u64`].
+    RangeU64,
+    /// A [`f32`] value.
+    F32,
+    /// A [`f64`] value.
+    F64,
+    /// A range of [`f64`].
+    RangeF64,
+    /// A characters sequence.
+    CharsSequence,
+}
+
+impl ParameterId {
+    /// Converts a [`ParameterKind`] into a [`ParameterId`].
+    #[must_use]
+    pub const fn from_parameter_kind(parameter_kind: &ParameterKind) -> Self {
+        match parameter_kind {
+            ParameterKind::Bool { .. } => Self::Bool,
+            ParameterKind::U8 { .. } => Self::U8,
+            ParameterKind::U16 { .. } => Self::U16,
+            ParameterKind::U32 { .. } => Self::U32,
+            ParameterKind::U64 { .. } => Self::U64,
+            ParameterKind::RangeU64 { .. } => Self::RangeU64,
+            ParameterKind::F32 { .. } => Self::F32,
+            ParameterKind::F64 { .. } => Self::F64,
+            ParameterKind::RangeF64 { .. } => Self::RangeF64,
+            ParameterKind::CharsSequence { .. } => Self::CharsSequence,
+        }
+    }
+
+    /// Shows a [`ParameterId`] as a [`&str`].
+    #[must_use]
+    pub const fn to_str(&self) -> &'static str {
+        match self {
+            Self::Bool => "Bool",
+            Self::U8 => "U8",
+            Self::U16 => "U16",
+            Self::U32 => "U32",
+            Self::U64 => "U64",
+            Self::RangeU64 => "RangeU64",
+            Self::F32 => "F32",
+            Self::F64 => "F64",
+            Self::RangeF64 => "RangeF64",
+            Self::CharsSequence => "String",
+        }
+    }
+
+    /// Prints the type associated with a [`ParameterId`] formatted
+    /// as a [`&str`].
+    #[must_use]
+    pub const fn as_type(&self) -> &'static str {
+        match self {
+            Self::Bool => "bool",
+            Self::U8 => "u8",
+            Self::U16 => "u16",
+            Self::U32 => "u32",
+            Self::U64 | Self::RangeU64 => "u64",
+            Self::F32 => "f32",
+            Self::F64 | Self::RangeF64 => "f64",
+            Self::CharsSequence => "String",
+        }
+    }
+}
+
 /// All supported kinds of route input parameters.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum ParameterKind {
