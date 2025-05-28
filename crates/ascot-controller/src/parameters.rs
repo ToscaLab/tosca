@@ -23,22 +23,20 @@ const fn str_type(parameter_kind: &ParameterKind) -> &'static str {
     }
 }
 
-pub(crate) fn convert_to_parameter_value(parameter_kind: &ParameterKind) -> Option<ParameterValue> {
+pub(crate) fn convert_to_parameter_value(parameter_kind: &ParameterKind) -> ParameterValue {
     match parameter_kind {
-        ParameterKind::Bool { default } => Some(ParameterValue::Bool(*default)),
-        ParameterKind::U8 { default, .. } => Some(ParameterValue::U8(*default)),
-        ParameterKind::U16 { default, .. } => Some(ParameterValue::U16(*default)),
-        ParameterKind::U32 { default, .. } => Some(ParameterValue::U32(*default)),
+        ParameterKind::Bool { default } => ParameterValue::Bool(*default),
+        ParameterKind::U8 { default, .. } => ParameterValue::U8(*default),
+        ParameterKind::U16 { default, .. } => ParameterValue::U16(*default),
+        ParameterKind::U32 { default, .. } => ParameterValue::U32(*default),
         ParameterKind::U64 { default, .. } | ParameterKind::RangeU64 { default, .. } => {
-            Some(ParameterValue::U64(*default))
+            ParameterValue::U64(*default)
         }
-        ParameterKind::F32 { default, .. } => Some(ParameterValue::F32(*default)),
+        ParameterKind::F32 { default, .. } => ParameterValue::F32(*default),
         ParameterKind::F64 { default, .. } | ParameterKind::RangeF64 { default, .. } => {
-            Some(ParameterValue::F64(*default))
+            ParameterValue::F64(*default)
         }
-        ParameterKind::CharsSequence { default, .. } => {
-            Some(ParameterValue::String(default.to_string()))
-        }
+        ParameterKind::CharsSequence { default, .. } => ParameterValue::String(default.to_string()),
     }
 }
 
