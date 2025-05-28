@@ -1,5 +1,5 @@
 use ascot::collections::Map;
-use ascot::parameters::{ParameterKind, ParametersData};
+use ascot::parameters::{ParameterId, ParameterKind, ParametersData};
 
 use tracing::error;
 
@@ -8,19 +8,6 @@ use crate::error::{Error, ErrorKind};
 pub(crate) fn parameter_error(message: String) -> Error {
     error!(message);
     Error::new(ErrorKind::WrongParameter, message)
-}
-
-const fn str_type(parameter_kind: &ParameterKind) -> &'static str {
-    match parameter_kind {
-        ParameterKind::Bool { .. } => "bool",
-        ParameterKind::U8 { .. } => "u8",
-        ParameterKind::U16 { .. } => "u16",
-        ParameterKind::U32 { .. } => "u32",
-        ParameterKind::U64 { .. } | ParameterKind::RangeU64 { .. } => "u64",
-        ParameterKind::F32 { .. } => "f32",
-        ParameterKind::F64 { .. } | ParameterKind::RangeF64 { .. } => "f64",
-        ParameterKind::CharsSequence { .. } => "String",
-    }
 }
 
 pub(crate) fn convert_to_parameter_value(parameter_kind: &ParameterKind) -> ParameterValue {
@@ -166,7 +153,7 @@ impl<'a> Parameters<'a> {
             if !parameter_value.compare_with_kind(parameter_kind) {
                 return Err(parameter_error(format!(
                     "`{name}` must be of type `{}`",
-                    str_type(parameter_kind),
+                    ParameterId::from_parameter_kind(parameter_kind).as_type(),
                 )));
             }
         }
