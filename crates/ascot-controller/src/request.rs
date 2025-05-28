@@ -13,7 +13,7 @@ use ascot::response::ResponseKind;
 use ascot::route::{RestKind, RouteConfig, RouteConfigs};
 
 use crate::error::Error;
-use crate::parameters::{Parameters, convert_to_parameter_value};
+use crate::parameters::{convert_to_parameter_value, Parameters};
 use crate::response::{
     InfoResponseParser, OkResponseParser, Response, SerialResponseParser, StreamResponse,
 };
@@ -253,12 +253,12 @@ impl Request {
     fn axum_get_plain(&self) -> String {
         let mut route = self.route.to_string();
         for (_, parameter_kind) in &self.parameters_data {
-            let Some(value) = convert_to_parameter_value(parameter_kind) else {
-                // TODO: Skip bytes stream
-                continue;
-            };
             // TODO: Consider returning `Option<String>`
-            if let Err(e) = write!(route, "/{}", value.as_string()) {
+            if let Err(e) = write!(
+                route,
+                "/{}",
+                convert_to_parameter_value(parameter_kind).as_string()
+            ) {
                 error!("Error in adding a path to a route : {e}");
                 break;
             }
@@ -269,11 +269,10 @@ impl Request {
     fn create_params_plain(&self) -> HashMap<String, String> {
         let mut params = HashMap::new();
         for (name, parameter_kind) in &self.parameters_data {
-            let Some(value) = convert_to_parameter_value(parameter_kind) else {
-                // FIXME: Skip bytes stream
-                continue;
-            };
-            params.insert(name.to_string(), value.as_string());
+            params.insert(
+                name.to_string(),
+                convert_to_parameter_value(parameter_kind).as_string(),
+            );
         }
         params
     }
@@ -286,11 +285,7 @@ impl Request {
             let value = if let Some(value) = parameters.get(name) {
                 value.as_string()
             } else {
-                let Some(value) = convert_to_parameter_value(parameter_kind) else {
-                    // FIXME: Skip bytes stream
-                    continue;
-                };
-                value.as_string()
+                convert_to_parameter_value(parameter_kind).as_string()
             };
             // TODO: Consider returning `Option<String>`
             if let Err(e) = write!(route, "/{value}") {
@@ -308,11 +303,7 @@ impl Request {
             let (name, value) = if let Some(value) = parameters.get(name) {
                 (name, value.as_string())
             } else {
-                let Some(value) = convert_to_parameter_value(parameter_kind) else {
-                    // FIXME: Skip bytes stream
-                    continue;
-                };
-                (name, value.as_string())
+                (name, convert_to_parameter_value(parameter_kind).as_string())
             };
             params.insert(name.to_string(), value);
         }
@@ -329,7 +320,7 @@ mod tests {
     use ascot::parameters::{ParameterKind, Parameters as AscotParameters, ParametersData};
     use ascot::route::{RestKind, Route, RouteConfig};
 
-    use crate::parameters::{Parameters, parameter_error};
+    use crate::parameters::{parameter_error, Parameters};
 
     use super::{Request, RequestData, ResponseKind};
 
