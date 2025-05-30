@@ -1,3 +1,4 @@
+use alloc::borrow::Cow;
 use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "alloc")]
@@ -98,9 +99,11 @@ pub struct DeviceData {
     pub kind: DeviceKind,
     /// Device environment.
     pub environment: DeviceEnvironment,
+    /// Device description.
+    pub description: Option<Cow<'static, str>>,
     /// Device main route.
     #[serde(rename = "main route")]
-    pub main_route: alloc::borrow::Cow<'static, str>,
+    pub main_route: Cow<'static, str>,
     /// All device route configurations.
     pub route_configs: RouteConfigs,
     /// Wi-Fi MAC address.
@@ -118,7 +121,7 @@ impl DeviceData {
     pub fn new(
         kind: DeviceKind,
         environment: DeviceEnvironment,
-        main_route: impl Into<alloc::borrow::Cow<'static, str>>,
+        main_route: impl Into<Cow<'static, str>>,
         route_configs: RouteConfigs,
         wifi_mac: Option<[u8; 6]>,
         ethernet_mac: Option<[u8; 6]>,
@@ -126,10 +129,18 @@ impl DeviceData {
         Self {
             kind,
             environment,
+            description: None,
             main_route: main_route.into(),
             route_configs,
             wifi_mac,
             ethernet_mac,
         }
+    }
+
+    /// Sets the device description.
+    #[must_use]
+    pub fn description(mut self, description: impl Into<Cow<'static, str>>) -> Self {
+        self.description = Some(description.into());
+        self
     }
 }
