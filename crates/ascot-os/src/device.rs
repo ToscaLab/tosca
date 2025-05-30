@@ -102,7 +102,7 @@ where
         for route in &self.route_configs {
             info!(
                 "Device route: [{}, \"{}{}\"]",
-                route.rest_kind, self.main_route, route.data.name,
+                route.rest_kind, self.main_route, route.data.path,
             );
         }
 
@@ -301,9 +301,10 @@ mod tests {
     #[inline]
     fn create_routes() -> AllRoutes {
         AllRoutes {
-            with_state_route: Route::put("/state-action").description("Run action with state."),
+            with_state_route: Route::put("State action", "/state-action")
+                .description("Run action with state."),
 
-            without_state_route: Route::post("/no-state-route")
+            without_state_route: Route::post("No state route", "/no-state-route")
                 .description("Run action without state."),
         }
     }
@@ -337,11 +338,12 @@ mod tests {
                 serial_action_with_substate1,
             ))
             .add_action(serial_stateful(
-                Route::put("/substate-action").description("Run a serial action with a substate."),
+                Route::put("Substate action", "/substate-action")
+                    .description("Run a serial action with a substate."),
                 serial_action_with_substate2,
             ))
             .add_info_action(info_stateful(
-                Route::put("/substate-info")
+                Route::put("Substate info", "/substate-info")
                     .description("Run an informative action with a substate."),
                 info_action_with_substate3,
             ))
