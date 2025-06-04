@@ -19,9 +19,8 @@ are two Rust libraries which make use of the `ascot` library as dependency to
 define the APIs for their respective architectures.
 
 The `ascot-os` library is thought for firmware which run on operating systems.
-In the [ascot-os/examples](./crates/ascot-os/examples) directory, two different
-device firmware have been implemented as examples: a
-[light](./crates/ascot-os/examples/light) and a [fridge](./crates/ascot-os/examples/fridge).
+In the [ascot-os/examples](./crates/ascot-os/examples) directory, a simple
+device firmware has been implemented as examples: a [light](./crates/ascot-os/examples/light).
 
 The `ascot-esp32c3` library is thought for firmware which run on a `ESP32-C3`
 board.
