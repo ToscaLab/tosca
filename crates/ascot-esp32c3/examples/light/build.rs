@@ -24,12 +24,10 @@ fn main() {
 
     let device_config = DEVICE_CONFIG;
     assert!(
-        !(
-            device_config.ssid.trim().is_empty() ||
-            device_config.password.trim().is_empty() ||
-            device_config.hostname.trim().is_empty() ||
-            device_config.service.trim().is_empty()
-        ),
+        !(device_config.ssid.trim().is_empty()
+            || device_config.password.trim().is_empty()
+            || device_config.hostname.trim().is_empty()
+            || device_config.service.trim().is_empty()),
         "All config fields should be set in `cfg.toml` file!"
     );
 

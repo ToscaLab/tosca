@@ -4,7 +4,6 @@ on:
   push:
     branches: [master]
     paths:
-      - 'crates/ascot-esp32c3/Cargo.lock'
       - 'crates/ascot-esp32c3/**/Cargo.lock'
       - 'crates/ascot-esp32c3/**/*.rs'
       - 'crates/ascot-esp32c3/**/*.sh'
@@ -14,7 +13,6 @@ on:
     branches: [master]
     types: [opened, synchronize]
     paths:
-      - 'crates/ascot-esp32c3/Cargo.lock'
       - 'crates/ascot-esp32c3/**/Cargo.lock'
       - 'crates/ascot-esp32c3/**/*.rs'
       - 'crates/ascot-esp32c3/**/*.sh'
@@ -38,20 +36,34 @@ jobs:
         run: |
           cargo install ldproxy
 
-      - name: Run rustfmt
+################################## ascot-esp32c3 ##################################
+
+      - name: Run rustfmt (ascot-esp32c3)
         working-directory: crates/ascot-esp32c3
         run: cargo fmt --all -- --check --verbose
 
-      - name: Run cargo clippy
+      - name: Run cargo clippy (ascot-esp32c3)
         working-directory: crates/ascot-esp32c3
         run: cargo clippy --all-targets -- -Dclippy::all -Dclippy::pedantic
 
-      - name: Build
+      - name: Build (ascot-esp32c3)
         working-directory: crates/ascot-esp32c3
         run: cargo build --verbose
 
-      - name: Build light
+################################## light ##################################
+
+      - name: Run rustfmt (light)
         working-directory: crates/ascot-esp32c3/examples/light
-        run: |
-          mv cfg.toml.example cfg.toml
-          cargo build --verbose
+        run: cargo fmt --all -- --check --verbose
+
+      - name: Set up cfg.toml
+        working-directory: crates/ascot-esp32c3/examples/light
+        run: cp cfg.toml.example cfg.toml
+
+      - name: Run cargo clippy (light)
+        working-directory: crates/ascot-esp32c3/examples/light
+        run: cargo clippy --all-targets -- -Dclippy::all -Dclippy::pedantic
+
+      - name: Build (light)
+        working-directory: crates/ascot-esp32c3/examples/light
+        run: cargo build --verbose
