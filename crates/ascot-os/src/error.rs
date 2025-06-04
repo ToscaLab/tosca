@@ -104,11 +104,11 @@ mod tests {
 
     #[test]
     fn device_error() {
-        let error = Error::device(DeviceKind::Fridge, "This hazard is not correct");
+        let error = Error::device(DeviceKind::Light, "This hazard is not correct");
         assert_eq!(
             error.to_string(),
             r"Device
-Cause: This hazard is not correct [Fridge Device]"
+Cause: This hazard is not correct [Light Device]"
         );
     }
 }

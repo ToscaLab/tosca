@@ -14,8 +14,6 @@ pub enum DeviceKind {
     Unknown,
     /// Light.
     Light,
-    /// Fridge.
-    Fridge,
     /// Camera.
     Camera,
 }
@@ -25,7 +23,6 @@ impl DeviceKind {
         match self {
             Self::Unknown => "Unknown",
             Self::Light => "Light",
-            Self::Fridge => "Fridge",
             Self::Camera => "Camera",
         }
     }
