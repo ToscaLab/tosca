@@ -306,43 +306,6 @@ pub(crate) mod tests {
         Device::new(network_info, description, route_configs)
     }
 
-    pub(crate) fn create_fridge() -> Device {
-        let network_info = create_network_info("192.168.1.175", 6000);
-        let description = create_description(DeviceKind::Fridge, "fridge/");
-
-        let increase_temperature_route = Route::put("/increase-temperature")
-            .description("Increase temperature.")
-            .with_hazards(
-                Hazards::new()
-                    .insert(Hazard::ElectricEnergyConsumption)
-                    .insert(Hazard::SpoiledFood),
-            )
-            .with_parameters(Parameters::new().rangef64_with_default(
-                "increment",
-                (1., 4., 0.1),
-                2.,
-            ));
-
-        let decrease_temperature_route = Route::put("/decrease-temperature")
-            .description("Decrease temperature.")
-            .with_hazards(
-                Hazards::new()
-                    .insert(Hazard::ElectricEnergyConsumption)
-                    .insert(Hazard::SpoiledFood),
-            )
-            .with_parameters(Parameters::new().rangef64_with_default(
-                "decrement",
-                (1., 4., 0.1),
-                2.,
-            ));
-
-        let route_configs = RouteConfigs::new()
-            .insert(increase_temperature_route.serialize_data())
-            .insert(decrease_temperature_route.serialize_data());
-
-        Device::new(network_info, description, route_configs)
-    }
-
     pub(crate) fn create_unknown() -> Device {
         let network_info = create_network_info("192.168.1.176", 5500);
         let description = create_description(DeviceKind::Unknown, "ip-camera/");
@@ -374,7 +337,7 @@ pub(crate) mod tests {
 
     #[test]
     fn check_devices() {
-        let devices_vector = vec![create_light(), create_fridge(), create_unknown()];
+        let devices_vector = vec![create_light(), create_unknown()];
 
         let devices_from_vector = Devices::from_devices(devices_vector);
 
@@ -384,7 +347,6 @@ pub(crate) mod tests {
         assert!(devices.is_empty());
 
         devices.add(create_light());
-        devices.add(create_fridge());
         devices.add(create_unknown());
 
         // Compare devices created with two different methods.
@@ -394,12 +356,12 @@ pub(crate) mod tests {
         assert!(!devices.is_empty());
 
         // Check number of elements in devices.
-        assert_eq!(devices.len(), 3);
+        assert_eq!(devices.len(), 2);
 
         // Get a non-existent device.
         assert_eq!(devices.get(1000), None);
 
         // Get a reference to a device. The order is important.
-        assert_eq!(devices.get(2), Some(&create_unknown()));
+        assert_eq!(devices.get(1), Some(&create_unknown()));
     }
 }

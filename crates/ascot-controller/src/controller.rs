@@ -255,7 +255,7 @@ mod tests {
     use crate::policy::Policy;
     use crate::response::Response;
 
-    use crate::device::tests::{create_fridge, create_light, create_unknown};
+    use crate::device::tests::{create_light, create_unknown};
     use crate::discovery::tests::configure_discovery;
     use crate::tests::{Brightness, check_function_with_device};
 
@@ -280,8 +280,7 @@ mod tests {
 
     #[test]
     fn controller_from_devices() {
-        let devices =
-            Devices::from_devices(vec![create_light(), create_fridge(), create_unknown()]);
+        let devices = Devices::from_devices(vec![create_light(), create_unknown()]);
 
         let controller = Controller::from_devices(configure_discovery(), devices);
 
@@ -289,11 +288,7 @@ mod tests {
             controller,
             Controller {
                 discovery: configure_discovery(),
-                devices: Devices::from_devices(vec![
-                    create_light(),
-                    create_fridge(),
-                    create_unknown()
-                ]),
+                devices: Devices::from_devices(vec![create_light(), create_unknown()]),
                 privacy_policy: Policy::init(),
             }
         );
