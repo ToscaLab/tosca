@@ -27,6 +27,8 @@ where
     kind: DeviceKind,
     // All device routes and their hazards.
     route_configs: RouteConfigs,
+    /// Number of mandatory routes.
+    num_mandatory_routes: u8
 }
 
 impl Default for Device<()> {
@@ -84,6 +86,7 @@ where
             kind,
             route_configs: RouteConfigs::new(),
             state,
+            num_mandatory_routes: 0
         }
     }
 
@@ -100,6 +103,7 @@ where
         let mut mandatory_routes = RouteConfigs::new();
         for action in actions {
             self.router = self.router.merge(action.router);
+            self.num_mandatory_routes += 1;
             mandatory_routes.add(action.route_config);
         }
 
@@ -129,6 +133,7 @@ where
                 self.route_configs,
                 wifi_mac,
                 ethernet_mac,
+                self.num_mandatory_routes,
             ),
             self.router,
         )
