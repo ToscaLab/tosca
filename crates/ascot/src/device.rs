@@ -112,6 +112,8 @@ pub struct DeviceData {
     /// Ethernet MAC address.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub ethernet_mac: Option<[u8; 6]>,
+    /// Number of mandatory routes.
+    pub mandatory_routes: u8
 }
 
 #[cfg(feature = "alloc")]
@@ -125,6 +127,7 @@ impl DeviceData {
         route_configs: RouteConfigs,
         wifi_mac: Option<[u8; 6]>,
         ethernet_mac: Option<[u8; 6]>,
+        mandatory_routes: u8
     ) -> Self {
         Self {
             kind,
@@ -134,6 +137,7 @@ impl DeviceData {
             route_configs,
             wifi_mac,
             ethernet_mac,
+            mandatory_routes
         }
     }
 
