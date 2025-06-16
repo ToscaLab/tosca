@@ -135,6 +135,8 @@ pub struct Device {
     main_route: &'static str,
     // All device routes with their hazards and handlers.
     routes_data: Vec<DeviceAction>,
+    // Number of mandatory routes.
+    mandatory_routes: u8
 }
 
 impl Device {
@@ -145,6 +147,7 @@ impl Device {
             kind,
             main_route: DEFAULT_MAIN_ROUTE,
             routes_data: Vec::new(),
+            mandatory_routes: 0,
         }
     }
 
@@ -159,6 +162,13 @@ impl Device {
     #[must_use]
     pub fn add_action(mut self, device_action: DeviceAction) -> Self {
         self.routes_data.push(device_action);
+        self
+    }
+
+    /// Sets number of mandatory routes.
+    #[must_use]
+    pub const fn mandatory_routes(mut self, mandatory_routes: u8) -> Self {
+        self.mandatory_routes = mandatory_routes;
         self
     }
 
@@ -183,6 +193,7 @@ impl Device {
                 route_configs,
                 wifi_mac,
                 ethernet_mac,
+                self.mandatory_routes
             ),
             self.routes_data,
         )
