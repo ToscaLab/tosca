@@ -118,6 +118,8 @@ jobs:
     env:
       RUSTFLAGS: "-Cinstrument-coverage"
       LLVM_PROFILE_FILE: "ascot-%p-%m.profraw"
+      # Sets the CI variable to true in order to skip those tests that cannot be executed on virtual machines.
+      CI: true
 
     steps:
       - uses: actions/checkout@v4
