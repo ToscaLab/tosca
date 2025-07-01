@@ -241,6 +241,8 @@ impl Controller {
 mod tests {
     use std::fmt::Debug;
 
+    use tracing::warn;
+
     use ascot::hazards::{Hazard, Hazards};
     use ascot::response::{OkResponse, SerialResponse};
 
@@ -478,15 +480,40 @@ mod tests {
         controller_checks(controller).await;
     }
 
+    #[inline]
+    async fn run_controller_function<F, Fut>(name: &str, function: F)
+    where
+        F: FnOnce() -> Fut,
+        Fut: Future<Output = ()>,
+    {
+        if option_env!("CI").is_some() {
+            warn!(
+                "Skipping test on CI: {} can run only on systems that expose physical MAC addresses.",
+                name
+            );
+        } else {
+            check_function_with_device(|| async {
+                function().await;
+            })
+            .await;
+        }
+    }
+
     #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
     #[serial]
     async fn test_without_policy_controller() {
-        check_function_with_device(async move || controller_without_policy().await).await;
+        run_controller_function("controller_without_policy", || async {
+            controller_without_policy().await;
+        })
+        .await;
     }
 
     #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
     #[serial]
     async fn test_with_policy_controller() {
-        check_function_with_device(async move || controller_with_policy().await).await;
+        run_controller_function("controller_with_policy", || async {
+            controller_with_policy().await;
+        })
+        .await;
     }
 }
