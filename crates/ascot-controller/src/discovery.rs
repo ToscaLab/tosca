@@ -7,7 +7,7 @@ use mdns_sd::{IfKind, ResolvedService, ServiceDaemon, ServiceEvent, ServiceInfo}
 
 use tracing::{info, warn};
 
-use crate::device::{Description, Device, Devices, NetworkInformation, build_device_address};
+use crate::device::{build_device_address, Description, Device, Devices, NetworkInformation};
 use crate::error::Error;
 use crate::request::create_requests;
 
@@ -212,7 +212,7 @@ impl Discovery {
                         .txt_properties
                         .get_property_val_str("scheme")
                         .unwrap_or("http"),
-                    address,
+                    &address.to_ip_addr(),
                     service.port,
                 );
                 info!("Complete address: {complete_address}");
@@ -244,7 +244,11 @@ impl Discovery {
 
                         let network_info = NetworkInformation::new(
                             service.fullname,
-                            service.addresses,
+                            service
+                                .addresses
+                                .into_iter()
+                                .map(|address| address.to_ip_addr())
+                                .collect(),
                             service.port,
                             service.txt_properties.into_property_map_str(),
                             complete_address,
@@ -286,7 +290,7 @@ impl Discovery {
             }
 
             for address in &disco_service.addresses {
-                if info.get_addresses().contains(address) {
+                if info.get_addresses().contains(&address.to_ip_addr()) {
                     return true;
                 }
             }
@@ -308,7 +312,7 @@ pub(crate) mod tests {
     use serial_test::serial;
 
     use crate::tests::{
-        DOMAIN, check_function_with_device, check_function_with_two_devices, compare_device_data,
+        check_function_with_device, check_function_with_two_devices, compare_device_data, DOMAIN,
     };
 
     use super::Discovery;
