@@ -161,7 +161,7 @@ mod os_mac {
 
     #[cfg(test)]
     mod tests {
-        use super::{is_locally_administered_mac, is_virtual_mac_vendor, VM_MAC_PREFIXES};
+        use super::{VM_MAC_PREFIXES, is_locally_administered_mac, is_virtual_mac_vendor};
 
         #[test]
         fn test_is_locally_administered_mac() {
