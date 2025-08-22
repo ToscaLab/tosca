@@ -9,7 +9,7 @@ exclude = ["crates/ascot-esp32c3"]
 resolver = "2"
 
 [workspace.dependencies]
-indexmap.version = "2.7"
+indexmap.version = "2.10"
 indexmap.default-features = false
 
 serde.version = "1.0"
