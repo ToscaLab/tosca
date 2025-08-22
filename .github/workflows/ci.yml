@@ -24,7 +24,7 @@ on:
       - '!LICENSE'
 
 env:
-  RUST_PREVIOUS_VERSION: 1.86.0
+  RUST_PREVIOUS_VERSION: 1.88.0
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
