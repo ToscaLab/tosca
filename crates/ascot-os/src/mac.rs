@@ -50,23 +50,23 @@ mod os_mac {
         }
 
         // Canonical path checks for virtual devices or hypervisor interfaces.
-        if let Ok(canon) = fs::canonicalize(iface_path) {
-            if let Some(s) = canon.to_str() {
-                // Virtual devices path.
-                if s.contains("/sys/devices/virtual/") {
-                    return true;
-                }
-
-                // Hyper-V virtual interface.
-                if s.contains("VMBUS") {
-                    return true;
-                }
-
-                // Other hypervisors or virtualization platforms can be added here if needed.
-                // This check looks for specific path fragments that identify virtual interfaces.
-                // If a new platform uses a different path structure, its identifying strings can be added here
-                // to ensure those interfaces are correctly recognized as virtual.
+        if let Ok(canon) = fs::canonicalize(iface_path)
+            && let Some(s) = canon.to_str()
+        {
+            // Virtual devices path.
+            if s.contains("/sys/devices/virtual/") {
+                return true;
             }
+
+            // Hyper-V virtual interface.
+            if s.contains("VMBUS") {
+                return true;
+            }
+
+            // Other hypervisors or virtualization platforms can be added here if needed.
+            // This check looks for specific path fragments that identify virtual interfaces.
+            // If a new platform uses a different path structure, its identifying strings can be added here
+            // to ensure those interfaces are correctly recognized as virtual.
         }
 
         if let Some(name) = iface_path.file_name().and_then(|n| n.to_str()) {
@@ -161,7 +161,7 @@ mod os_mac {
 
     #[cfg(test)]
     mod tests {
-        use super::{VM_MAC_PREFIXES, is_locally_administered_mac, is_virtual_mac_vendor};
+        use super::{is_locally_administered_mac, is_virtual_mac_vendor, VM_MAC_PREFIXES};
 
         #[test]
         fn test_is_locally_administered_mac() {
