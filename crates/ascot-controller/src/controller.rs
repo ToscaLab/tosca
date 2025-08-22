@@ -80,7 +80,7 @@ impl DeviceSender<'_> {
     /// # Errors
     ///
     /// An error is returned when the given route **does** not exist.
-    pub fn request(&self, route: &str) -> Result<RequestSender, Error> {
+    pub fn request(&self, route: &str) -> Result<RequestSender<'_>, Error> {
         let request = self.device.request(route).ok_or(sender_error(format!(
             "Error in retrieving the request with route `{route}`."
         )))?;
@@ -221,7 +221,7 @@ impl Controller {
     ///
     /// An error is returned when there are no devices or the given index
     /// **does** not exist.
-    pub fn device(&self, id: usize) -> Result<DeviceSender, Error> {
+    pub fn device(&self, id: usize) -> Result<DeviceSender<'_>, Error> {
         if self.devices.is_empty() {
             return Err(sender_error("No devices found."));
         }
@@ -246,7 +246,7 @@ mod tests {
     use ascot::hazards::{Hazard, Hazards};
     use ascot::response::{OkResponse, SerialResponse};
 
-    use serde::{Serialize, de::DeserializeOwned};
+    use serde::{de::DeserializeOwned, Serialize};
     use serde_json::json;
 
     use serial_test::serial;
@@ -259,9 +259,9 @@ mod tests {
 
     use crate::device::tests::{create_light, create_unknown};
     use crate::discovery::tests::configure_discovery;
-    use crate::tests::{Brightness, check_function_with_device};
+    use crate::tests::{check_function_with_device, Brightness};
 
-    use super::{Controller, DeviceSender, RequestSender, sender_error};
+    use super::{sender_error, Controller, DeviceSender, RequestSender};
 
     #[test]
     fn empty_controller() {
