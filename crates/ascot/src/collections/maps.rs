@@ -1,23 +1,25 @@
 use core::hash::Hash;
 
+use hashbrown::DefaultHashBuilder;
+
 use indexmap::{
-    Equivalent,
     map::{IndexMap, IntoIter, Iter},
+    Equivalent,
 };
 
 use serde::{Deserialize, Serialize};
 
 /// A map of elements for internal storage.
 #[derive(Debug, Clone)]
-pub struct Map<K: Eq + Hash, V>(IndexMap<K, V>);
+pub struct Map<K: Eq + Hash, V>(IndexMap<K, V, DefaultHashBuilder>);
 
 /// A serializable map of elements.
 #[derive(Debug, Clone, Serialize)]
-pub struct SerialMap<K: Eq + Hash, V>(IndexMap<K, V>);
+pub struct SerialMap<K: Eq + Hash, V>(IndexMap<K, V, DefaultHashBuilder>);
 
 /// A serializable and deserializable map of elements.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct OutputMap<K: Eq + Hash, V>(IndexMap<K, V>);
+pub struct OutputMap<K: Eq + Hash, V>(IndexMap<K, V, DefaultHashBuilder>);
 
 macro_rules! from_map {
     ($for:ident) => {
@@ -87,7 +89,7 @@ macro_rules! map_implementation {
             #[must_use]
             #[inline]
             pub fn new() -> Self {
-                Self(IndexMap::new())
+                Self(IndexMap::with_hasher(DefaultHashBuilder::default()))
             }
 
             #[doc = concat!("Initializes a [`", stringify!($impl), "`] with a determined element.")]
