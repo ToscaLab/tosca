@@ -29,16 +29,13 @@
 #![deny(missing_docs)]
 #![no_std]
 
-#[cfg(feature = "alloc")]
 extern crate alloc;
 
-#[cfg(feature = "alloc")]
 mod macros;
 
 /// All methods to interact with an action.
 pub mod actions;
 /// All data collections.
-#[cfg(feature = "alloc")]
 pub mod collections;
 /// Description of a device with its routes information.
 pub mod device;
@@ -49,7 +46,6 @@ pub mod energy;
 /// Hazards descriptions and methods.
 pub mod hazards;
 /// Route input parameters.
-#[cfg(feature = "alloc")]
 pub mod parameters;
 /// All supported responses returned by a device action.
 pub mod response;

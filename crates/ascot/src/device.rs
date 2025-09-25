@@ -1,10 +1,7 @@
 use serde::{Deserialize, Serialize};
 
-#[cfg(feature = "alloc")]
 use crate::economy::Economy;
-#[cfg(feature = "alloc")]
 use crate::energy::Energy;
-#[cfg(feature = "alloc")]
 use crate::route::RouteConfigs;
 
 /// A device kind.
@@ -51,7 +48,6 @@ pub enum DeviceEnvironment {
 }
 
 /// Device information.
-#[cfg(feature = "alloc")]
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct DeviceInfo {
     /// Energy information.
@@ -64,7 +60,6 @@ pub struct DeviceInfo {
     pub economy: Economy,
 }
 
-#[cfg(feature = "alloc")]
 impl DeviceInfo {
     /// Creates a [`DeviceInfo`].
     #[must_use]
@@ -91,7 +86,6 @@ impl DeviceInfo {
 }
 
 /// Device data.
-#[cfg(feature = "alloc")]
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct DeviceData {
     /// Device kind.
@@ -115,7 +109,6 @@ pub struct DeviceData {
     pub mandatory_routes: u8,
 }
 
-#[cfg(feature = "alloc")]
 impl DeviceData {
     /// Creates a [`DeviceData`].
     #[must_use]
@@ -150,26 +143,17 @@ impl DeviceData {
 
 #[cfg(test)]
 mod tests {
-    #[cfg(feature = "alloc")]
-    use super::{DeviceData, DeviceInfo};
-    #[cfg(feature = "alloc")]
     use crate::collections::OutputSet;
-    #[cfg(feature = "alloc")]
-    use crate::economy::Economy;
-    #[cfg(feature = "alloc")]
-    use crate::energy::Energy;
-    #[cfg(feature = "alloc")]
     use crate::route::{Route, RouteConfigs};
 
-    #[cfg(feature = "alloc")]
-    use crate::economy::{Cost, CostTimespan, Roi};
-    #[cfg(feature = "alloc")]
-    use crate::energy::{CarbonFootprint, EnergyClass, EnergyEfficiency, WaterUseEfficiency};
+    use crate::economy::{Cost, CostTimespan, Economy, Roi};
+    use crate::energy::{
+        CarbonFootprint, Energy, EnergyClass, EnergyEfficiency, WaterUseEfficiency,
+    };
     use crate::{deserialize, serialize};
 
-    use super::{DeviceEnvironment, DeviceKind};
+    use super::{DeviceData, DeviceEnvironment, DeviceInfo, DeviceKind};
 
-    #[cfg(feature = "alloc")]
     fn energy() -> Energy {
         let energy_efficiencies = OutputSet::init(EnergyEfficiency::new(-50, EnergyClass::A))
             .insert(EnergyEfficiency::new(50, EnergyClass::B));
@@ -186,7 +170,6 @@ mod tests {
             .water_use_efficiency(water_use_efficiency)
     }
 
-    #[cfg(feature = "alloc")]
     fn economy() -> Economy {
         let costs = OutputSet::init(Cost::new(100, CostTimespan::Week))
             .insert(Cost::new(1000, CostTimespan::Month));
@@ -197,7 +180,6 @@ mod tests {
         Economy::init_with_costs(costs).roi(roi)
     }
 
-    #[cfg(feature = "alloc")]
     fn routes() -> RouteConfigs {
         OutputSet::init(Route::put("On", "/on").serialize_data())
             .insert(Route::put("Off", "/off").serialize_data())
@@ -223,7 +205,6 @@ mod tests {
         }
     }
 
-    #[cfg(feature = "alloc")]
     #[test]
     fn test_device_info() {
         let mut device_info = DeviceInfo::empty();
@@ -236,7 +217,6 @@ mod tests {
         );
     }
 
-    #[cfg(feature = "alloc")]
     #[test]
     fn test_device_data() {
         let device_data = DeviceData::new(

@@ -318,7 +318,6 @@ impl Hazard {
 }
 
 /// A collection of [`Hazard`]s.
-#[cfg(feature = "alloc")]
 pub type Hazards = crate::collections::OutputSet<Hazard>;
 
 /// All [`Hazard`] data.
@@ -427,7 +426,7 @@ impl Category {
 mod tests {
     use crate::{deserialize, serialize};
 
-    use super::{ALL_CATEGORIES, ALL_HAZARDS, Category, Hazard};
+    use super::{Category, Hazard, ALL_CATEGORIES, ALL_HAZARDS};
 
     #[test]
     fn test_hazard() {

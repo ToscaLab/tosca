@@ -1,12 +1,8 @@
-#[cfg(feature = "alloc")]
 use alloc::string::String;
 
-use serde::{Deserialize, Serialize, de::DeserializeOwned};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
-#[cfg(feature = "alloc")]
 use crate::actions::ActionError;
-
-#[cfg(feature = "alloc")]
 use crate::device::DeviceInfo;
 
 /// Action response kinds.
@@ -79,14 +75,12 @@ impl<T: Serialize + DeserializeOwned> SerialResponse<T> {
 /// Informative response.
 ///
 /// This response provides economy and energy information of a device.
-#[cfg(feature = "alloc")]
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct InfoResponse {
     #[serde(flatten)]
     data: DeviceInfo,
 }
 
-#[cfg(feature = "alloc")]
 impl InfoResponse {
     /// Creates a [`InfoResponse`].
     #[must_use]
@@ -99,7 +93,6 @@ impl InfoResponse {
 /// the execution of an action.
 ///
 /// It describes the kind of error, the cause, and optional information.
-#[cfg(feature = "alloc")]
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct ErrorResponse {
     /// Action error type.
@@ -110,7 +103,6 @@ pub struct ErrorResponse {
     pub info: Option<String>,
 }
 
-#[cfg(feature = "alloc")]
 impl ErrorResponse {
     /// Creates an [`ErrorResponse`] with a specific [`ActionError`] and
     /// a description.
@@ -173,7 +165,6 @@ mod tests {
 
     use super::{Deserialize, OkResponse, SerialResponse, Serialize};
 
-    #[cfg(feature = "alloc")]
     use super::{ActionError, DeviceInfo, ErrorResponse, InfoResponse, String};
 
     #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -199,7 +190,6 @@ mod tests {
         );
     }
 
-    #[cfg(feature = "alloc")]
     #[test]
     fn test_info_response() {
         let energy = crate::energy::Energy::init_with_water_use_efficiency(
@@ -225,7 +215,6 @@ mod tests {
         );
     }
 
-    #[cfg(feature = "alloc")]
     #[test]
     fn test_error_response() {
         let error = ErrorResponse::with_description(

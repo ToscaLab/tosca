@@ -109,7 +109,6 @@ impl EnergyEfficiency {
 }
 
 /// A collection of [`EnergyEfficiency`]s.
-#[cfg(feature = "alloc")]
 pub type EnergyEfficiencies = crate::collections::OutputSet<EnergyEfficiency>;
 
 /// Carbon footprint.
@@ -167,7 +166,6 @@ impl CarbonFootprint {
 }
 
 /// A collection of [`CarbonFootprints`]s.
-#[cfg(feature = "alloc")]
 pub type CarbonFootprints = crate::collections::OutputSet<CarbonFootprint>;
 
 /// Water-Use efficiency data.
@@ -250,7 +248,6 @@ impl WaterUseEfficiency {
 }
 
 /// Energy information of a device.
-#[cfg(feature = "alloc")]
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Energy {
     /// Energy efficiencies.
@@ -267,7 +264,6 @@ pub struct Energy {
     pub water_use_efficiency: Option<WaterUseEfficiency>,
 }
 
-#[cfg(feature = "alloc")]
 impl Energy {
     /// Creates an empty [`Energy`] instance.
     #[must_use]
@@ -346,9 +342,7 @@ impl Energy {
 
 #[cfg(test)]
 mod tests {
-    #[cfg(feature = "alloc")]
     use super::Energy;
-    #[cfg(feature = "alloc")]
     use crate::collections::OutputSet;
 
     use crate::{deserialize, serialize};
@@ -450,7 +444,6 @@ mod tests {
         );
     }
 
-    #[cfg(feature = "alloc")]
     #[test]
     fn test_energy() {
         let mut energy = Energy::empty();
