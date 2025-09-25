@@ -11,7 +11,7 @@ indexmap.workspace = true
 indexmap.optional = true
 
 serde.workspace = true
-serde.features = ["derive"]
+serde.features = ["derive", "alloc"]
 
 serde_json.workspace = true
 serde_json.features = ["alloc"]
@@ -21,5 +21,5 @@ hashbrown.default-features = false
 hashbrown.features = ["default-hasher"]
 
 [features]
-alloc = ["indexmap/serde", "serde/alloc",]
+alloc = ["indexmap/serde"]
 default = ["alloc"]
