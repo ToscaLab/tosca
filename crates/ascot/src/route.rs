@@ -234,9 +234,9 @@ mod internal_route {
             self
         }
 
-        /// Returns route path.
+        /// Returns the route path.
         #[must_use]
-        pub fn route(&self) -> &str {
+        pub const fn route(&self) -> &str {
             self.path
         }
 
