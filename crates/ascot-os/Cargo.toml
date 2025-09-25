@@ -39,7 +39,7 @@ tokio-util.default-features = false
 tokio-util.features = ["io"]
 
 [target.'cfg(windows)'.dependencies]
-windows-sys.version = "0.60.2"
+windows-sys.version = "0.61.0"
 windows-sys.features = ["Win32_NetworkManagement_IpHelper", "Win32_Foundation", "Win32_Networking_WinSock", "Win32_NetworkManagement_Ndis"]
 
 [dev-dependencies]
