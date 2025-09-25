@@ -3,8 +3,8 @@ use core::hash::Hash;
 use hashbrown::DefaultHashBuilder;
 
 use indexmap::{
-    map::{IndexMap, IntoIter, Iter},
     Equivalent,
+    map::{IndexMap, IntoIter, Iter},
 };
 
 use serde::{Deserialize, Serialize};
