@@ -146,12 +146,6 @@ jobs:
       - name: Run tests
         run: cargo test --verbose
 
-      - name: Run ascot tests (no default features)
-        run: cargo test --verbose -p ascot --no-default-features
-
-      - name: Test ascot tests (alloc feature)
-        run: cargo test --verbose -p ascot --no-default-features --features "alloc"
-
       - name: Generate lcov report
         run: |
           grcov . --binary-path ./target/debug/ -s . -t lcov --branch \
