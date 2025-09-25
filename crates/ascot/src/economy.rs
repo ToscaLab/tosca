@@ -67,7 +67,6 @@ impl Cost {
 }
 
 /// A collection of [`Cost`]s.
-#[cfg(feature = "alloc")]
 pub type Costs = crate::collections::OutputSet<Cost>;
 
 /// Return on investments (ROI).
@@ -115,11 +114,9 @@ impl Roi {
 }
 
 /// A collection of [`Roi`]s.
-#[cfg(feature = "alloc")]
 pub type Rois = crate::collections::OutputSet<Roi>;
 
 /// Economy data for a device.
-#[cfg(feature = "alloc")]
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Economy {
     /// Costs.
@@ -130,7 +127,6 @@ pub struct Economy {
     pub roi: Option<Rois>,
 }
 
-#[cfg(feature = "alloc")]
 impl Economy {
     /// Creates an empty [`Economy`] instance.
     #[must_use]
@@ -186,9 +182,7 @@ impl Economy {
 
 #[cfg(test)]
 mod tests {
-    #[cfg(feature = "alloc")]
     use super::Economy;
-    #[cfg(feature = "alloc")]
     use crate::collections::OutputSet;
 
     use crate::energy::EnergyClass;
@@ -227,7 +221,6 @@ mod tests {
         assert_eq!(Roi::new(20, EnergyClass::A).years, 20);
     }
 
-    #[cfg(feature = "alloc")]
     #[test]
     fn test_economy() {
         let mut economy = Economy::empty();
