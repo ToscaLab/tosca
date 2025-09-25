@@ -1,6 +1,6 @@
 use alloc::string::String;
 
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use serde::{Deserialize, Serialize, de::DeserializeOwned};
 
 use crate::actions::ActionError;
 use crate::device::DeviceInfo;

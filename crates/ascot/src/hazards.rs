@@ -426,7 +426,7 @@ impl Category {
 mod tests {
     use crate::{deserialize, serialize};
 
-    use super::{Category, Hazard, ALL_CATEGORIES, ALL_HAZARDS};
+    use super::{ALL_CATEGORIES, ALL_HAZARDS, Category, Hazard};
 
     #[test]
     fn test_hazard() {
