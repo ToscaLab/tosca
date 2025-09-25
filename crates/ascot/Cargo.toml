@@ -21,6 +21,5 @@ hashbrown.default-features = false
 hashbrown.features = ["default-hasher"]
 
 [features]
-# Preserve_order feature is mandatory and necessary for indexmap.
 alloc = ["indexmap/serde", "serde/alloc",]
 default = ["alloc"]
