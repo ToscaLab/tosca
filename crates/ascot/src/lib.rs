@@ -32,6 +32,7 @@
 #[cfg(feature = "alloc")]
 extern crate alloc;
 
+#[cfg(feature = "alloc")]
 mod macros;
 
 /// All methods to interact with an action.
