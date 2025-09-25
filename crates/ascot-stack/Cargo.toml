@@ -16,7 +16,7 @@ ascot.default-features = false
 serde.workspace = true
 serde.features = ["derive"]
 
-heapless.version = "0.8.0"
+heapless.version = "0.9.1"
 heapless.default-features = false
 heapless.features = ["serde"]
 
