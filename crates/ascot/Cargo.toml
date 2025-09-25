@@ -16,7 +16,7 @@ serde.features = ["derive", "alloc"]
 serde_json.workspace = true
 serde_json.features = ["alloc"]
 
-hashbrown.version = "0.15"
+hashbrown.version = "0.16"
 hashbrown.default-features = false
 hashbrown.features = ["default-hasher"]
 
