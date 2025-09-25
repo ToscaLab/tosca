@@ -161,7 +161,9 @@ mod tests {
     #[cfg(feature = "alloc")]
     use crate::route::{Route, RouteConfigs};
 
+    #[cfg(feature = "alloc")]
     use crate::economy::{Cost, CostTimespan, Roi};
+    #[cfg(feature = "alloc")]
     use crate::energy::{CarbonFootprint, EnergyClass, EnergyEfficiency, WaterUseEfficiency};
     use crate::{deserialize, serialize};
 
