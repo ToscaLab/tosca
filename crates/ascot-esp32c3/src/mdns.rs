@@ -5,17 +5,17 @@ use esp_hal::rng::Rng;
 
 use embassy_executor::Spawner;
 
-use embassy_sync::blocking_mutex::raw::NoopRawMutex;
 use embassy_sync::blocking_mutex::CriticalSectionMutex;
+use embassy_sync::blocking_mutex::raw::NoopRawMutex;
 use embassy_sync::signal::Signal;
 
 use embassy_net::Stack;
 
+use edge_mdns::HostAnswersMdnsHandler;
 use edge_mdns::buf::VecBufAccess;
 use edge_mdns::domain::base::Ttl;
 use edge_mdns::host::{Host, Service, ServiceAnswers};
 use edge_mdns::io::{self, DEFAULT_SOCKET};
-use edge_mdns::HostAnswersMdnsHandler;
 
 use edge_nal::UdpSplit;
 use edge_nal_embassy::{Udp, UdpBuffers};

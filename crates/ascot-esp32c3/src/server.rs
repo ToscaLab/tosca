@@ -6,8 +6,8 @@ use alloc::boxed::Box;
 
 use ascot::route::RestKind;
 
-use edge_http::io::server::{Connection, Handler, Server as EdgeServer};
 use edge_http::Method;
+use edge_http::io::server::{Connection, Handler, Server as EdgeServer};
 use edge_nal::TcpBind;
 use edge_nal_embassy::{Tcp, TcpBuffers};
 
@@ -89,12 +89,12 @@ pub struct Server<
 }
 
 impl<
-        const TX_SIZE: usize,
-        const RX_SIZE: usize,
-        const MAXIMUM_HEADERS_COUNT: usize,
-        const TIMEOUT: u32,
-        S,
-    > Server<TX_SIZE, RX_SIZE, MAXIMUM_HEADERS_COUNT, TIMEOUT, S>
+    const TX_SIZE: usize,
+    const RX_SIZE: usize,
+    const MAXIMUM_HEADERS_COUNT: usize,
+    const TIMEOUT: u32,
+    S,
+> Server<TX_SIZE, RX_SIZE, MAXIMUM_HEADERS_COUNT, TIMEOUT, S>
 where
     S: ValueFromRef + Send + Sync + 'static,
 {

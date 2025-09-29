@@ -91,8 +91,8 @@ impl From<embassy_net::dns::Error> for Error {
 
 impl<E: edge_nal::io::Error> From<edge_mdns::io::MdnsIoError<E>> for Error {
     fn from(e: edge_mdns::io::MdnsIoError<E>) -> Self {
-        use edge_mdns::io::MdnsIoError;
         use edge_mdns::MdnsError;
+        use edge_mdns::io::MdnsIoError;
         use edge_nal::io::ErrorKind;
         let err = match e {
             MdnsIoError::MdnsError(mdns_error) => match mdns_error {
@@ -104,24 +104,40 @@ impl<E: edge_nal::io::Error> From<edge_mdns::io::MdnsIoError<E>> for Error {
             MdnsIoError::IoError(io_error) => match io_error.kind() {
                 ErrorKind::Other => "I/O: Unspecified error kind",
                 ErrorKind::NotFound => "I/O: An entity was not found, often a file",
-                ErrorKind::PermissionDenied => "I/O: The operation lacked the necessary privileges to complete",
-                ErrorKind::ConnectionRefused => "I/O: The connection was refused by the remote server",
+                ErrorKind::PermissionDenied => {
+                    "I/O: The operation lacked the necessary privileges to complete"
+                }
+                ErrorKind::ConnectionRefused => {
+                    "I/O: The connection was refused by the remote server"
+                }
                 ErrorKind::ConnectionReset => "I/O: The connection was reset by the remote server",
-                ErrorKind::ConnectionAborted => "I/O: The connection was aborted (terminated) by the remote server",
-                ErrorKind::NotConnected => "I/O: The network operation failed because it was not connected yet",
-                ErrorKind::AddrInUse => "I/O: A socket address could not be bound because the address is already in use elsewhere",
-                ErrorKind::AddrNotAvailable => "I/O: A nonexistent interface was requested or the requested address was not local",
+                ErrorKind::ConnectionAborted => {
+                    "I/O: The connection was aborted (terminated) by the remote server"
+                }
+                ErrorKind::NotConnected => {
+                    "I/O: The network operation failed because it was not connected yet"
+                }
+                ErrorKind::AddrInUse => {
+                    "I/O: A socket address could not be bound because the address is already in use elsewhere"
+                }
+                ErrorKind::AddrNotAvailable => {
+                    "I/O: A nonexistent interface was requested or the requested address was not local"
+                }
                 ErrorKind::BrokenPipe => "I/O: The operation failed because a pipe was closed",
                 ErrorKind::AlreadyExists => "I/O: An entity already exists, often a file",
                 ErrorKind::InvalidInput => "I/O: A parameter was incorrect",
                 ErrorKind::InvalidData => "I/O: Data not valid for the operation were encountered",
-                ErrorKind::TimedOut => "I/O: The I/O operation’s timeout expired, causing it to be canceled",
+                ErrorKind::TimedOut => {
+                    "I/O: The I/O operation’s timeout expired, causing it to be canceled"
+                }
                 ErrorKind::Interrupted => "I/O: This operation was interrupted",
                 ErrorKind::Unsupported => "I/O: This operation is unsupported on this platform",
-                ErrorKind::OutOfMemory => "I/O: An operation could not be completed, because it failed to allocate enough memory",
+                ErrorKind::OutOfMemory => {
+                    "I/O: An operation could not be completed, because it failed to allocate enough memory"
+                }
                 ErrorKind::WriteZero => "I/O: An attempted write could not write any data",
-                _ =>  "I/O: Unknown or still non-existent error",
-            }
+                _ => "I/O: Unknown or still non-existent error",
+            },
         };
 
         Self::new(self::ErrorKind::MDns, err)
@@ -188,9 +204,9 @@ impl From<rust_mqtt::packet::v5::reason_codes::ReasonCode> for Error {
 
 impl From<edge_http::io::Error<edge_nal_embassy::TcpError>> for Error {
     fn from(e: edge_http::io::Error<edge_nal_embassy::TcpError>) -> Self {
+        use edge_http::HeadersMismatchError;
         use edge_http::io::Error;
         use edge_http::ws::UpgradeError;
-        use edge_http::HeadersMismatchError;
         match e {
             Error::InvalidHeaders => Self::new(ErrorKind::Server, "Invalid headers"),
             Error::InvalidBody => Self::new(ErrorKind::Server, "Invalid body"),
@@ -202,15 +218,23 @@ impl From<edge_http::io::Error<edge_nal_embassy::TcpError>> for Error {
             Error::InvalidState => Self::new(ErrorKind::Server, "Invalid state"),
             Error::ConnectionClosed => Self::new(ErrorKind::Server, "Connection closed"),
             Error::HeadersMismatchError(e) => match e {
-                HeadersMismatchError::ResponseConnectionTypeMismatchError =>
-                Self::new(ErrorKind::Server, "Connection type mismatch: Keep-Alive connection type in the response, while the request contained a Close connection type"),
+                HeadersMismatchError::ResponseConnectionTypeMismatchError => Self::new(
+                    ErrorKind::Server,
+                    "Connection type mismatch: Keep-Alive connection type in the response, while the request contained a Close connection type",
+                ),
                 HeadersMismatchError::BodyTypeError(e) => Self::new(ErrorKind::Server, e),
-            }
+            },
             Error::WsUpgradeError(e) => match e {
-                 UpgradeError::NoVersion => Self::new(ErrorKind::Server, "No `Sec-WebSocket-Version` header"),
-                 UpgradeError::NoSecKey => Self::new(ErrorKind::Server, "No `Sec-WebSocket-Key` header"),
-                 UpgradeError::UnsupportedVersion => Self::new(ErrorKind::Server, "Unsupported `Sec-WebSocket-Version`"),
-            }
+                UpgradeError::NoVersion => {
+                    Self::new(ErrorKind::Server, "No `Sec-WebSocket-Version` header")
+                }
+                UpgradeError::NoSecKey => {
+                    Self::new(ErrorKind::Server, "No `Sec-WebSocket-Key` header")
+                }
+                UpgradeError::UnsupportedVersion => {
+                    Self::new(ErrorKind::Server, "Unsupported `Sec-WebSocket-Version`")
+                }
+            },
             Error::Io(e) => Self::from(e),
         }
     }
