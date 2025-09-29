@@ -6,10 +6,10 @@ use esp_hal::timer::timg::Timer;
 
 use esp_wifi::{
     wifi::{
-        wifi_state, ClientConfiguration, Configuration, Interfaces, WifiController, WifiEvent,
-        WifiState,
+        ClientConfiguration, Configuration, Interfaces, WifiController, WifiEvent, WifiState,
+        wifi_state,
     },
-    {wifi, EspWifiController},
+    {EspWifiController, wifi},
 };
 
 use log::{error, info};

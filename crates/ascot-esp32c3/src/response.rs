@@ -8,12 +8,12 @@ use ascot::response::{
     SerialResponse as AscotSerialResponse,
 };
 
-use edge_http::io::server::Connection;
 use edge_http::io::Error;
+use edge_http::io::server::Connection;
 
 use embedded_io_async::{Read, Write};
 
-use serde::{de::DeserializeOwned, Serialize};
+use serde::{Serialize, de::DeserializeOwned};
 
 /// Response headers.
 pub struct Headers {
