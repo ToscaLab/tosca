@@ -1,50 +1,42 @@
-# ascot-esp32c3-light
+# Light Firmware
 
 [![LICENSE][license badge]][license]
 
-A light `Ascot` firmware to turn on and off the built-in LED of
-an `ESP32-C3` board.
+An `Ascot` light firmware to turn the built-in LED on an `ESP32-C3`
+board on and off.
 
-It implements an HTTP server which replies to `light/on` and
-`light/off` **REST** requests responsible for changing the state of the
-board built-in LED.
-For each request, the server response with the status of the ongoing action.
+It implements an `HTTP` server that manages the state of the board's
+built-in LED via `REST` requests:
 
-The board can de discovered in a network through a `mDNS-SD` service.
+- `light/on` route turns the LED on
+- `light/off` route turns the LED off
+- `light/toggle` route toggles the LED
 
-## Building Prerequisites
+For each request, the server responds with the _final_ status of the operation
+invoked by that request.
 
-Follow the [Prerequisites](https://github.com/esp-rs/esp-idf-template#prerequisites)
-section contained in the `esp-idf-template` crate.
+The board can be discovered by another node on the same network via
+an `mDNS-SD` service using the default domain `ascot`.
 
-## Building
+## Build Process
 
-Before any kind of build, run `cargo clean` to remove old builds configurations,
-and then run `cargo update` to update all dependencies.
-
-To build this firmware with the `debug` profile run:
-
-```console
-cargo build
-```
-
-To build this firmware with a `release` profile which enables all time and
-memory optimizations run:
+To build the firmware run:
 
 ```console
 cargo build --release
 ```
 
-## Running
-
 To flash and run the firmware on an `ESP32-C3` board:
 
 ```console
-cargo run [--release]
+cargo run --release
 ```
 
-The optional `--release` parameter is recommended since it enables all
-optimizations and makes the final firmware smaller.
+> [!IMPORTANT]
+> Always use the release profile [--release] when building esp-hal crate.
+  The dev profile can potentially be one or more orders of magnitude
+  slower than release profile, and may cause issues with timing-senstive
+  peripherals and/or devices.
 
 ## Board usage on WSL
 
@@ -57,25 +49,10 @@ connect the `USB` port used by the board to `WSL`.
 
 ## Usage Prerequisites
 
-- The [sdkconfig.defaults](./sdkconfig.defaults) configuration file will
-probably needs changes whenever the code is modified.
-For example, the stack size might be increased or a specific option might be
-added or removed.
-- Rename `cfg.toml.example` to `cfg.toml` and fill it with your
+- Rename `cfg.toml.example` to `cfg.toml` and populate it with your
 Wi-Fi credentials: `SSID` and `PASSWORD`
-- Connect the board to a laptop through a serial connection to visualize
-the log
-- Update the `ESP_IDF_VERSION` environment variable in the `.cargo/config.toml`
-file if any problems arise
-- Pin to a specific `nightly` version if more stability is requested
-- For an over-the-air (OTA) update, it could be needed to change the size of the
-partitions contained in the `partitions.csv` file. The offsets of each
-partition have been automatically computed by the `espflash` command, invoked
-during a `cargo run` instance. Their values have been later copied into the
-`partitions.csv` file in order to show them explicitly. Before running
-`cargo run` though, launch the `espflash erase-flash` command in order
-to delete old partitions configurations which might be present on the
-`ESP32-C3` board.
+- Connect the board to a laptop via a `USB-C` cable to view the logs
+- Pin the project to a specific `nightly` version for more stability, if needed
 
 <!-- Links -->
 [license]: https://github.com/SoftengPoliTo/ascot/blob/master/LICENSE
