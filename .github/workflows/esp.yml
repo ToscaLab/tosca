@@ -36,7 +36,7 @@ jobs:
         run: |
           cargo install ldproxy
 
-################################## ascot-esp32c3 ##################################
+################################## ascot-esp32c3 ##############################
 
       - name: Run rustfmt (ascot-esp32c3)
         working-directory: crates/ascot-esp32c3
@@ -50,7 +50,7 @@ jobs:
         working-directory: crates/ascot-esp32c3
         run: cargo build --verbose
 
-################################## light ##################################
+################################## light ######################################
 
       - name: Run rustfmt (light)
         working-directory: crates/ascot-esp32c3/examples/light
@@ -66,4 +66,22 @@ jobs:
 
       - name: Build (light)
         working-directory: crates/ascot-esp32c3/examples/light
+        run: cargo build --verbose
+
+################################## light-with-state ###########################
+
+      - name: Run rustfmt (light)
+        working-directory: crates/ascot-esp32c3/examples/light-with-state
+        run: cargo fmt --all -- --check --verbose
+
+      - name: Set up cfg.toml
+        working-directory: crates/ascot-esp32c3/examples/light-with-state
+        run: cp cfg.toml.example cfg.toml
+
+      - name: Run cargo clippy (light)
+        working-directory: crates/ascot-esp32c3/examples/light-with-state
+        run: cargo clippy --all-targets -- -Dclippy::all -Dclippy::pedantic
+
+      - name: Build (light)
+        working-directory: crates/ascot-esp32c3/examples/light-with-state
         run: cargo build --verbose
