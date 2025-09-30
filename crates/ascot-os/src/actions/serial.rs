@@ -10,19 +10,20 @@ use axum::{
     response::{IntoResponse, Response},
 };
 
-use serde::{Deserialize, Serialize, de::DeserializeOwned};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
-use super::{DeviceAction, MandatoryAction, error::ErrorResponse};
+use super::{error::ErrorResponse, DeviceAction, MandatoryAction};
 
-/// Serial response.
+/// A response which transmits a JSON message over the network containing
+/// the data produced during a device operation.
 ///
-/// This response provides more detailed information about an action.
+/// Data must be serializable and deserializable.
 #[derive(Serialize, Deserialize)]
 #[serde(bound = "T: Serialize + DeserializeOwned")]
 pub struct SerialResponse<T: DeserializeOwned>(AscotSerialResponse<T>);
 
 impl<T: Serialize + DeserializeOwned> SerialResponse<T> {
-    /// Creates a [`SerialResponse`].
+    /// Generates a [`SerialResponse`].
     #[must_use]
     pub const fn new(data: T) -> Self {
         Self(AscotSerialResponse::new(data))

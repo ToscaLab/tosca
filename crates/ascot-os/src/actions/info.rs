@@ -13,16 +13,15 @@ use axum::{
 
 use serde::{Deserialize, Serialize};
 
-use super::{DeviceAction, error::ErrorResponse};
+use super::{error::ErrorResponse, DeviceAction};
 
-/// Informative response.
-///
-/// This response provides economy and energy information of a device.
+/// A response which transmits a JSON message over the network containing
+/// a device's energy and economy information.
 #[derive(Serialize, Deserialize)]
 pub struct InfoResponse(AscotInfoResponse);
 
 impl InfoResponse {
-    /// Creates an [`InfoResponse`].
+    /// Generates an [`InfoResponse`].
     #[must_use]
     pub const fn new(info: DeviceInfo) -> Self {
         Self(AscotInfoResponse::new(info))

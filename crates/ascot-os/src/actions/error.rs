@@ -6,17 +6,19 @@ use axum::{
     response::{IntoResponse, Response},
 };
 
-/// A response containing structured information about an error occurred during
-/// the execution of an action.
+/// A response providing details about an error encountered during a
+/// device operation.
 ///
-/// It describes the kind of error, the cause, and optional information.
+/// Contains the [`ascot::response::ErrorKind`], a general error description,
+/// and optional information about the encountered error.
 pub struct ErrorResponse(Response);
 
 impl ErrorResponse {
-    /// Creates an [`ErrorResponse`] with a specific [`ErrorKind`] and
-    /// a description.
+    /// Generates an [`ErrorResponse`] containing an
+    /// [`ascot::response::ErrorResponse`].
     ///
-    /// If an error occurs, an empty description is returned.
+    /// Requires specifying the [`ErrorKind`] kind and a general
+    /// description.
     #[must_use]
     #[inline]
     pub fn with_description(error: ErrorKind, description: &str) -> Self {
@@ -24,11 +26,11 @@ impl ErrorResponse {
         Self((StatusCode::INTERNAL_SERVER_ERROR, Json(value)).into_response())
     }
 
-    /// Creates an [`ErrorResponse`] with a specific [`ErrorKind`], an
-    /// error description, and additional information about the error.
+    /// Generates an [`ErrorResponse`] containing an
+    /// [`ascot::response::ErrorResponse`].
     ///
-    /// If this method fails for some internal reasons, empty description and
-    /// information are returned.
+    /// Requires specifying the [`ErrorKind`] kind, a general error
+    /// description, and optional information about the encountered error.
     #[must_use]
     #[inline]
     pub fn with_description_error(error: ErrorKind, description: &str, info: &str) -> Self {
@@ -36,42 +38,41 @@ impl ErrorResponse {
         Self((StatusCode::INTERNAL_SERVER_ERROR, Json(value)).into_response())
     }
 
-    /// Creates an [`ErrorResponse`] for invalid data with a description.
+    /// Generates an [`ErrorResponse`] for invalid data.
     ///
-    /// If this method fails for some internal reasons, an empty description
-    /// is returned.
+    ///
+    /// Requires specifying a general error description.
     #[must_use]
     #[inline]
     pub fn invalid_data(description: &str) -> Self {
         Self::with_description(ErrorKind::InvalidData, description)
     }
 
-    /// Creates an [`ErrorResponse`] for invalid data with a description and
-    /// additional information about the error.
+    /// Generates an [`ErrorResponse`] for invalid data.
     ///
-    /// If this method fails for some internal reasons, empty description and
-    /// information are returned.
+    ///
+    /// Requires specifying a general error description and optional
+    /// information about the encountered error.
     #[must_use]
     #[inline]
     pub fn invalid_data_with_error(description: &str, error: &str) -> Self {
         Self::with_description_error(ErrorKind::InvalidData, description, error)
     }
 
-    /// Creates an [`ErrorResponse`] for an internal error with a description.
+    /// Generates an [`ErrorResponse`] for an internal error.
     ///
-    /// If this method fails for some internal reasons, an empty description
-    /// is returned.
+    /// Requires specifying a general error description.
     #[must_use]
     #[inline]
     pub fn internal(description: &str) -> Self {
         Self::with_description(ErrorKind::Internal, description)
     }
 
-    /// Creates an [`ErrorResponse`] for an internal error with a description and
-    /// additional information about the error.
+    /// Generates an [`ErrorResponse`] for an internal error.
     ///
-    /// If this method fails for some internal reasons, empty description and
-    /// information are returned.
+    ///
+    /// Requires specifying a general error description and optional
+    /// information about the encountered error.
     #[must_use]
     #[inline]
     pub fn internal_with_error(description: &str, error: &str) -> Self {

@@ -12,15 +12,15 @@ use axum::{
 
 use serde::{Deserialize, Serialize};
 
-use super::{DeviceAction, MandatoryAction, error::ErrorResponse};
+use super::{error::ErrorResponse, DeviceAction, MandatoryAction};
 
-/// An `Ok` response sends a boolean to notify a receiver that a device action
-/// has terminated correctly.
+/// A response which transmits a concise JSON message over the network to notify
+/// a controller that an operation completed successfully.
 #[derive(Serialize, Deserialize)]
 pub struct OkResponse(AscotOkResponse);
 
 impl OkResponse {
-    /// Creates an [`OkResponse`].
+    /// Generates an [`OkResponse`].
     #[must_use]
     #[inline]
     pub fn ok() -> Self {
