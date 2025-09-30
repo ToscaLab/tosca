@@ -16,15 +16,14 @@ use futures_core::TryStream;
 use tokio::io::AsyncRead;
 use tokio_util::io::ReaderStream;
 
-use super::{DeviceAction, MandatoryAction, error::ErrorResponse};
+use super::{error::ErrorResponse, DeviceAction, MandatoryAction};
 
-/// A stream response.
-///
-/// Stream of data expressed as a sequence of bytes.
+/// A response which transmits a stream of data, represented as a
+/// sequence of bytes, over the network.
 pub struct StreamResponse(Response);
 
 impl StreamResponse {
-    /// Creates a [`StreamResponse`] from headers and stream.
+    /// Generates a [`StreamResponse`] from headers and stream.
     #[inline]
     pub fn from_headers_stream<const N: usize, S>(
         headers: [(HeaderName, &str); N],
@@ -38,7 +37,7 @@ impl StreamResponse {
         Self((headers, Body::from_stream(stream)).into_response())
     }
 
-    /// Creates a [`StreamResponse`] from a stream.
+    /// Generates a [`StreamResponse`] from a stream.
     #[inline]
     pub fn from_stream<S>(stream: S) -> Self
     where
@@ -49,7 +48,7 @@ impl StreamResponse {
         Self(Body::from_stream(stream).into_response())
     }
 
-    /// Creates a [`StreamResponse`] from headers and reader.
+    /// Generates a [`StreamResponse`] from headers and reader.
     #[inline]
     pub fn from_headers_reader<const N: usize, R>(
         headers: [(HeaderName, &str); N],
@@ -62,7 +61,7 @@ impl StreamResponse {
         Self((headers, Body::from_stream(stream)).into_response())
     }
 
-    /// Creates a [`StreamResponse`] from a reader.
+    /// Generates a [`StreamResponse`] from a reader.
     #[inline]
     pub fn from_reader<R>(reader: R) -> Self
     where
