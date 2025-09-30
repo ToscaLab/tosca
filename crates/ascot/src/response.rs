@@ -7,17 +7,17 @@ use crate::device::DeviceInfo;
 /// Response kinds.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Serialize, Deserialize)]
 pub enum ResponseKind {
-    /// This response sends a concise JSON message over the network to notify a
-    /// controller that an operation completed successfully.
+    /// This response transmits a concise JSON message over the network to
+    /// notify a controller that an operation completed successfully.
     #[default]
     Ok,
-    /// This response sends a JSON message over the network containing the data
-    /// produced during a device operation.
+    /// This response transmits a JSON message over the network containing
+    /// the data produced during a device operation.
     Serial,
-    /// This response sends a JSON message over the network containing
+    /// This response transmits a JSON message over the network containing
     /// a device's energy and economy information.
     Info,
-    /// This response sends a stream of data, represented as a
+    /// This response transmits a stream of data, represented as a
     /// sequence of bytes, over the network.
     Stream,
 }
@@ -34,8 +34,8 @@ impl core::fmt::Display for ResponseKind {
     }
 }
 
-/// A response which sends a concise JSON message over the network to notify a
-/// controller that an operation completed successfully.
+/// A response which transmits a concise JSON message over the network to notify
+/// a controller that an operation completed successfully.
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct OkResponse {
     action_terminated_correctly: bool,
@@ -51,8 +51,8 @@ impl OkResponse {
     }
 }
 
-/// A response which sends a JSON message over the network containing the data
-/// produced during a device operation.
+/// A response which transmits a JSON message over the network containing
+/// the data produced during a device operation.
 ///
 /// Data must be serializable and deserializable.
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -67,7 +67,7 @@ impl<T: Serialize + DeserializeOwned> SerialResponse<T> {
     }
 }
 
-/// A response which sends a JSON message over the network containing
+/// A response which transmits a JSON message over the network containing
 /// a device's energy and economy information.
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct InfoResponse(DeviceInfo);
@@ -85,14 +85,15 @@ impl InfoResponse {
 pub enum ErrorKind {
     /// Some data encountered during a device operation is invalid or malformed.
     InvalidData,
-    /// An internal error has occurred during the execution of a device operation.
+    /// An internal error has occurred during the execution of a device
+    /// operation.
     Internal,
 }
 
 /// A response providing details about an error encountered during a
 /// device operation.
 ///
-/// Contains the error kind, a general error description,
+/// Contains the [`ErrorKind`], a general error description,
 /// and optional information about the encountered error.
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct ErrorResponse<'a> {
