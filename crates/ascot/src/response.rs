@@ -1,4 +1,4 @@
-use alloc::string::String;
+use alloc::borrow::Cow;
 
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
@@ -95,25 +95,25 @@ pub enum ErrorKind {
 /// Contains the error kind, a general error description,
 /// and optional information about the encountered error.
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct ErrorResponse {
+pub struct ErrorResponse<'a> {
     /// Error kind.
     pub error: ErrorKind,
     /// Error description.
-    pub description: String,
+    pub description: Cow<'a, str>,
     /// Information describing the encountered error.
-    pub info: Option<String>,
+    pub info: Option<Cow<'a, str>>,
 }
 
-impl ErrorResponse {
+impl<'a> ErrorResponse<'a> {
     /// Generates an [`ErrorResponse`].
     ///
     /// Requires specifying the [`ErrorKind`] and a general error description.
     #[must_use]
     #[inline]
-    pub fn with_description(error: ErrorKind, description: &str) -> Self {
+    pub fn with_description(error: ErrorKind, description: &'a str) -> Self {
         Self {
             error,
-            description: String::from(description),
+            description: Cow::Borrowed(description),
             info: None,
         }
     }
@@ -124,11 +124,11 @@ impl ErrorResponse {
     /// description, and optional information about the encountered error.
     #[must_use]
     #[inline]
-    pub fn with_description_error(error: ErrorKind, description: &str, info: &str) -> Self {
+    pub fn with_description_error(error: ErrorKind, description: &'a str, info: &'a str) -> Self {
         Self {
             error,
-            description: String::from(description),
-            info: Some(String::from(info)),
+            description: Cow::Borrowed(description),
+            info: Some(Cow::Borrowed(info)),
         }
     }
 
@@ -137,7 +137,7 @@ impl ErrorResponse {
     /// Requires specifying a general error description.
     #[must_use]
     #[inline]
-    pub fn invalid_data(description: &str) -> Self {
+    pub fn invalid_data(description: &'a str) -> Self {
         Self::with_description(ErrorKind::InvalidData, description)
     }
 
@@ -148,7 +148,7 @@ impl ErrorResponse {
     /// information about the encountered error.
     #[must_use]
     #[inline]
-    pub fn invalid_data_with_error(description: &str, info: &str) -> Self {
+    pub fn invalid_data_with_error(description: &'a str, info: &'a str) -> Self {
         Self::with_description_error(ErrorKind::InvalidData, description, info)
     }
 
@@ -157,7 +157,7 @@ impl ErrorResponse {
     /// Requires specifying a general error description.
     #[must_use]
     #[inline]
-    pub fn internal(description: &str) -> Self {
+    pub fn internal(description: &'a str) -> Self {
         Self::with_description(ErrorKind::Internal, description)
     }
 
@@ -168,7 +168,7 @@ impl ErrorResponse {
     /// information about the encountered error.
     #[must_use]
     #[inline]
-    pub fn internal_with_error(description: &str, info: &str) -> Self {
+    pub fn internal_with_error(description: &'a str, info: &'a str) -> Self {
         Self::with_description_error(ErrorKind::Internal, description, info)
     }
 }
@@ -179,7 +179,7 @@ mod tests {
 
     use super::{Deserialize, OkResponse, SerialResponse, Serialize};
 
-    use super::{DeviceInfo, ErrorKind, ErrorResponse, InfoResponse, String};
+    use super::{Cow, DeviceInfo, ErrorKind, ErrorResponse, InfoResponse};
 
     #[derive(Debug, PartialEq, Serialize, Deserialize)]
     struct Serial {
@@ -240,7 +240,7 @@ mod tests {
             deserialize::<ErrorResponse>(serialize(error)),
             ErrorResponse {
                 error: ErrorKind::InvalidData,
-                description: String::from("Invalid data error description"),
+                description: Cow::Borrowed("Invalid data error description"),
                 info: None,
             }
         );
