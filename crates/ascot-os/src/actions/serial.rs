@@ -37,6 +37,7 @@ impl<T: Serialize + DeserializeOwned> IntoResponse for SerialResponse<T> {
 }
 
 mod private {
+    #[doc(hidden)]
     pub trait SerialTypeName<Args> {}
 }
 

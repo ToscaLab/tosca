@@ -35,6 +35,7 @@ impl IntoResponse for InfoResponse {
 }
 
 mod private {
+    #[doc(hidden)]
     pub trait InfoTypeName<Args> {}
 }
 

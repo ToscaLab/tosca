@@ -35,6 +35,7 @@ impl IntoResponse for OkResponse {
 }
 
 mod private {
+    #[doc(hidden)]
     pub trait OkTypeName<Args> {}
 }
 
