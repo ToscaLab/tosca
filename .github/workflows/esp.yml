@@ -46,6 +46,10 @@ jobs:
         working-directory: crates/ascot-esp32c3
         run: cargo clippy -- -Dclippy::all -Dclippy::pedantic
 
+      - name: Run cargo doc (ascot-esp32c3)
+        working-directory: crates/ascot-esp32c3
+        run: cargo doc --verbose
+
       - name: Build (ascot-esp32c3)
         working-directory: crates/ascot-esp32c3
         run: cargo build --verbose
