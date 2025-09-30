@@ -7,7 +7,7 @@ use ascot::device::DeviceInfo;
 use ascot::energy::{EnergyClass, EnergyEfficiencies, EnergyEfficiency};
 use ascot::hazards::Hazard;
 use ascot::parameters::Parameters;
-use ascot::route::Route;
+use ascot::route::{LightOffRoute, LightOnRoute, Route};
 
 use ascot_os::actions::error::ErrorResponse;
 use ascot_os::actions::info::{info_stateful, InfoResponse};
@@ -223,7 +223,7 @@ async fn main() -> Result<(), Error> {
     let state = LightState::new(LightMockup::default(), DeviceInfo::empty());
 
     // Turn light on `PUT` route.
-    let light_on_route = Route::put("On", "/on")
+    let light_on_route = LightOnRoute::put("On")
         .description("Turn light on.")
         .with_hazard(Hazard::ElectricEnergyConsumption)
         .with_parameters(
@@ -243,7 +243,7 @@ async fn main() -> Result<(), Error> {
         );
 
     // Turn light off `PUT` route.
-    let light_off_route = Route::put("Off", "/off").description("Turn light off.");
+    let light_off_route = LightOffRoute::put("Off").description("Turn light off.");
 
     // Toggle `PUT` route.
     let toggle_route = Route::put("Toggle", "/toggle")
@@ -263,9 +263,9 @@ async fn main() -> Result<(), Error> {
     // A light device which is going to be run on the server.
     let device = Light::with_state(state)
         // This method is mandatory, if not called, a compiler error is raised.
-        .turn_light_on(mandatory_serial_stateful(light_on_route, turn_light_on))
+        .turn_light_on(light_on_route, mandatory_serial_stateful(turn_light_on))
         // This method is mandatory, if not called, a compiler error is raised.
-        .turn_light_off(mandatory_ok_stateful(light_off_route, turn_light_off))
+        .turn_light_off(light_off_route, mandatory_ok_stateful(turn_light_off))
         .add_action(serial_stateful(light_on_post_route, turn_light_on))?
         .add_action(ok_stateful(toggle_route, toggle))?
         .add_info_action(info_stateful(info_route, info))
