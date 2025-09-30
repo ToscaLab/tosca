@@ -1,26 +1,25 @@
 use alloc::string::String;
 
-use serde::{Deserialize, Serialize, de::DeserializeOwned};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
 use crate::actions::ActionError;
 use crate::device::DeviceInfo;
 
-/// Action response kinds.
+/// Response kinds.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Serialize, Deserialize)]
 pub enum ResponseKind {
-    /// A short message to notify a receiver that an action has terminated
-    /// correctly.
+    /// This response sends a concise JSON message over the network to notify a
+    /// controller that an operation completed successfully.
     #[default]
     Ok,
-    /// Serial data (i.e. JSON).
-    ///
-    /// This response provides more detailed information about an action.
+    /// This response sends a JSON message over the network containing the data
+    /// produced during a device operation.
     Serial,
-    /// Informative data to describe a device (i.e. JSON).
-    ///
-    /// This response provides economy and energy information of a device.
+    /// This response sends a JSON message over the network containing
+    /// a device's energy and economy information.
     Info,
-    /// Stream of data expressed as a sequence of bytes.
+    /// This response sends a stream of data, represented as a
+    /// sequence of bytes, over the network.
     Stream,
 }
 
@@ -36,15 +35,15 @@ impl core::fmt::Display for ResponseKind {
     }
 }
 
-/// An `Ok` response sends a boolean to notify a receiver that a device action
-/// has terminated correctly.
+/// A response which sends a concise JSON message over the network to notify a
+/// controller that an operation completed successfully.
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct OkResponse {
     action_terminated_correctly: bool,
 }
 
 impl OkResponse {
-    /// Creates an [`OkResponse`].
+    /// Generates an [`OkResponse`].
     #[must_use]
     #[inline]
     pub fn ok() -> Self {
@@ -54,9 +53,10 @@ impl OkResponse {
     }
 }
 
-/// Serial response.
+/// A response which sends a JSON message over the network containing the data
+/// produced during a device operation.
 ///
-/// This response provides more detailed information about an action.
+/// Data must be serializable and deserializable.
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 #[serde(bound = "T: Serialize + DeserializeOwned")]
 pub struct SerialResponse<T: DeserializeOwned> {
@@ -65,16 +65,15 @@ pub struct SerialResponse<T: DeserializeOwned> {
 }
 
 impl<T: Serialize + DeserializeOwned> SerialResponse<T> {
-    /// Creates a [`SerialResponse`].
+    /// Generates a [`SerialResponse`].
     #[must_use]
     pub const fn new(data: T) -> Self {
         Self { data }
     }
 }
 
-/// Informative response.
-///
-/// This response provides economy and energy information of a device.
+/// A response which sends a JSON message over the network containing
+/// a device's energy and economy information.
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct InfoResponse {
     #[serde(flatten)]
@@ -82,30 +81,33 @@ pub struct InfoResponse {
 }
 
 impl InfoResponse {
-    /// Creates a [`InfoResponse`].
+    /// Generates an [`InfoResponse`].
     #[must_use]
     pub const fn new(data: DeviceInfo) -> Self {
         Self { data }
     }
 }
 
-/// A response containing structured information about an error occurred during
-/// the execution of an action.
+/// A response providing details about an error encountered during a
+/// device operation.
 ///
-/// It describes the kind of error, the cause, and optional information.
+/// Contains the error kind, a general error description,
+/// and optional information about the encountered error.
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct ErrorResponse {
-    /// Action error type.
+    /// Error type.
     pub error: ActionError,
     /// Error description.
     pub description: String,
-    /// Information about an error.
+    /// Information describing the encountered error.
     pub info: Option<String>,
 }
 
 impl ErrorResponse {
-    /// Creates an [`ErrorResponse`] with a specific [`ActionError`] and
-    /// a description.
+    /// Generates an [`ErrorResponse`].
+    ///
+    /// Requires specifying the [`ActionError`] kind and a general error
+    /// description.
     #[must_use]
     #[inline]
     pub fn with_description(error: ActionError, description: &str) -> Self {
@@ -116,8 +118,10 @@ impl ErrorResponse {
         }
     }
 
-    /// Creates an [`ErrorResponse`] with a specific [`ActionError`], an
-    /// error description, and additional information about the error.
+    /// Generates an [`ErrorResponse`].
+    ///
+    /// Requires specifying the [`ActionError`] kind, a general error
+    /// description, and optional information about the encountered error.
     #[must_use]
     #[inline]
     pub fn with_description_error(error: ActionError, description: &str, info: &str) -> Self {
@@ -128,30 +132,40 @@ impl ErrorResponse {
         }
     }
 
-    /// Creates an [`ErrorResponse`] for invalid data with a description.
+    /// Generates an [`ErrorResponse`] for invalid data.
+    ///
+    /// Requires specifying a general error description.
     #[must_use]
     #[inline]
     pub fn invalid_data(description: &str) -> Self {
         Self::with_description(ActionError::InvalidData, description)
     }
 
-    /// Creates an [`ErrorResponse`] for invalid data with a description and
-    /// additional information about the error.
+    /// Generates an [`ErrorResponse`] for invalid data.
+    ///
+    ///
+    /// Requires specifying a general error description and optional
+    /// information about the encountered error.
     #[must_use]
     #[inline]
     pub fn invalid_data_with_error(description: &str, info: &str) -> Self {
         Self::with_description_error(ActionError::InvalidData, description, info)
     }
 
-    /// Creates an [`ErrorResponse`] for an internal error with a description.
+    /// Generates an [`ErrorResponse`] for an internal error.
+    ///
+    /// Requires specifying a general error description.
     #[must_use]
     #[inline]
     pub fn internal(description: &str) -> Self {
         Self::with_description(ActionError::Internal, description)
     }
 
-    /// Creates an [`ErrorResponse`] for an internal error with a description
-    /// and additional information about the error.
+    /// Generates an [`ErrorResponse`] for an internal error.
+    ///
+    ///
+    /// Requires specifying a general error description and optional
+    /// information about the encountered error.
     #[must_use]
     #[inline]
     pub fn internal_with_error(description: &str, info: &str) -> Self {
