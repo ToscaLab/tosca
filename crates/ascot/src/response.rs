@@ -181,11 +181,6 @@ mod tests {
 
     use super::{Cow, DeviceInfo, ErrorKind, ErrorResponse, InfoResponse};
 
-    #[derive(Debug, PartialEq, Serialize, Deserialize)]
-    struct Serial {
-        value: u32,
-    }
-
     #[test]
     fn test_ok_response() {
         assert_eq!(
@@ -197,10 +192,32 @@ mod tests {
     }
 
     #[test]
-    fn test_serial_response() {
+    fn test_serial_value_response() {
+        #[derive(Debug, PartialEq, Serialize, Deserialize)]
+        struct SerialValue {
+            value: u32,
+        }
+
         assert_eq!(
-            deserialize::<Serial>(serialize(SerialResponse::new(Serial { value: 42 }))),
-            Serial { value: 42 },
+            deserialize::<SerialValue>(serialize(SerialResponse::new(SerialValue { value: 42 }))),
+            SerialValue { value: 42 },
+        );
+    }
+
+    #[test]
+    fn test_serial_cow_response() {
+        #[derive(Debug, PartialEq, Serialize, Deserialize)]
+        struct SerialCow<'a> {
+            value: Cow<'a, str>,
+        }
+
+        assert_eq!(
+            deserialize::<SerialCow>(serialize(SerialResponse::new(SerialCow {
+                value: Cow::Borrowed("hi")
+            }))),
+            SerialCow {
+                value: Cow::Owned("hi".into())
+            },
         );
     }
 
