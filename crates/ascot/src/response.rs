@@ -44,8 +44,7 @@ pub struct OkResponse {
 impl OkResponse {
     /// Generates an [`OkResponse`].
     #[must_use]
-    #[inline]
-    pub fn ok() -> Self {
+    pub const fn ok() -> Self {
         Self {
             action_terminated_correctly: true,
         }
