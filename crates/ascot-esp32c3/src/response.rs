@@ -8,12 +8,12 @@ use ascot::response::{
     SerialResponse as AscotSerialResponse,
 };
 
-use edge_http::io::Error;
 use edge_http::io::server::Connection;
+use edge_http::io::Error;
 
 use embedded_io_async::{Read, Write};
 
-use serde::{Serialize, de::DeserializeOwned};
+use serde::{de::DeserializeOwned, Serialize};
 
 /// Response headers.
 pub struct Headers {
@@ -104,7 +104,7 @@ impl From<Result<Response, Response>> for Response {
 // response for embedded systems.
 impl Response {
     /// Generates a [`Response`] with an `Ok` status and containing an
-    /// [`ascot::OkResponse`].
+    /// [`ascot::response::OkResponse`].
     #[must_use]
     #[inline]
     pub fn ok() -> Response {
@@ -113,7 +113,7 @@ impl Response {
     }
 
     /// Generates a [`Response`] with an `Ok` status and containing a
-    /// [`ascot::SerialResponse`].
+    /// [`ascot::response::SerialResponse`].
     #[must_use]
     #[inline]
     pub fn serial<T: Serialize + DeserializeOwned>(value: T) -> Self {
@@ -122,7 +122,7 @@ impl Response {
     }
 
     /// Generates a [`Response`] with an `Ok` status and containing a
-    /// [`ascot::SerialResponse`] derived from a given text input.
+    /// [`ascot::response::SerialResponse`] derived from a given text input.
     #[must_use]
     #[inline]
     pub fn text(value: &str) -> Self {
@@ -131,10 +131,10 @@ impl Response {
         Response::new(Headers::json(), Body::owned(value))
     }
 
-    /// Generates a [`Response`] with an `Error` status and containing a
-    /// [`ascot::ErrorResponse`].
+    /// Generates a [`Response`] with an `Error` status and containing an
+    /// [`ascot::response::ErrorResponse`].
     ///
-    /// Requires specifying the type of [`ActionError`] and a general
+    /// Requires specifying the [`ActionError`] kind and a general
     /// description.
     #[must_use]
     #[inline]
@@ -144,10 +144,10 @@ impl Response {
     }
 
     /// Generates a [`Response`] with an `Error` status and containing a
-    /// [`ascot::ErrorResponse`].
+    /// [`ascot::response::ErrorResponse`].
     ///
-    /// Requires specifying the type of [`ActionError`], a general error
-    /// description, and additional information about the error.
+    /// Requires specifying the [`ActionError`] kind, a general error
+    /// description, and optional information about the encountered error.
     #[must_use]
     #[inline]
     pub fn error_with_info(error: ActionError, description: &str, info: &str) -> Self {
@@ -159,7 +159,7 @@ impl Response {
         Response::new(Headers::json_error(), Body::owned(value))
     }
 
-    /// An alias for the [`error`] API, used to generate an invalid data
+    /// An alias for the [`Self::error`] API, used to generate an invalid data
     /// [`Response`].
     ///
     /// Requires specifying a general error description.
@@ -169,7 +169,7 @@ impl Response {
         Self::error(ActionError::InvalidData, description)
     }
 
-    /// An alias for the [`error`] API, used to generate an internal error
+    /// An alias for the [`Self::error`] API, used to generate an internal error
     /// [`Response`].
     ///
     /// Requires specifying a general error description.
@@ -179,11 +179,11 @@ impl Response {
         Self::error(ActionError::Internal, description)
     }
 
-    /// An alias for the [`error`] API, used to generate an internal error
+    /// An alias for the [`Self::error`] API, used to generate an internal error
     /// [`Response`] with some details about the error.
     ///
     /// Requires specifying a general error description and additional
-    /// information about the error.
+    /// information about the encountered error.
     #[must_use]
     #[inline]
     pub fn internal_with_error(description: &str, info: &str) -> Self {
