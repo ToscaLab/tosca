@@ -33,8 +33,6 @@ extern crate alloc;
 
 mod macros;
 
-/// All methods to interact with an action.
-pub mod actions;
 /// All data collections.
 pub mod collections;
 /// Description of a device with its routes information.

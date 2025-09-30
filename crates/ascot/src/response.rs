@@ -2,7 +2,6 @@ use alloc::string::String;
 
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
-use crate::actions::ActionError;
 use crate::device::DeviceInfo;
 
 /// Response kinds.
@@ -88,6 +87,15 @@ impl InfoResponse {
     }
 }
 
+/// All possible errors that may cause a device operation to fail.
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub enum ErrorKind {
+    /// Some data encountered during a device operation is invalid or malformed.
+    InvalidData,
+    /// An internal error has occurred during the execution of a device operation.
+    Internal,
+}
+
 /// A response providing details about an error encountered during a
 /// device operation.
 ///
@@ -95,8 +103,8 @@ impl InfoResponse {
 /// and optional information about the encountered error.
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct ErrorResponse {
-    /// Error type.
-    pub error: ActionError,
+    /// Error kind.
+    pub error: ErrorKind,
     /// Error description.
     pub description: String,
     /// Information describing the encountered error.
@@ -106,11 +114,10 @@ pub struct ErrorResponse {
 impl ErrorResponse {
     /// Generates an [`ErrorResponse`].
     ///
-    /// Requires specifying the [`ActionError`] kind and a general error
-    /// description.
+    /// Requires specifying the [`ErrorKind`] and a general error description.
     #[must_use]
     #[inline]
-    pub fn with_description(error: ActionError, description: &str) -> Self {
+    pub fn with_description(error: ErrorKind, description: &str) -> Self {
         Self {
             error,
             description: String::from(description),
@@ -120,11 +127,11 @@ impl ErrorResponse {
 
     /// Generates an [`ErrorResponse`].
     ///
-    /// Requires specifying the [`ActionError`] kind, a general error
+    /// Requires specifying the [`ErrorKind`], a general error
     /// description, and optional information about the encountered error.
     #[must_use]
     #[inline]
-    pub fn with_description_error(error: ActionError, description: &str, info: &str) -> Self {
+    pub fn with_description_error(error: ErrorKind, description: &str, info: &str) -> Self {
         Self {
             error,
             description: String::from(description),
@@ -138,7 +145,7 @@ impl ErrorResponse {
     #[must_use]
     #[inline]
     pub fn invalid_data(description: &str) -> Self {
-        Self::with_description(ActionError::InvalidData, description)
+        Self::with_description(ErrorKind::InvalidData, description)
     }
 
     /// Generates an [`ErrorResponse`] for invalid data.
@@ -149,7 +156,7 @@ impl ErrorResponse {
     #[must_use]
     #[inline]
     pub fn invalid_data_with_error(description: &str, info: &str) -> Self {
-        Self::with_description_error(ActionError::InvalidData, description, info)
+        Self::with_description_error(ErrorKind::InvalidData, description, info)
     }
 
     /// Generates an [`ErrorResponse`] for an internal error.
@@ -158,7 +165,7 @@ impl ErrorResponse {
     #[must_use]
     #[inline]
     pub fn internal(description: &str) -> Self {
-        Self::with_description(ActionError::Internal, description)
+        Self::with_description(ErrorKind::Internal, description)
     }
 
     /// Generates an [`ErrorResponse`] for an internal error.
@@ -169,7 +176,7 @@ impl ErrorResponse {
     #[must_use]
     #[inline]
     pub fn internal_with_error(description: &str, info: &str) -> Self {
-        Self::with_description_error(ActionError::Internal, description, info)
+        Self::with_description_error(ErrorKind::Internal, description, info)
     }
 }
 
@@ -179,7 +186,7 @@ mod tests {
 
     use super::{Deserialize, OkResponse, SerialResponse, Serialize};
 
-    use super::{ActionError, DeviceInfo, ErrorResponse, InfoResponse, String};
+    use super::{DeviceInfo, ErrorKind, ErrorResponse, InfoResponse, String};
 
     #[derive(Debug, PartialEq, Serialize, Deserialize)]
     struct Serial {
@@ -232,14 +239,14 @@ mod tests {
     #[test]
     fn test_error_response() {
         let error = ErrorResponse::with_description(
-            ActionError::InvalidData,
+            ErrorKind::InvalidData,
             "Invalid data error description",
         );
 
         assert_eq!(
             deserialize::<ErrorResponse>(serialize(error)),
             ErrorResponse {
-                error: ActionError::InvalidData,
+                error: ErrorKind::InvalidData,
                 description: String::from("Invalid data error description"),
                 info: None,
             }
