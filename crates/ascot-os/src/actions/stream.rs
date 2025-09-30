@@ -79,6 +79,7 @@ impl IntoResponse for StreamResponse {
 }
 
 mod private {
+    #[doc(hidden)]
     pub trait StreamTypeName<Args> {}
 }
 
