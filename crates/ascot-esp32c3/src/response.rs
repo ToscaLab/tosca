@@ -2,9 +2,8 @@ use alloc::borrow::Cow;
 use alloc::format;
 use alloc::vec::Vec;
 
-use ascot::actions::ActionError;
 use ascot::response::{
-    ErrorResponse as AscotErrorResponse, OkResponse as AscotOkResponse,
+    ErrorKind, ErrorResponse as AscotErrorResponse, OkResponse as AscotOkResponse,
     SerialResponse as AscotSerialResponse,
 };
 
@@ -134,11 +133,11 @@ impl Response {
     /// Generates a [`Response`] with an `Error` status and containing an
     /// [`ascot::response::ErrorResponse`].
     ///
-    /// Requires specifying the [`ActionError`] kind and a general
+    /// Requires specifying the [`ErrorKind`] kind and a general
     /// description.
     #[must_use]
     #[inline]
-    pub fn error(error: ActionError, description: &str) -> Self {
+    pub fn error(error: ErrorKind, description: &str) -> Self {
         let value = json_to_vec(AscotErrorResponse::with_description(error, description));
         Response::new(Headers::json_error(), Body::owned(value))
     }
@@ -146,11 +145,11 @@ impl Response {
     /// Generates a [`Response`] with an `Error` status and containing a
     /// [`ascot::response::ErrorResponse`].
     ///
-    /// Requires specifying the [`ActionError`] kind, a general error
+    /// Requires specifying the [`ErrorKind`] kind, a general error
     /// description, and optional information about the encountered error.
     #[must_use]
     #[inline]
-    pub fn error_with_info(error: ActionError, description: &str, info: &str) -> Self {
+    pub fn error_with_info(error: ErrorKind, description: &str, info: &str) -> Self {
         let value = json_to_vec(AscotErrorResponse::with_description_error(
             error,
             description,
@@ -166,7 +165,7 @@ impl Response {
     #[must_use]
     #[inline]
     pub fn invalid_data(description: &str) -> Self {
-        Self::error(ActionError::InvalidData, description)
+        Self::error(ErrorKind::InvalidData, description)
     }
 
     /// An alias for the [`Self::error`] API, used to generate an internal error
@@ -176,7 +175,7 @@ impl Response {
     #[must_use]
     #[inline]
     pub fn internal(description: &str) -> Self {
-        Self::error(ActionError::Internal, description)
+        Self::error(ErrorKind::Internal, description)
     }
 
     /// An alias for the [`Self::error`] API, used to generate an internal error
@@ -187,7 +186,7 @@ impl Response {
     #[must_use]
     #[inline]
     pub fn internal_with_error(description: &str, info: &str) -> Self {
-        Self::error_with_info(ActionError::Internal, description, info)
+        Self::error_with_info(ErrorKind::Internal, description, info)
     }
 
     #[inline]
