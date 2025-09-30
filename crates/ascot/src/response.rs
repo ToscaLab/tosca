@@ -57,16 +57,13 @@ impl OkResponse {
 /// Data must be serializable and deserializable.
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 #[serde(bound = "T: Serialize + DeserializeOwned")]
-pub struct SerialResponse<T: DeserializeOwned> {
-    #[serde(flatten)]
-    data: T,
-}
+pub struct SerialResponse<T: DeserializeOwned>(T);
 
 impl<T: Serialize + DeserializeOwned> SerialResponse<T> {
     /// Generates a [`SerialResponse`].
     #[must_use]
     pub const fn new(data: T) -> Self {
-        Self { data }
+        Self(data)
     }
 }
 
