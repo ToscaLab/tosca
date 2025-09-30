@@ -99,8 +99,6 @@ impl From<Result<Response, Response>> for Response {
     }
 }
 
-// TODO: AscotErrorResponse allocates. We should avoid that providing a plain
-// response for embedded systems.
 impl Response {
     /// Generates a [`Response`] with an `Ok` status and containing an
     /// [`ascot::response::OkResponse`].
