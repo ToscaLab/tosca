@@ -70,16 +70,13 @@ impl<T: Serialize + DeserializeOwned> SerialResponse<T> {
 /// A response which sends a JSON message over the network containing
 /// a device's energy and economy information.
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct InfoResponse {
-    #[serde(flatten)]
-    data: DeviceInfo,
-}
+pub struct InfoResponse(DeviceInfo);
 
 impl InfoResponse {
     /// Generates an [`InfoResponse`].
     #[must_use]
-    pub const fn new(data: DeviceInfo) -> Self {
-        Self { data }
+    pub const fn new(info: DeviceInfo) -> Self {
+        Self(info)
     }
 }
 
