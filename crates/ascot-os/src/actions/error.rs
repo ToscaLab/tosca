@@ -1,5 +1,4 @@
-use ascot::actions::ActionError;
-use ascot::response::ErrorResponse as AscotErrorResponse;
+use ascot::response::{ErrorKind, ErrorResponse as AscotErrorResponse};
 
 use axum::{
     extract::Json,
@@ -14,17 +13,17 @@ use axum::{
 pub struct ErrorResponse(AscotErrorResponse);
 
 impl ErrorResponse {
-    /// Creates an [`ErrorResponse`] with a specific [`ActionError`] and
+    /// Creates an [`ErrorResponse`] with a specific [`ErrorKind`] and
     /// a description.
     ///
     /// If an error occurs, an empty description is returned.
     #[must_use]
     #[inline]
-    pub fn with_description(error: ActionError, description: &str) -> Self {
+    pub fn with_description(error: ErrorKind, description: &str) -> Self {
         Self(AscotErrorResponse::with_description(error, description))
     }
 
-    /// Creates an [`ErrorResponse`] with a specific [`ActionError`], an
+    /// Creates an [`ErrorResponse`] with a specific [`ErrorKind`], an
     /// error description, and additional information about the error.
     ///
     /// If this method fails for some internal reasons, empty description and
@@ -32,7 +31,7 @@ impl ErrorResponse {
     #[must_use]
     #[inline]
     pub fn with_description_error(
-        error: ActionError,
+        error: ErrorKind,
         description: &str,
         info: impl std::error::Error,
     ) -> Self {
@@ -50,7 +49,7 @@ impl ErrorResponse {
     #[must_use]
     #[inline]
     pub fn invalid_data(description: &str) -> Self {
-        Self::with_description(ActionError::InvalidData, description)
+        Self::with_description(ErrorKind::InvalidData, description)
     }
 
     /// Creates an [`ErrorResponse`] for invalid data with a description and
@@ -61,7 +60,7 @@ impl ErrorResponse {
     #[must_use]
     #[inline]
     pub fn invalid_data_with_error(description: &str, error: impl std::error::Error) -> Self {
-        Self::with_description_error(ActionError::InvalidData, description, error)
+        Self::with_description_error(ErrorKind::InvalidData, description, error)
     }
 
     /// Creates an [`ErrorResponse`] for an internal error with a description.
@@ -71,7 +70,7 @@ impl ErrorResponse {
     #[must_use]
     #[inline]
     pub fn internal(description: &str) -> Self {
-        Self::with_description(ActionError::Internal, description)
+        Self::with_description(ErrorKind::Internal, description)
     }
 
     /// Creates an [`ErrorResponse`] for an internal error with a description and
@@ -82,7 +81,7 @@ impl ErrorResponse {
     #[must_use]
     #[inline]
     pub fn internal_with_error(description: &str, error: impl std::error::Error) -> Self {
-        Self::with_description_error(ActionError::Internal, description, error)
+        Self::with_description_error(ErrorKind::Internal, description, error)
     }
 }
 
