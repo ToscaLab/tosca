@@ -1,5 +1,5 @@
 use alloc::borrow::Cow;
-use alloc::format;
+use alloc::string::ToString;
 use alloc::vec::Vec;
 
 use ascot::response::{
@@ -79,7 +79,7 @@ fn json_to_vec<T: Serialize>(value: T) -> Vec<u8> {
         Ok(value) => value,
         // TODO: A fallback response should be textual and intercepted by
         // the controller. Add a fallback response to Ascot.
-        Err(e) => format!("{e:?}").as_bytes().into(),
+        Err(e) => e.to_string().as_bytes().into(),
     }
 }
 
