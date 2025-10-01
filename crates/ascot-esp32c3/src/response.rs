@@ -4,7 +4,7 @@ use alloc::vec::Vec;
 
 use ascot::response::{
     ErrorKind, ErrorResponse as AscotErrorResponse, OkResponse as AscotOkResponse,
-    SerialResponse as AscotSerialResponse,
+    SerialResponse as AscotSerialResponse, SERIALIZATION_ERROR,
 };
 
 use edge_http::io::server::Connection;
@@ -52,6 +52,14 @@ impl Headers {
             content_type: &[("Content-Type", "application/json")],
         }
     }
+
+    const fn serialization_error() -> Self {
+        Self {
+            status: 500,
+            message: "Error",
+            content_type: &[("Content-Type", "text/plain"), (SERIALIZATION_ERROR, "")],
+        }
+    }
 }
 
 struct Body(Cow<'static, [u8]>);
@@ -72,12 +80,13 @@ impl Body {
 }
 
 #[inline]
-fn json_to_vec<T: Serialize>(value: T) -> Vec<u8> {
+fn json_to_response<T: Serialize>(headers: Headers, value: T) -> Response {
     match serde_json::to_vec(&value) {
-        Ok(value) => value,
-        // TODO: A fallback response should be textual and intercepted by
-        // the controller. Add a fallback response to Ascot.
-        Err(e) => e.to_string().as_bytes().into(),
+        Ok(value) => Response::new(headers, Body::owned(value)),
+        Err(e) => Response::new(
+            Headers::serialization_error(),
+            Body::owned(e.to_string().as_bytes().into()),
+        ),
     }
 }
 
@@ -103,8 +112,7 @@ impl Response {
     #[must_use]
     #[inline]
     pub fn ok() -> Response {
-        let value = json_to_vec(AscotOkResponse::ok());
-        Response::new(Headers::json(), Body::owned(value))
+        json_to_response(Headers::json(), AscotOkResponse::ok())
     }
 
     /// Generates a [`Response`] with an `Ok` status and containing a
@@ -112,8 +120,7 @@ impl Response {
     #[must_use]
     #[inline]
     pub fn serial<T: Serialize + DeserializeOwned>(value: T) -> Self {
-        let value = json_to_vec(AscotSerialResponse::new(value));
-        Response::new(Headers::json(), Body::owned(value))
+        json_to_response(Headers::json(), AscotSerialResponse::new(value))
     }
 
     /// Generates a [`Response`] with an `Ok` status and containing a
@@ -122,8 +129,7 @@ impl Response {
     #[inline]
     pub fn text(value: &str) -> Self {
         let value = Cow::Borrowed(value);
-        let value = json_to_vec(AscotSerialResponse::new(value));
-        Response::new(Headers::json(), Body::owned(value))
+        json_to_response(Headers::json(), AscotSerialResponse::new(value))
     }
 
     /// Generates a [`Response`] with an `Error` status and containing an
@@ -134,8 +140,10 @@ impl Response {
     #[must_use]
     #[inline]
     pub fn error(error: ErrorKind, description: &str) -> Self {
-        let value = json_to_vec(AscotErrorResponse::with_description(error, description));
-        Response::new(Headers::json_error(), Body::owned(value))
+        json_to_response(
+            Headers::json_error(),
+            AscotErrorResponse::with_description(error, description),
+        )
     }
 
     /// Generates a [`Response`] with an `Error` status and containing a
@@ -146,12 +154,10 @@ impl Response {
     #[must_use]
     #[inline]
     pub fn error_with_info(error: ErrorKind, description: &str, info: &str) -> Self {
-        let value = json_to_vec(AscotErrorResponse::with_description_error(
-            error,
-            description,
-            info,
-        ));
-        Response::new(Headers::json_error(), Body::owned(value))
+        json_to_response(
+            Headers::json_error(),
+            AscotErrorResponse::with_description_error(error, description, info),
+        )
     }
 
     /// An alias for the [`Self::error`] API, used to generate an invalid data
@@ -187,7 +193,7 @@ impl Response {
 
     #[inline]
     pub(crate) fn json<T: Serialize>(value: &T) -> Self {
-        Response::new(Headers::json(), Body::owned(json_to_vec(value)))
+        json_to_response(Headers::json(), value)
     }
 
     #[inline]
