@@ -7,8 +7,9 @@ description = "Ascot library for building firmware running on operating systems.
 license = "MIT"
 
 [dependencies]
-ascot.version = "0.1.0"
 ascot.path = "../ascot"
+ascot.version = "0.1.0"
+ascot.default-features = false
 
 mdns-sd.workspace = true
 
@@ -28,6 +29,7 @@ axum.features = ["tokio", "http1", "http2", "json"]
 
 # Just for the TryStream trait.
 futures-core.version = "0.3"
+futures-core.optional = true
 
 if-addrs.version = "0.14"
 if-addrs.default-features = false
@@ -43,3 +45,7 @@ windows-sys.features = ["Win32_NetworkManagement_IpHelper", "Win32_Foundation", 
 [dev-dependencies]
 async-lock.version = "3.3"
 async-lock.default-features = false
+
+[features]
+stream = ["dep:futures-core", "ascot/stream"]
+default = ["stream"]
