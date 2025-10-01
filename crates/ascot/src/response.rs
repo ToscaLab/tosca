@@ -4,6 +4,13 @@ use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
 use crate::device::DeviceInfo;
 
+/// The header name associated with a response which failed to serialize its
+/// values.
+///
+/// This constant signals to the controller that a serialization error occurred
+/// on the device, causing the discarding of the invalid response.
+pub const SERIALIZATION_ERROR: &str = "Serialization-Error";
+
 /// Response kinds.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Serialize, Deserialize)]
 pub enum ResponseKind {
