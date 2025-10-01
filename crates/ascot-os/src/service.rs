@@ -5,6 +5,7 @@ use std::collections::HashMap;
 use std::net::{IpAddr, Ipv4Addr};
 
 use crate::error::Result;
+use crate::services::mdns_sd::run;
 
 // Service domain.
 //
@@ -151,7 +152,6 @@ impl Service {
         server_address: Ipv4Addr,
         port: u16,
     ) -> Result<()> {
-        #[cfg(feature = "mdns-sd-service")]
-        crate::services::mdns_sd::run(service_config, server_address, port)
+        run(service_config, server_address, port)
     }
 }
