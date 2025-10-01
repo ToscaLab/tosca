@@ -11,7 +11,6 @@ ascot.version = "0.1.0"
 ascot.path = "../ascot"
 
 mdns-sd.workspace = true
-mdns-sd.optional = true
 
 serde.workspace = true
 serde.features = ["derive"]
@@ -32,7 +31,6 @@ futures-core.version = "0.3"
 
 if-addrs.version = "0.14"
 if-addrs.default-features = false
-if-addrs.optional = true
 
 tokio-util.version = "0.7"
 tokio-util.default-features = false
@@ -45,8 +43,3 @@ windows-sys.features = ["Win32_NetworkManagement_IpHelper", "Win32_Foundation", 
 [dev-dependencies]
 async-lock.version = "3.3"
 async-lock.default-features = false
-
-[features]
-default = ["mdns-sd-service"]
-
-mdns-sd-service = ["dep:mdns-sd", "dep:if-addrs"]
