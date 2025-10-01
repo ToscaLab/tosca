@@ -7,8 +7,10 @@ description = "A Rust library crate designed for developing Ascot firmware on ES
 license = "MIT"
 
 [dependencies]
-ascot.version = "0.1.0"
 ascot.path = "../ascot"
+ascot.version = "0.1.0"
+# Do not enable the stream feature.
+ascot.default-features = false
 
 # A critical section for a multithread context.
 critical-section.version = "1.2.0"
