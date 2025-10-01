@@ -9,10 +9,10 @@ use tracing::error;
 use ascot::device::DeviceEnvironment;
 use ascot::hazards::Hazards;
 use ascot::parameters::ParametersData;
-use ascot::response::ResponseKind;
+use ascot::response::{ResponseKind, SERIALIZATION_ERROR};
 use ascot::route::{RestKind, RouteConfig, RouteConfigs};
 
-use crate::error::Error;
+use crate::error::{Error, ErrorKind};
 use crate::parameters::{convert_to_parameter_value, Parameters};
 use crate::response::{
     InfoResponseParser, OkResponseParser, Response, SerialResponseParser, StreamResponse,
@@ -233,6 +233,24 @@ impl Request {
         //  the process returning an error. An app using the controller as
         //  dependency can then consult the logger to obtain the internal
         //  problem.
+
+        // Checks whether serialization errors have occurred on the device.
+        // If the serialization error header is present, the response
+        // is considered invalid.
+        // Additionally, the response is invalid if the body
+        // cannot be converted to a string.
+        if response.headers().contains_key(SERIALIZATION_ERROR) {
+            match response.text().await {
+                Ok(serial_error) => {
+                    error!("Serialization error encountered on the device side: {serial_error}");
+                    return Err(Error::new(ErrorKind::Request, serial_error));
+                }
+                Err(err) => {
+                    error!("Error occurred while converting the request into text: {err}");
+                    return Err(Error::new(ErrorKind::Request, err.to_string()));
+                }
+            }
+        }
 
         Ok(response)
     }
