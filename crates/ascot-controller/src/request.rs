@@ -13,7 +13,7 @@ use ascot::response::ResponseKind;
 use ascot::route::{RestKind, RouteConfig, RouteConfigs};
 
 use crate::error::Error;
-use crate::parameters::{Parameters, convert_to_parameter_value};
+use crate::parameters::{convert_to_parameter_value, Parameters};
 use crate::response::{
     InfoResponseParser, OkResponseParser, Response, SerialResponseParser, StreamResponse,
 };
@@ -214,13 +214,27 @@ impl Request {
 
         let client = reqwest::Client::new();
 
-        Ok(match self.kind {
+        let response = match self.kind {
             RestKind::Get => client.get(request).send(),
             RestKind::Post => client.post(request).json(&parameters).send(),
             RestKind::Put => client.put(request).json(&parameters).send(),
             RestKind::Delete => client.delete(request).json(&parameters).send(),
         }
-        .await?)
+        .await?;
+
+        // TODO: Analyze the response status.
+        // A 404 status (route not found) might be returned when a
+        // device is down or in case of a malformed route.
+        // A 405 status (method not allowed) in case of a wrong REST method.
+        // If the status is 200, the device response is valid. If the
+        // response is 500, an error occurred during a device operation.
+        //
+        //  Add a logger to record the response. In this way, we do not block
+        //  the process returning an error. An app using the controller as
+        //  dependency can then consult the logger to obtain the internal
+        //  problem.
+
+        Ok(response)
     }
 
     fn request_data<A, F>(&self, axum_get: A, params: F) -> RequestData
@@ -320,7 +334,7 @@ mod tests {
     use ascot::parameters::{ParameterKind, Parameters as AscotParameters, ParametersData};
     use ascot::route::{RestKind, Route, RouteConfig};
 
-    use crate::parameters::{Parameters, parameter_error};
+    use crate::parameters::{parameter_error, Parameters};
 
     use super::{Request, RequestData, ResponseKind};
 
