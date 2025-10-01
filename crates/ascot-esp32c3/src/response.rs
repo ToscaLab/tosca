@@ -14,8 +14,7 @@ use embedded_io_async::{Read, Write};
 
 use serde::{de::DeserializeOwned, Serialize};
 
-/// Response headers.
-pub struct Headers {
+struct Headers {
     status: u16,
     message: &'static str,
     content_type: &'static [(&'static str, &'static str)],
@@ -55,8 +54,7 @@ impl Headers {
     }
 }
 
-/// A response body.
-pub struct Body(Cow<'static, [u8]>);
+struct Body(Cow<'static, [u8]>);
 
 impl Body {
     const fn empty() -> Self {
