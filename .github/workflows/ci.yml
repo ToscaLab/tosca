@@ -146,6 +146,9 @@ jobs:
       - name: Run tests
         run: cargo test --verbose
 
+      - name: Run tests (no default features)
+        run: cargo test --verbose --no-default-features
+
       - name: Generate lcov report
         run: |
           grcov . --binary-path ./target/debug/ -s . -t lcov --branch \
