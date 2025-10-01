@@ -16,7 +16,7 @@ use futures_core::TryStream;
 use tokio::io::AsyncRead;
 use tokio_util::io::ReaderStream;
 
-use super::{error::ErrorResponse, DeviceAction, MandatoryAction};
+use super::{DeviceAction, MandatoryAction, error::ErrorResponse};
 
 /// A response which transmits a stream of data, represented as a
 /// sequence of bytes, over the network.
