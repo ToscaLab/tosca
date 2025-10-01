@@ -221,10 +221,6 @@ impl Response {
         conn.write_all(&self.body.0).await
     }
 
-    // TODO: Add this kind of response to the ascot crate. It is necessary that
-    // a controller receives a response when a method is not correct or a route is
-    // not found.
-
     pub(crate) const fn not_found() -> Self {
         Response::new(Headers::not_found(), Body::empty())
     }
