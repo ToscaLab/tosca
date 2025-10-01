@@ -14,9 +14,7 @@ use ascot::route::{RestKind, RouteConfig, RouteConfigs};
 
 use crate::error::{Error, ErrorKind};
 use crate::parameters::{convert_to_parameter_value, Parameters};
-use crate::response::{
-    InfoResponseParser, OkResponseParser, Response, SerialResponseParser, StreamResponse,
-};
+use crate::response::{InfoResponseParser, OkResponseParser, Response, SerialResponseParser};
 
 fn slash_end(s: &str) -> &str {
     if s.len() > 1 && s.ends_with('/') {
@@ -187,7 +185,10 @@ impl Request {
             ResponseKind::Ok => Response::OkBody(OkResponseParser::new(response)),
             ResponseKind::Serial => Response::SerialBody(SerialResponseParser::new(response)),
             ResponseKind::Info => Response::InfoBody(InfoResponseParser::new(response)),
-            ResponseKind::Stream => Response::StreamBody(StreamResponse::new(response)),
+            #[cfg(feature = "stream")]
+            ResponseKind::Stream => {
+                Response::StreamBody(crate::response::StreamResponse::new(response))
+            }
         })
     }
 

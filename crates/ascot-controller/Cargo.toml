@@ -9,6 +9,7 @@ license = "MIT"
 [dependencies]
 ascot.path = "../ascot"
 ascot.version = "0.1.0"
+ascot.default-features = false
 
 indexmap.workspace = true
 
@@ -26,6 +27,7 @@ bytes.default-features = false
 
 futures-util.version = "0.3.31"
 futures-util.default-features = false
+futures-util.optional = true
 
 reqwest.version = "0.12.12"
 reqwest.default-features = false
@@ -34,6 +36,7 @@ reqwest.features = ["blocking", "json", "stream"]
 [dev-dependencies]
 ascot-os.path = "../ascot-os"
 ascot-os.version = "0.1.0"
+ascot-os.default-features = false
 
 tokio.workspace = true
 tokio.features = ["rt", "rt-multi-thread", "macros"]
@@ -42,3 +45,7 @@ serial_test.version = "3.2.0"
 serial_test.default-features = false
 
 tracing-subscriber.version = "0.3"
+
+[features]
+stream = ["dep:futures-util", "ascot/stream"]
+default = ["stream"]

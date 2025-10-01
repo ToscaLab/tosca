@@ -2,10 +2,7 @@ use ascot::response::{InfoResponse, OkResponse, SerialResponse};
 
 use reqwest::Response as ReqwestResponse;
 
-use serde::{Serialize, de::DeserializeOwned};
-
-use bytes::Bytes;
-use futures_util::{Stream, TryStreamExt};
+use serde::{de::DeserializeOwned, Serialize};
 
 use crate::error::{Error, ErrorKind, Result};
 
@@ -89,8 +86,10 @@ impl InfoResponseParser {
 }
 
 /// A stream response.
+#[cfg(feature = "stream")]
 pub struct StreamResponse(ReqwestResponse);
 
+#[cfg(feature = "stream")]
 impl StreamResponse {
     /// Consumes the internal response body opening a bytes stream.
     ///
@@ -98,7 +97,8 @@ impl StreamResponse {
     ///
     /// Stream data are not retrieved correctly because of network failures or
     /// data corruption.
-    pub fn open_stream(self) -> impl Stream<Item = Result<Bytes>> {
+    pub fn open_stream(self) -> impl futures_util::Stream<Item = Result<bytes::Bytes>> {
+        use futures_util::TryStreamExt;
         self.0.bytes_stream().map_err(|e| {
             Error::new(
                 ErrorKind::StreamResponse,
@@ -127,5 +127,6 @@ pub enum Response {
     /// An [`InfoResponse`] body.
     InfoBody(InfoResponseParser),
     /// A stream response body.
+    #[cfg(feature = "stream")]
     StreamBody(StreamResponse),
 }
