@@ -10,9 +10,9 @@ use axum::{
     response::{IntoResponse, Response},
 };
 
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use serde::{Deserialize, Serialize, de::DeserializeOwned};
 
-use super::{error::ErrorResponse, DeviceAction, MandatoryAction};
+use super::{DeviceAction, MandatoryAction, error::ErrorResponse};
 
 /// A response which transmits a JSON message over the network containing
 /// the data produced during a device operation.

@@ -12,7 +12,7 @@ use axum::{
 
 use serde::{Deserialize, Serialize};
 
-use super::{error::ErrorResponse, DeviceAction, MandatoryAction};
+use super::{DeviceAction, MandatoryAction, error::ErrorResponse};
 
 /// A response which transmits a concise JSON message over the network to notify
 /// a controller that an operation completed successfully.

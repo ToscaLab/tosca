@@ -13,7 +13,7 @@ use axum::{
 
 use serde::{Deserialize, Serialize};
 
-use super::{error::ErrorResponse, DeviceAction};
+use super::{DeviceAction, error::ErrorResponse};
 
 /// A response which transmits a JSON message over the network containing
 /// a device's energy and economy information.

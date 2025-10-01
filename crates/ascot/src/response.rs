@@ -1,6 +1,6 @@
 use alloc::borrow::Cow;
 
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use serde::{Deserialize, Serialize, de::DeserializeOwned};
 
 use crate::device::DeviceInfo;
 
