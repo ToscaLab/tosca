@@ -8,6 +8,7 @@ pub mod ok;
 pub mod serial;
 /// Action and response to manage a stream of data expressed as a sequence
 /// of bytes.
+#[cfg(feature = "stream")]
 pub mod stream;
 
 use ascot::hazards::{Hazard, Hazards};
@@ -15,7 +16,7 @@ use ascot::parameters::ParametersData;
 use ascot::response::ResponseKind;
 use ascot::route::{RestKind, Route, RouteConfig};
 
-use axum::{Router, handler::Handler};
+use axum::{handler::Handler, Router};
 
 use tracing::{error, info};
 
@@ -189,7 +190,7 @@ impl MandatoryAction<true> {
 mod tests {
     use ascot::parameters::Parameters;
 
-    use super::{Route, build_get_route};
+    use super::{build_get_route, Route};
 
     #[test]
     fn test_build_get_route() {
