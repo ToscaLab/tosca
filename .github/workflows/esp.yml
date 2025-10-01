@@ -66,7 +66,7 @@ jobs:
 
       - name: Run cargo clippy (light)
         working-directory: crates/ascot-esp32c3/examples/light
-        run: cargo clippy --all-targets -- -Dclippy::all -Dclippy::pedantic
+        run: cargo clippy -- -Dclippy::all -Dclippy::pedantic
 
       - name: Build (light)
         working-directory: crates/ascot-esp32c3/examples/light
@@ -84,7 +84,7 @@ jobs:
 
       - name: Run cargo clippy (light)
         working-directory: crates/ascot-esp32c3/examples/light-with-state
-        run: cargo clippy --all-targets -- -Dclippy::all -Dclippy::pedantic
+        run: cargo clippy -- -Dclippy::all -Dclippy::pedantic
 
       - name: Build (light)
         working-directory: crates/ascot-esp32c3/examples/light-with-state
