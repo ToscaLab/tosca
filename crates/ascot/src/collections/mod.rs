@@ -1,7 +1,7 @@
 // All maps collections needed for internal storage and I/O tasks.
-mod maps;
+mod map;
 // All sets collections needed for internal storage and I/O tasks.
 mod sets;
 
-pub use maps::{Map, OutputMap, SerialMap};
+pub(crate) use map::map;
 pub use sets::{OutputSet, SerialSet, Set};

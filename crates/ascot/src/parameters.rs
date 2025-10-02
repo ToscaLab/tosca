@@ -4,9 +4,13 @@
 use alloc::borrow::Cow;
 use alloc::string::String;
 
+use hashbrown::DefaultHashBuilder;
+
+use indexmap::map::{IndexMap, Iter};
+
 use serde::{Deserialize, Serialize};
 
-use crate::collections::{Map, OutputMap};
+use crate::collections::map;
 
 fn is_u8_max(value: &u8) -> bool {
     *value == u8::MAX
@@ -336,12 +340,15 @@ impl DecimalPrecision {
     }
 }
 
-/// A map of serializable and deserializable [`Parameters`] data.
-pub type ParametersData = OutputMap<String, ParameterKind>;
+map! {
+  /// A map of serializable and deserializable [`Parameters`] data.
+  #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+  pub struct ParametersData(IndexMap<String, ParameterKind, DefaultHashBuilder>);
+}
 
 /// Route input parameters.
 #[derive(Debug, Clone)]
-pub struct Parameters(Map<&'static str, ParameterKind>);
+pub struct Parameters(IndexMap<&'static str, ParameterKind, DefaultHashBuilder>);
 
 impl Default for Parameters {
     fn default() -> Self {
@@ -354,7 +361,7 @@ impl Parameters {
     #[must_use]
     #[inline]
     pub fn new() -> Self {
-        Self(Map::new())
+        Self(IndexMap::with_hasher(DefaultHashBuilder::default()))
     }
 
     /// Adds a [`bool`] parameter.
@@ -607,8 +614,9 @@ impl Parameters {
         data
     }
 
-    fn create_parameter(self, name: &'static str, parameter_kind: ParameterKind) -> Self {
-        Self(self.0.insert(name, parameter_kind))
+    fn create_parameter(mut self, name: &'static str, parameter_kind: ParameterKind) -> Self {
+        self.0.insert(name, parameter_kind);
+        self
     }
 }
 
@@ -618,10 +626,10 @@ mod tests {
 
     use crate::{deserialize, serialize};
 
-    use super::{OutputMap, ParameterKind, Parameters, ParametersData};
+    use super::{ParameterKind, Parameters, ParametersData};
 
-    fn expected_parameters_data() -> OutputMap<String, ParameterKind> {
-        OutputMap::new()
+    fn expected_parameters_data() -> ParametersData {
+        ParametersData::new()
             .insert("bool".into(), ParameterKind::Bool { default: true })
             .insert(
                 "u8".into(),
