@@ -11,6 +11,8 @@ ascot.path = "../ascot"
 ascot.version = "0.1.0"
 ascot.default-features = false
 
+hashbrown.workspace = true
+
 indexmap.workspace = true
 
 mdns-sd.workspace = true

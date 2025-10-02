@@ -1,5 +1,8 @@
-use ascot::collections::Map;
 use ascot::parameters::{ParameterId, ParameterKind, ParametersData};
+
+use hashbrown::DefaultHashBuilder;
+
+use indexmap::map::IndexMap;
 
 use tracing::error;
 
@@ -76,7 +79,7 @@ impl ParameterValue {
 
 /// Route input parameters.
 #[derive(Debug, Clone)]
-pub struct Parameters<'a>(Map<&'a str, ParameterValue>);
+pub struct Parameters<'a>(IndexMap<&'a str, ParameterValue, DefaultHashBuilder>);
 
 impl Default for Parameters<'_> {
     fn default() -> Self {
@@ -89,7 +92,7 @@ impl<'a> Parameters<'a> {
     #[must_use]
     #[inline]
     pub fn new() -> Self {
-        Self(Map::new())
+        Self(IndexMap::with_hasher(DefaultHashBuilder::default()))
     }
 
     /// Adds a [`bool`] value.
@@ -161,7 +164,7 @@ impl<'a> Parameters<'a> {
     }
 
     fn add_value_parameter(&mut self, name: &'a str, parameter_value: ParameterValue) -> &mut Self {
-        self.0.add(name, parameter_value);
+        self.0.insert(name, parameter_value);
         self
     }
 }
