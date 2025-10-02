@@ -8,6 +8,10 @@ exclude = ["crates/ascot-esp32c3"]
 resolver = "2"
 
 [workspace.dependencies]
+hashbrown.version = "0.16"
+hashbrown.default-features = false
+hashbrown.features = ["default-hasher"]
+
 indexmap.version = "2.10"
 indexmap.default-features = false
 
