@@ -9,11 +9,13 @@ resolver = "2"
 publish = false
 
 [dependencies]
-ascot.version = "0.1"
 ascot.path = "../../../ascot"
+ascot.version = "0.1"
+ascot.default-features = false
 
-ascot-os.version = "0.1"
 ascot-os.path = "../../"
+ascot-os.version = "0.1"
+ascot-os.default-features = false
 
 async-lock.version = "3.3"
 async-lock.default-features = false
