@@ -4,6 +4,8 @@ use hashbrown::DefaultHashBuilder;
 
 use indexmap::set::{IndexSet, IntoIter, Iter};
 
+use log::error;
+
 use serde::{Deserialize, Serialize};
 
 use crate::hazards::{Hazard, Hazards};
@@ -270,6 +272,23 @@ impl Route {
         &self.parameters
     }
 
+    /// Removes any prohibited [`Hazard`]s and returns an updated version of
+    /// the [`Route`].
+    #[must_use]
+    #[inline]
+    pub fn remove_prohibited_hazards(mut self, allowed_hazards: &[Hazard]) -> Self {
+        let mut hazards = Hazards::new();
+        for hazard in self.hazards {
+            if allowed_hazards.contains(&hazard) {
+                hazards.add(hazard);
+            } else {
+                error!("Hazards not allowed, removed: {hazard}");
+            }
+        }
+        self.hazards = hazards;
+        self
+    }
+
     /// Serializes [`Route`] data.
     ///
     /// It consumes the data.
@@ -461,6 +480,26 @@ mod tests {
                     .serialize_data()
             )),
             expected
+        );
+    }
+
+    #[test]
+    fn test_allowed_hazards() {
+        const ALLOWED_HAZARDS: &[Hazard] = &[Hazard::FireHazard, Hazard::ElectricEnergyConsumption];
+
+        // Wrong AirPoisoning hazard.
+        let route = Route::get("Route", "/route")
+            .description("A GET route")
+            .with_hazards(
+                Hazards::new()
+                    .insert(Hazard::FireHazard)
+                    .insert(Hazard::AirPoisoning),
+            );
+
+        let expected_hazards = Hazards::init(Hazard::FireHazard);
+        assert_eq!(
+            route.remove_prohibited_hazards(ALLOWED_HAZARDS).hazards,
+            expected_hazards
         );
     }
 }
