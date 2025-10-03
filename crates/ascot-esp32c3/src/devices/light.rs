@@ -3,6 +3,7 @@ use alloc::boxed::Box;
 use alloc::vec::Vec;
 
 use ascot::device::{DeviceData, DeviceEnvironment, DeviceKind};
+use ascot::hazards::Hazard;
 use ascot::route::{Route, RouteConfigs};
 
 use esp_wifi::wifi::WifiDevice;
@@ -17,17 +18,8 @@ use crate::state::{State, ValueFromRef};
 // Default main route.
 const MAIN_ROUTE: &str = "/light";
 
-// TODO: Check hazards (import this functionality in ascot)
-// use ascot::hazards::Hazard;
 // Allowed hazards.
-//const ALLOWED_HAZARDS: &[Hazard] = &[Hazard::FireHazard, Hazard::ElectricEnergyConsumption];
-
-// Return an error if action hazards are not a subset of allowed hazards.
-/*for hazard in route.hazards() {
-    if !ALLOWED_HAZARDS.contains(hazard) {
-        return Err(Error::new(ErrorKind::Device, "Hazard not allowed"));
-    }
-}*/
+const ALLOWED_HAZARDS: &[Hazard] = &[Hazard::FireHazard, Hazard::ElectricEnergyConsumption];
 
 /// A `light` device.
 ///
@@ -160,7 +152,9 @@ where
         F: Fn() -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Response> + Send + Sync + 'static,
     {
-        let route_config = route.serialize_data();
+        let route_config = route
+            .remove_prohibited_hazards(ALLOWED_HAZARDS)
+            .serialize_data();
 
         if self.device.route_configs.contains(&route_config) {
             error!(
@@ -186,7 +180,9 @@ where
         F: Fn(State<S>) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Response> + Send + Sync + 'static,
     {
-        let route_config = route.serialize_data();
+        let route_config = route
+            .remove_prohibited_hazards(ALLOWED_HAZARDS)
+            .serialize_data();
 
         if self.device.route_configs.contains(&route_config) {
             error!(
