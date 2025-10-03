@@ -2,7 +2,7 @@ use ascot::response::{InfoResponse, OkResponse, SerialResponse};
 
 use reqwest::Response as ReqwestResponse;
 
-use serde::{de::DeserializeOwned, Serialize};
+use serde::{Serialize, de::DeserializeOwned};
 
 use crate::error::{Error, ErrorKind, Result};
 
