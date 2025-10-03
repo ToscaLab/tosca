@@ -38,7 +38,7 @@ macro_rules! map {
                 Self::new().insert(key, value)
             }
 
-            #[doc = concat!("Inserts a new element into a [`", stringify!($name), "`] collection.")]
+            #[doc = concat!("Inserts a new element into [`", stringify!($name), "`].")]
             #[must_use]
             #[inline]
             pub fn insert(mut self, key: $key, value: $value) -> Self {
@@ -46,7 +46,7 @@ macro_rules! map {
                 self
             }
 
-            #[doc = concat!("Adds a new element into a [`", stringify!($name), "`] collection.")]
+            #[doc = concat!("Adds a new element into [`", stringify!($name), "`].")]
             #[doc = ""]
             #[doc = concat!("Unlike [`Self::insert`], this method does not return a modified [`", stringify!($name), "`].")]
             #[inline]
