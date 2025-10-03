@@ -11,6 +11,17 @@ ascot.path = "../ascot"
 ascot.version = "0.1.0"
 ascot.default-features = false
 
+axum.version = "0.8.0"
+axum.default-features = false
+axum.features = ["tokio", "http1", "http2", "json"]
+
+# Just for the TryStream trait.
+futures-core.version = "0.3"
+futures-core.optional = true
+
+if-addrs.version = "0.14"
+if-addrs.default-features = false
+
 log.workspace = true
 
 mdns-sd.workspace = true
@@ -23,22 +34,11 @@ serde_json.features = ["preserve_order"]
 
 tokio.workspace = true
 
-tracing.workspace = true
-
-axum.version = "0.8.0"
-axum.default-features = false
-axum.features = ["tokio", "http1", "http2", "json"]
-
-# Just for the TryStream trait.
-futures-core.version = "0.3"
-futures-core.optional = true
-
-if-addrs.version = "0.14"
-if-addrs.default-features = false
-
 tokio-util.version = "0.7"
 tokio-util.default-features = false
 tokio-util.features = ["io"]
+
+tracing.workspace = true
 
 [target.'cfg(windows)'.dependencies]
 windows-sys.version = "0.61.0"
