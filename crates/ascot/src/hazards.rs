@@ -330,7 +330,7 @@ set! {
 }
 
 impl Hazards {
-    /// Initializes [`Hazards`] from a slice of [`Hazard`]s.
+    /// Initializes [`Hazards`] from an array of [`Hazard`]s.
     #[must_use]
     #[inline]
     pub fn init_from_hazards<const N: usize>(input_elements: [Hazard; N]) -> Self {
