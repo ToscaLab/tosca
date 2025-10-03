@@ -1,4 +1,3 @@
-// All maps collections needed for internal storage and I/O tasks.
 mod map;
 // All sets collections needed for internal storage and I/O tasks.
 mod sets;
