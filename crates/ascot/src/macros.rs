@@ -45,11 +45,11 @@ macro_rules! mandatory_route {
                 self
             }
 
-            #[doc = concat!("Adds a slice of [`Hazards`] to a [`", stringify!($name), "`].")]
+            #[doc = concat!("Adds an array of [`Hazard`]s to a [`", stringify!($name), "`].")]
             #[must_use]
             #[inline]
-            pub fn with_slice_hazards(mut self, hazards: &'static [Hazard]) -> Self {
-                self.route = self.route.with_slice_hazards(hazards);
+            pub fn with_array_of_hazards<const N: usize>(mut self, hazards: [Hazard; N]) -> Self {
+                self.route = self.route.with_array_of_hazards(hazards);
                 self
             }
 

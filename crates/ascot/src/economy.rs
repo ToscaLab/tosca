@@ -1,5 +1,10 @@
+use hashbrown::DefaultHashBuilder;
+
+use indexmap::set::{IndexSet, IntoIter, Iter};
+
 use serde::{Deserialize, Serialize};
 
+use crate::collections::set;
 use crate::energy::EnergyClass;
 
 /// Timespan for a cost computation.
@@ -66,8 +71,11 @@ impl Cost {
     }
 }
 
-/// A collection of [`Cost`]s.
-pub type Costs = crate::collections::OutputSet<Cost>;
+set! {
+  /// A collection of [`Cost`]s.
+  #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+  pub struct Costs(IndexSet<Cost, DefaultHashBuilder>);
+}
 
 /// Return on investments (ROI).
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy, Serialize, Deserialize)]
@@ -113,8 +121,11 @@ impl Roi {
     }
 }
 
-/// A collection of [`Roi`]s.
-pub type Rois = crate::collections::OutputSet<Roi>;
+set! {
+  /// A collection of [`Roi`]s.
+  #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+  pub struct Rois(IndexSet<Roi, DefaultHashBuilder>);
+}
 
 /// Economy data for a device.
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
@@ -183,12 +194,11 @@ impl Economy {
 #[cfg(test)]
 mod tests {
     use super::Economy;
-    use crate::collections::OutputSet;
 
     use crate::energy::EnergyClass;
     use crate::{deserialize, serialize};
 
-    use super::{Cost, CostTimespan, Roi};
+    use super::{Cost, CostTimespan, Costs, Roi, Rois};
 
     #[test]
     fn test_cost_timespan() {
@@ -225,11 +235,10 @@ mod tests {
     fn test_economy() {
         let mut economy = Economy::empty();
 
-        let costs = OutputSet::init(Cost::new(100, CostTimespan::Week))
+        let costs = Costs::init(Cost::new(100, CostTimespan::Week))
             .insert(Cost::new(1000, CostTimespan::Month));
 
-        let roi =
-            OutputSet::init(Roi::new(10, EnergyClass::A)).insert(Roi::new(20, EnergyClass::B));
+        let roi = Rois::init(Roi::new(10, EnergyClass::A)).insert(Roi::new(20, EnergyClass::B));
 
         assert!(economy.is_empty());
 

@@ -1,4 +1,10 @@
+use hashbrown::DefaultHashBuilder;
+
+use indexmap::set::{IndexSet, IntoIter, Iter};
+
 use serde::{Deserialize, Serialize};
+
+use crate::collections::set;
 
 /// All [`Hazard`]s.
 pub const ALL_HAZARDS: &[Hazard] = &[
@@ -317,8 +323,24 @@ impl Hazard {
     }
 }
 
-/// A collection of [`Hazard`]s.
-pub type Hazards = crate::collections::OutputSet<Hazard>;
+set! {
+  /// A collection of [`Hazard`]s.
+  #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+  pub struct Hazards(IndexSet<Hazard, DefaultHashBuilder>);
+}
+
+impl Hazards {
+    /// Initializes [`Hazards`] from a slice of [`Hazard`]s.
+    #[must_use]
+    #[inline]
+    pub fn init_from_hazards<const N: usize>(input_elements: [Hazard; N]) -> Self {
+        let mut elements = Self::new();
+        for element in input_elements {
+            elements.add(element);
+        }
+        elements
+    }
+}
 
 /// All [`Hazard`] data.
 #[derive(Debug, PartialEq, Clone, Copy, Serialize)]
@@ -426,7 +448,7 @@ impl Category {
 mod tests {
     use crate::{deserialize, serialize};
 
-    use super::{ALL_CATEGORIES, ALL_HAZARDS, Category, Hazard};
+    use super::{Category, Hazard, ALL_CATEGORIES, ALL_HAZARDS};
 
     #[test]
     fn test_hazard() {
