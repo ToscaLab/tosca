@@ -12,6 +12,8 @@ hashbrown.workspace = true
 indexmap.workspace = true
 indexmap.features = ["serde"]
 
+log.workspace = true
+
 serde.workspace = true
 serde.features = ["derive", "alloc"]
 

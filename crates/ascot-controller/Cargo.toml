@@ -15,6 +15,8 @@ hashbrown.workspace = true
 
 indexmap.workspace = true
 
+log.workspace = true
+
 mdns-sd.workspace = true
 
 serde.workspace = true
