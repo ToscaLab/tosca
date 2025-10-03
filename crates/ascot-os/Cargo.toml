@@ -11,6 +11,8 @@ ascot.path = "../ascot"
 ascot.version = "0.1.0"
 ascot.default-features = false
 
+log.workspace = true
+
 mdns-sd.workspace = true
 
 serde.workspace = true
