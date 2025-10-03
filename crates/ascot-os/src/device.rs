@@ -107,7 +107,7 @@ where
             mandatory_routes.add(action.route_config);
         }
 
-        self.route_configs = mandatory_routes.extend(self.route_configs);
+        self.route_configs = mandatory_routes.merge(self.route_configs);
         self
     }
 
