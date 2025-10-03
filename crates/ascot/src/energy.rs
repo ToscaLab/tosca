@@ -4,7 +4,7 @@ use indexmap::set::{IndexSet, IntoIter, Iter};
 
 use serde::{Deserialize, Serialize};
 
-use crate::collections::set;
+use crate::macros::set;
 
 /// Energy efficiency class.
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy, Serialize, Deserialize)]

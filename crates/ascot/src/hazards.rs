@@ -4,7 +4,7 @@ use indexmap::set::{IndexSet, IntoIter, Iter};
 
 use serde::{Deserialize, Serialize};
 
-use crate::collections::set;
+use crate::macros::set;
 
 /// All [`Hazard`]s.
 pub const ALL_HAZARDS: &[Hazard] = &[
@@ -448,7 +448,7 @@ impl Category {
 mod tests {
     use crate::{deserialize, serialize};
 
-    use super::{ALL_CATEGORIES, ALL_HAZARDS, Category, Hazard};
+    use super::{Category, Hazard, ALL_CATEGORIES, ALL_HAZARDS};
 
     #[test]
     fn test_hazard() {

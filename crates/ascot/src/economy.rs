@@ -4,8 +4,8 @@ use indexmap::set::{IndexSet, IntoIter, Iter};
 
 use serde::{Deserialize, Serialize};
 
-use crate::collections::set;
 use crate::energy::EnergyClass;
+use crate::macros::set;
 
 /// Timespan for a cost computation.
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy, Serialize, Deserialize)]

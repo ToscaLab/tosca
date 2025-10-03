@@ -33,8 +33,6 @@ extern crate alloc;
 
 mod macros;
 
-/// All data collections.
-pub mod collections;
 /// Description of a device with its routes information.
 pub mod device;
 /// Information about the economy device aspects.
