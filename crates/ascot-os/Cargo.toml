@@ -37,6 +37,7 @@ tokio.workspace = true
 tokio-util.version = "0.7"
 tokio-util.default-features = false
 tokio-util.features = ["io"]
+tokio-util.optional = true
 
 tracing.workspace = true
 
@@ -49,5 +50,5 @@ async-lock.version = "3.3"
 async-lock.default-features = false
 
 [features]
-stream = ["dep:futures-core", "ascot/stream"]
+stream = ["dep:futures-core", "dep:tokio-util", "ascot/stream"]
 default = ["stream"]
