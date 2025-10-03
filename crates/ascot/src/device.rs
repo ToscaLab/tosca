@@ -143,22 +143,23 @@ impl DeviceData {
 
 #[cfg(test)]
 mod tests {
-    use crate::collections::OutputSet;
     use crate::route::{Route, RouteConfigs};
 
-    use crate::economy::{Cost, CostTimespan, Economy, Roi};
+    use crate::economy::{Cost, CostTimespan, Costs, Economy, Roi, Rois};
     use crate::energy::{
-        CarbonFootprint, Energy, EnergyClass, EnergyEfficiency, WaterUseEfficiency,
+        CarbonFootprint, CarbonFootprints, Energy, EnergyClass, EnergyEfficiencies,
+        EnergyEfficiency, WaterUseEfficiency,
     };
     use crate::{deserialize, serialize};
 
     use super::{DeviceData, DeviceEnvironment, DeviceInfo, DeviceKind};
 
     fn energy() -> Energy {
-        let energy_efficiencies = OutputSet::init(EnergyEfficiency::new(-50, EnergyClass::A))
-            .insert(EnergyEfficiency::new(50, EnergyClass::B));
+        let energy_efficiencies =
+            EnergyEfficiencies::init(EnergyEfficiency::new(-50, EnergyClass::A))
+                .insert(EnergyEfficiency::new(50, EnergyClass::B));
 
-        let carbon_footprints = OutputSet::init(CarbonFootprint::new(-50, EnergyClass::A))
+        let carbon_footprints = CarbonFootprints::init(CarbonFootprint::new(-50, EnergyClass::A))
             .insert(CarbonFootprint::new(50, EnergyClass::B));
 
         let water_use_efficiency = WaterUseEfficiency::init_with_gpp(2.5)
@@ -171,17 +172,16 @@ mod tests {
     }
 
     fn economy() -> Economy {
-        let costs = OutputSet::init(Cost::new(100, CostTimespan::Week))
+        let costs = Costs::init(Cost::new(100, CostTimespan::Week))
             .insert(Cost::new(1000, CostTimespan::Month));
 
-        let roi =
-            OutputSet::init(Roi::new(10, EnergyClass::A)).insert(Roi::new(20, EnergyClass::B));
+        let roi = Rois::init(Roi::new(10, EnergyClass::A)).insert(Roi::new(20, EnergyClass::B));
 
         Economy::init_with_costs(costs).roi(roi)
     }
 
     fn routes() -> RouteConfigs {
-        OutputSet::init(Route::put("On", "/on").serialize_data())
+        RouteConfigs::init(Route::put("On", "/on").serialize_data())
             .insert(Route::put("Off", "/off").serialize_data())
     }
 

@@ -1,6 +1,5 @@
 mod map;
-// All sets collections needed for internal storage and I/O tasks.
-mod sets;
+mod set;
 
 pub(crate) use map::map;
-pub use sets::{OutputSet, SerialSet, Set};
+pub(crate) use set::set;

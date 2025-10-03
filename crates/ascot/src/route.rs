@@ -1,5 +1,9 @@
 use alloc::borrow::Cow;
 
+use hashbrown::DefaultHashBuilder;
+
+use indexmap::set::{IndexSet, IntoIter, Iter};
+
 use serde::{Deserialize, Serialize};
 
 use crate::hazards::{Hazard, Hazards};
@@ -7,7 +11,7 @@ use crate::macros::mandatory_route;
 use crate::parameters::{Parameters, ParametersData};
 use crate::response::ResponseKind;
 
-use crate::collections::{OutputSet, Set};
+use crate::collections::set;
 
 /// `REST` requests kind.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -85,9 +89,6 @@ pub struct RouteConfig {
     pub response_kind: ResponseKind,
 }
 
-/// A collection of [`RouteConfig`]s.
-pub type RouteConfigs = OutputSet<RouteConfig>;
-
 impl PartialEq for RouteConfig {
     fn eq(&self, other: &Self) -> bool {
         self.data.eq(&other.data) && self.rest_kind == other.rest_kind
@@ -110,6 +111,22 @@ impl RouteConfig {
             response_kind: ResponseKind::default(),
             data: RouteData::new(route),
         }
+    }
+}
+
+set! {
+  /// A collection of [`RouteConfig`]s.
+  #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+  pub struct RouteConfigs(IndexSet<RouteConfig, DefaultHashBuilder>);
+}
+
+impl RouteConfigs {
+    /// Merges the provided [`RouteConfigs`] with the current one.
+    #[must_use]
+    #[inline]
+    pub fn merge(mut self, other: Self) -> Self {
+        self.0.extend(other);
+        self
     }
 }
 
@@ -214,11 +231,11 @@ impl Route {
         self
     }
 
-    /// Adds a slice of [`Hazard`]s to a [`Route`].
+    /// Adds an array of [`Hazard`]s to a [`Route`].
     #[must_use]
     #[inline]
-    pub fn with_slice_hazards(mut self, hazards: &'static [Hazard]) -> Self {
-        self.hazards = Hazards::init_with_elements(hazards);
+    pub fn with_array_of_hazards<const N: usize>(mut self, hazards: [Hazard; N]) -> Self {
+        self.hazards = Hazards::init_from_hazards(hazards);
         self
     }
 
@@ -275,8 +292,11 @@ impl Route {
     }
 }
 
-/// A collection of [`Route`]s.
-pub type Routes = Set<Route>;
+set! {
+  /// A collection of [`Route`]s.
+  #[derive(Debug)]
+  pub struct Routes(IndexSet<Route, DefaultHashBuilder>);
+}
 
 mandatory_route!(LightOnRoute, "/on", methods: [post, put]);
 mandatory_route!(LightOffRoute, "/off", methods: [post, put]);
@@ -400,7 +420,7 @@ mod tests {
             deserialize::<RouteConfig>(serialize(
                 Route::get("Route", "/route")
                     .description("A GET route")
-                    .with_slice_hazards(&[Hazard::FireHazard, Hazard::AirPoisoning])
+                    .with_array_of_hazards([Hazard::FireHazard, Hazard::AirPoisoning])
                     .serialize_data()
             )),
             route_config_hazards(

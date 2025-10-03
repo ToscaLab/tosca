@@ -1,4 +1,10 @@
+use hashbrown::DefaultHashBuilder;
+
+use indexmap::set::{IndexSet, IntoIter, Iter};
+
 use serde::{Deserialize, Serialize};
+
+use crate::collections::set;
 
 /// Energy efficiency class.
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy, Serialize, Deserialize)]
@@ -108,8 +114,11 @@ impl EnergyEfficiency {
     }
 }
 
-/// A collection of [`EnergyEfficiency`]s.
-pub type EnergyEfficiencies = crate::collections::OutputSet<EnergyEfficiency>;
+set! {
+  /// A collection of [`EnergyEfficiency`]s.
+  #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+  pub struct EnergyEfficiencies(IndexSet<EnergyEfficiency, DefaultHashBuilder>);
+}
 
 /// Carbon footprint.
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy, Serialize, Deserialize)]
@@ -165,8 +174,11 @@ impl CarbonFootprint {
     }
 }
 
-/// A collection of [`CarbonFootprints`]s.
-pub type CarbonFootprints = crate::collections::OutputSet<CarbonFootprint>;
+set! {
+  /// A collection of [`CarbonFootprints`]s.
+  #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+  pub struct CarbonFootprints(IndexSet<CarbonFootprint, DefaultHashBuilder>);
+}
 
 /// Water-Use efficiency data.
 ///
@@ -343,11 +355,13 @@ impl Energy {
 #[cfg(test)]
 mod tests {
     use super::Energy;
-    use crate::collections::OutputSet;
 
     use crate::{deserialize, serialize};
 
-    use super::{CarbonFootprint, EnergyClass, EnergyEfficiency, WaterUseEfficiency};
+    use super::{
+        CarbonFootprint, CarbonFootprints, EnergyClass, EnergyEfficiencies, EnergyEfficiency,
+        WaterUseEfficiency,
+    };
 
     fn assert_float_eq(a: f64, b: f64) {
         assert!((a - b).abs() < 1e-6);
@@ -448,10 +462,11 @@ mod tests {
     fn test_energy() {
         let mut energy = Energy::empty();
 
-        let energy_efficiencies = OutputSet::init(EnergyEfficiency::new(-50, EnergyClass::A))
-            .insert(EnergyEfficiency::new(50, EnergyClass::B));
+        let energy_efficiencies =
+            EnergyEfficiencies::init(EnergyEfficiency::new(-50, EnergyClass::A))
+                .insert(EnergyEfficiency::new(50, EnergyClass::B));
 
-        let carbon_footprints = OutputSet::init(CarbonFootprint::new(-50, EnergyClass::A))
+        let carbon_footprints = CarbonFootprints::init(CarbonFootprint::new(-50, EnergyClass::A))
             .insert(CarbonFootprint::new(50, EnergyClass::B));
 
         let water_use_efficiency = WaterUseEfficiency::init_with_gpp(2.5)
