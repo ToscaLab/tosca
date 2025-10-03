@@ -9,11 +9,11 @@ resolver = "2"
 publish = false
 
 [dependencies]
-ascot.version = "0.1"
 ascot.path = "../../../ascot"
+ascot.version = "0.1"
 
-ascot-os.version = "0.1"
 ascot-os.path = "../../"
+ascot-os.version = "0.1"
 
 async-lock.version = "3.3"
 async-lock.default-features = false
@@ -60,5 +60,3 @@ panic = "unwind"
 incremental = false
 overflow-checks = false
 strip = "debuginfo"
-
-[workspace]
