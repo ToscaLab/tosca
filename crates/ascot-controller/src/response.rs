@@ -2,7 +2,7 @@ use ascot::response::{InfoResponse, OkResponse, SerialResponse};
 
 use reqwest::Response as ReqwestResponse;
 
-use serde::{Serialize, de::DeserializeOwned};
+use serde::{de::DeserializeOwned, Serialize};
 
 use crate::error::{Error, ErrorKind, Result};
 
@@ -112,10 +112,10 @@ impl StreamResponse {
     }
 }
 
-/// All supported device responses kinds.
+/// All supported device response kinds.
 ///
-/// Every response  a specific body parser to analyze
-/// its internal data.
+/// Each response includes a dedicated body parser responsible for
+/// analyzing its internal data.
 pub enum Response {
     /// A skipped response occurs when a request has not been sent because of
     /// privacy policy rules.
