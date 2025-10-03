@@ -10,7 +10,7 @@ use indexmap::map::{IndexMap, Iter};
 
 use serde::{Deserialize, Serialize};
 
-use crate::collections::map;
+use crate::macros::map;
 
 fn is_u8_max(value: &u8) -> bool {
     *value == u8::MAX

@@ -7,11 +7,10 @@ use indexmap::set::{IndexSet, IntoIter, Iter};
 use serde::{Deserialize, Serialize};
 
 use crate::hazards::{Hazard, Hazards};
-use crate::macros::mandatory_route;
 use crate::parameters::{Parameters, ParametersData};
 use crate::response::ResponseKind;
 
-use crate::collections::set;
+use crate::macros::{mandatory_route, set};
 
 /// `REST` requests kind.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
