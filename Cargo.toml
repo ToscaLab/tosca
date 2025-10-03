@@ -17,6 +17,9 @@ indexmap.default-features = false
 
 log.version = "0.4.27"
 
+mdns-sd.version = "0.14.1"
+mdns-sd.default-features = false
+
 serde.version = "1.0"
 serde.default-features = false
 
@@ -28,6 +31,3 @@ tokio.default-features = false
 
 tracing.version = "0.1"
 tracing.default-features = false
-
-mdns-sd.version = "0.14.1"
-mdns-sd.default-features = false
