@@ -3,20 +3,20 @@ use ascot_os::actions::serial::SerialResponse;
 use ascot_os::extract::State;
 
 use nokhwa::{
+    Camera,
     pixel_format::RgbFormat,
     query,
     utils::{
-        frame_formats, ApiBackend, CameraControl, CameraIndex, CameraInfo, FrameFormat,
-        RequestedFormat, Resolution,
+        ApiBackend, CameraControl, CameraIndex, CameraInfo, FrameFormat, RequestedFormat,
+        Resolution, frame_formats,
     },
-    Camera,
 };
 
 use serde::{Deserialize, Serialize};
 
 use tracing::info;
 
-use crate::{camera_error, InternalState};
+use crate::{InternalState, camera_error};
 
 #[derive(Serialize, Deserialize)]
 pub(crate) struct ViewCamerasResponse {
@@ -24,8 +24,8 @@ pub(crate) struct ViewCamerasResponse {
 }
 
 // Not a computationally intensive route, just some matches.
-pub(crate) async fn show_available_cameras(
-) -> Result<SerialResponse<ViewCamerasResponse>, ErrorResponse> {
+pub(crate) async fn show_available_cameras()
+-> Result<SerialResponse<ViewCamerasResponse>, ErrorResponse> {
     // Retrieve all cameras present on a system
     let cameras = query(ApiBackend::Auto).map_err(|e| camera_error("No cameras found", e))?;
 

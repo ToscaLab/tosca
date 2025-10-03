@@ -2,14 +2,14 @@ use std::io::Cursor;
 
 use ascot_os::actions::error::ErrorResponse;
 use ascot_os::actions::stream::StreamResponse;
-use ascot_os::extract::{header, Json, State};
+use ascot_os::extract::{Json, State, header};
 
 use image::ImageFormat;
 
 use nokhwa::{
+    Camera,
     pixel_format::{RgbAFormat, RgbFormat},
     utils::{RequestedFormat, RequestedFormatType, Resolution},
-    Camera,
 };
 
 use tokio::task::spawn_blocking;
@@ -17,7 +17,7 @@ use tokio::task::spawn_blocking;
 use tracing::info;
 
 use crate::parameters::{CameraFramerate, CameraInputs, CameraResolution};
-use crate::{camera_error, camera_format, InternalState};
+use crate::{InternalState, camera_error, camera_format};
 
 async fn run_camera_screenshot(
     state: InternalState,

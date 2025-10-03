@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 
 use tracing::{error, info};
 
-use crate::{camera_error, camera_format, InternalState};
+use crate::{InternalState, camera_error, camera_format};
 
 #[derive(Serialize, Deserialize)]
 pub(crate) struct CameraResponse {
