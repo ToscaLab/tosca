@@ -21,13 +21,12 @@ use ascot_os::service::{ServiceConfig, TransportProtocol};
 
 use async_lock::Mutex;
 
-use clap::builder::ValueParser;
 use clap::Parser;
+use clap::builder::ValueParser;
 
 use nokhwa::{
-    native_api_backend, query,
+    NokhwaError, native_api_backend, query,
     utils::{CameraFormat, CameraIndex, FrameFormat, RequestedFormatType, Resolution},
-    NokhwaError,
 };
 
 use tracing::{error, info};

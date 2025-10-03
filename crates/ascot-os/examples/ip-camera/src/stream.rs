@@ -3,18 +3,18 @@ use std::io::Cursor;
 use ascot_os::actions::error::ErrorResponse;
 use ascot_os::actions::stream::StreamResponse;
 
-use ascot_os::extract::{header, State};
+use ascot_os::extract::{State, header};
 
 use image::ImageFormat;
 
-use nokhwa::{pixel_format::RgbFormat, utils::RequestedFormat, Camera};
+use nokhwa::{Camera, pixel_format::RgbFormat, utils::RequestedFormat};
 
 use tokio::sync::mpsc::unbounded_channel;
 use tokio::task::spawn_blocking;
 
 use tracing::{error, info};
 
-use crate::{thread_error, InternalState};
+use crate::{InternalState, thread_error};
 
 const FRAME_BOUNDARY: &str = concat!("\r\n--", "123456789000000000000987654321", "\r\n");
 const CONTENT_TYPE: &str = concat!(

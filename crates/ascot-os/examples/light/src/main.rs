@@ -10,9 +10,9 @@ use ascot::parameters::Parameters;
 use ascot::route::{LightOffRoute, LightOnRoute, Route};
 
 use ascot_os::actions::error::ErrorResponse;
-use ascot_os::actions::info::{info_stateful, InfoResponse};
-use ascot_os::actions::ok::{mandatory_ok_stateful, ok_stateful, OkResponse};
-use ascot_os::actions::serial::{mandatory_serial_stateful, serial_stateful, SerialResponse};
+use ascot_os::actions::info::{InfoResponse, info_stateful};
+use ascot_os::actions::ok::{OkResponse, mandatory_ok_stateful, ok_stateful};
+use ascot_os::actions::serial::{SerialResponse, mandatory_serial_stateful, serial_stateful};
 use ascot_os::devices::light::Light;
 use ascot_os::error::Error;
 use ascot_os::extract::{FromRef, Json, State};
@@ -21,8 +21,8 @@ use ascot_os::service::{ServiceConfig, TransportProtocol};
 
 use async_lock::Mutex;
 
-use clap::builder::ValueParser;
 use clap::Parser;
+use clap::builder::ValueParser;
 
 use serde::{Deserialize, Serialize};
 
