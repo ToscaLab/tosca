@@ -3,7 +3,7 @@ use std::time::Duration;
 
 use ascot::device::DeviceData;
 
-use mdns_sd::{IfKind, ResolvedService, ServiceDaemon, ServiceEvent, ServiceInfo};
+use mdns_sd::{IfKind, ResolvedService, ServiceDaemon, ServiceEvent};
 
 use tracing::{info, warn};
 
@@ -186,7 +186,7 @@ impl Discovery {
                     continue;
                 }
 
-                discovery_service.push(info.as_resolved_service());
+                discovery_service.push(*info);
             }
         }
 
@@ -281,7 +281,10 @@ impl Discovery {
     // - It has the same full name of another device belonging to the same
     //   network. A full name, in this case, represents the device ID.
     //   Two devices belonging to the same network CANNOT HAVE the same ID.
-    fn check_device_duplicates(discovery_service: &[ResolvedService], info: &ServiceInfo) -> bool {
+    fn check_device_duplicates(
+        discovery_service: &[ResolvedService],
+        info: &ResolvedService,
+    ) -> bool {
         for disco_service in discovery_service {
             // When the addresses have distinct ports, they are always
             // different, so they are not considered.
@@ -290,7 +293,7 @@ impl Discovery {
             }
 
             for address in &disco_service.addresses {
-                if info.get_addresses().contains(&address.to_ip_addr()) {
+                if info.get_addresses().contains(address) {
                     return true;
                 }
             }
