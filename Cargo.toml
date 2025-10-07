@@ -6,6 +6,7 @@ members = [
     "crates/tosca",
     "crates/tosca-os",
     "crates/tosca-controller",
+    "crates/tosca-drivers",
 ]
 exclude = ["crates/tosca-esp32c3"]
 

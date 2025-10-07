@@ -1,0 +1,42 @@
+# `tosca-drivers`
+
+[![LICENSE][license badge]][license]
+
+A Rust library crate providing architecture-agnostic drivers for various sensors
+and devices.
+
+This crate currently includes drivers for:
+
+- [**AM312**](./docs/am312.md): PIR motion sensor.
+- [**BH1750**](./docs/bh1750.md): ambient light sensor.
+- [**DHT22**](./docs/dht22.md): temperature and humidity sensor.
+- [**DS18B20**](./docs/ds18b20.md): temperature sensor.
+
+All drivers are implemented using only the [`embedded-hal`] and
+[`embedded-hal-async`] traits, making them compatible with any platform that
+supports these abstractions.
+
+For each driver, a short documentation is provided containing a description and
+the wiring diagram in [docs](./docs/).
+These diagrams were created using [`Fritzing`], an open-source tool,
+and the corresponding project files can be found in [fritzing](./docs/fritzing/).
+
+## Features
+
+You can enable only the sensors you need using Cargo features:
+
+```toml
+[dependencies]
+tosca-drivers.version = "0.1.0"
+tosca-drivers.default-features = false
+tosca-drivers.features = ["bh1750", "dht22"] # only include needed drivers
+```
+
+<!-- Links -->
+[license]: https://github.com/ToscaLabs/tosca/blob/master/LICENSE
+[`embedded-hal`]: https://crates.io/crates/embedded-hal
+[`embedded-hal-async`]: https://crates.io/crates/embedded-hal-async
+[`Fritzing`]: https://fritzing.org/download/
+
+<!-- Badges -->
+[license badge]: https://img.shields.io/badge/license-MIT-blue.svg
