@@ -10,6 +10,8 @@
 //!
 //! For detailed information and specifications, see the [datasheet](https://www.alldatasheet.com/datasheet-pdf/pdf/1179499/ETC2/AM312.html).
 
+use core::result::Result;
+
 use embedded_hal::digital::InputPin;
 
 use embedded_hal_async::digital::Wait;
