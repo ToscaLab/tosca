@@ -3,6 +3,7 @@ members = [
     "crates/ascot",
     "crates/ascot-os",
     "crates/ascot-controller",
+    "crates/ascot-sensors",
 ]
 exclude = ["crates/ascot-esp32c3"]
 resolver = "2"

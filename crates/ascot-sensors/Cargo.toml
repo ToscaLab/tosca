@@ -1,0 +1,16 @@
+[package]
+name = "ascot-sensors"
+version = "0.1.0"
+edition = "2024"
+description = "A Rust library providing architecture-agnostic drivers for various sensors"
+license = "MIT"
+
+[dependencies]
+embedded-hal = "1.0.0"
+embedded-hal-async = "1.0.0"
+
+[features]
+default = ["dht22", "bh1750", "am312"]
+dht22 = []
+bh1750 = []
+am312 = []
