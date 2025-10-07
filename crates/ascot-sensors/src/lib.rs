@@ -6,6 +6,10 @@
 //! [`embedded-hal`]: https://crates.io/crates/embedded-hal
 //! [`embedded-hal-async`]: https://crates.io/crates/embedded-hal-async
 
+#![forbid(unsafe_code)]
+#![deny(missing_docs)]
+#![no_std]
+
 #[cfg(feature = "am312")]
 pub mod am312;
 

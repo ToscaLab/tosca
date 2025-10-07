@@ -29,12 +29,12 @@ impl<E> From<E> for Bh1750Error<E> {
 
 /// I²C address of the BH1750 sensor.
 ///
-/// The sensor supports two possible addresses depending on how the ADD pin is connected:
-/// - **Low**: `0x23` when ADD is connected to GND or floating.
-/// - **High**: `0x23` when ADD is connected to VCC.
+/// The sensor supports two possible addresses depending on how the ADD pin is connected.
 #[derive(Debug, Clone, Copy)]
 pub enum Address {
+    /// Low: `0x23` when ADD is connected to GND or floating.
     Low = 0x23,
+    /// High: `0x23` when ADD is connected to VCC.
     High = 0x5C,
 }
 
