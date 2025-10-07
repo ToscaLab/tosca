@@ -21,6 +21,7 @@ You can enable only the sensors you need using Cargo features:
 ```toml
 [dependencies]
 ascot-sensors.version = "0.1.0"
+ascot-sensors.default-features = false
 ascot-sensors.features = ["bh1750", "dht22"] # only include needed drivers
 ```
 
