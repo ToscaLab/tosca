@@ -7,7 +7,7 @@
 //!
 //! For detailed information and specifications, see the [datasheet](https://www.alldatasheet.com/datasheet-pdf/pdf/338083/ROHM/BH1750FVI.html).
 
-use core::result::Result;
+use core::result::Result::{self, Ok};
 
 use embedded_hal_async::i2c::I2c;
 use embedded_hal_async::delay::DelayNs;

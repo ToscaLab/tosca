@@ -12,7 +12,7 @@
 //! For detailed information and specifications, see the [datasheet](https://www.alldatasheet.com/datasheet-pdf/pdf/1132459/ETC2/DHT22.html)
 //! and a description of the proprietary [communication protocol](https://www.ocfreaks.com/basics-interfacing-dht11-dht22-humidity-temperature-sensor-mcu/).
 
-use core::result::Result;
+use core::result::Result::{self, Ok, Err};
 
 use embedded_hal::digital::{InputPin, OutputPin, PinState};
 use embedded_hal::delay::DelayNs as SyncDelay;
