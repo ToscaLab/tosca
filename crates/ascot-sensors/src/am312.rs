@@ -15,36 +15,61 @@ use core::result::Result;
 use embedded_hal::digital::InputPin;
 
 use embedded_hal_async::digital::Wait;
+use embedded_hal_async::delay::DelayNs;
 
 /// AM312 driver.
-pub struct Am312<P>
+pub struct Am312<P, D>
 where
         P: InputPin + Wait,
+        D: DelayNs,
     {
         pin: P,
+        delay: D
     }
 
-impl<P> Am312<P>
+impl<P, D> Am312<P, D>
 where
     P: InputPin + Wait,
+    D: DelayNs,
 {
+    const DEBOUNCE_MS: u32 = 50;
+
     /// Creates a new [`Am312`] driver with the given input pin.
     #[must_use]
     #[inline]
-    pub async fn new(pin: P) -> Self {
-        Self { pin }
+    pub async fn new(pin: P, delay: D) -> Self {
+        Self {
+            pin,
+            delay
+        }
     }
 
     /// Waits until motion is detected.
-    #[inline]
     pub async fn wait_for_motion_start(&mut self) -> Result<(), P::Error> {
-        self.pin.wait_for_rising_edge().await
+        loop {
+            self.pin.wait_for_rising_edge().await?;
+
+            // Debounce.
+            self.delay.delay_ms(Self::DEBOUNCE_MS).await;
+
+            if self.pin.is_high()? {
+                return Ok(());
+            }
+        }
     }
 
     /// Waits until motion ends.
-    #[inline]
     pub async fn wait_for_motion_end(&mut self) -> Result<(), P::Error> {
-        self.pin.wait_for_falling_edge().await
+        loop {
+            self.pin.wait_for_falling_edge().await?;
+
+            // Debounce.
+            self.delay.delay_ms(Self::DEBOUNCE_MS).await;
+
+            if self.pin.is_low()? {
+                return Ok(());
+            }
+        }
     }
 
     /// Returns whether motion is currently detected.

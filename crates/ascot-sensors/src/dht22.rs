@@ -61,11 +61,11 @@ where
     D: SyncDelay + AsyncDelay,
 {
     // Protocol-specific timing constants.
-    const START_SIGNAL_LOW_MS: u32 = 18;  // MCU pulls line low for at least 18 ms to initiate communication.
-    const START_SIGNAL_HIGH_US: u32 = 40; // Then releases the line (high) for ~20–40 µs.
-    const BIT_SAMPLE_DELAY_US: u32 = 30;  // Time after which to sample the data bit.
-    const POLL_DELAY_US: u32 = 1;         // Delay between pin state polls when waiting for edges.
-    const MAX_ATTEMPTS: usize = 80;       // Maximum polling iterations before timeout.
+    const START_SIGNAL_LOW_MS: u32 = 18;    // MCU pulls line low for at least 18 ms to initiate communication.
+    const START_SIGNAL_HIGH_US: u32 = 40;   // Then releases the line (high) for ~20–40 µs.
+    const BIT_SAMPLE_DELAY_US: u32 = 35;    // Time after which to sample the data bit.
+    const POLL_DELAY_US: u32 = 1;           // Delay between pin state polls when waiting for edges.
+    const MAX_ATTEMPTS: usize = 100;        // Maximum polling iterations before timeout.
 
     /// Creates a new [`Dht22`] driver with the given pin and delay provider.
     #[must_use]
@@ -75,9 +75,9 @@ where
 
     /// Reads a single humidity and temperature measurement.
     #[must_use]
-    pub async fn read(&mut self) -> Result<Measurement, Dht22Error<P::Error>> {
+    pub fn read(&mut self) -> Result<Measurement, Dht22Error<P::Error>> {
         // Initiate communication by sending the start signal to the sensor.
-        self.send_start_signal().await?;
+        self.send_start_signal()?;
 
         // Wait for the sensor’s response (low → high handshake).
         self.wait_for_sensor_response()?;
@@ -94,10 +94,10 @@ where
         })
     }
 
-    async fn send_start_signal(&mut self) -> Result<(), Dht22Error<P::Error>> {
+    fn send_start_signal(&mut self) -> Result<(), Dht22Error<P::Error>> {
         // Pull the line low for at least 18 ms to signal the sensor.
         self.pin.set_low()?;
-        AsyncDelay::delay_ms(&mut self.delay, Self::START_SIGNAL_LOW_MS).await;
+        SyncDelay::delay_ms(&mut self.delay, Self::START_SIGNAL_LOW_MS);
 
         // Release the line high briefly before the sensor takes control of it.
         self.pin.set_high()?;
