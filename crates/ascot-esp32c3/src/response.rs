@@ -4,15 +4,15 @@ use alloc::vec::Vec;
 
 use ascot::response::{
     ErrorKind, ErrorResponse as AscotErrorResponse, OkResponse as AscotOkResponse,
-    SERIALIZATION_ERROR, SerialResponse as AscotSerialResponse,
+    SerialResponse as AscotSerialResponse, SERIALIZATION_ERROR,
 };
 
-use edge_http::io::Error;
 use edge_http::io::server::Connection;
+use edge_http::io::Error;
 
 use embedded_io_async::{Read, Write};
 
-use serde::{Serialize, de::DeserializeOwned};
+use serde::{de::DeserializeOwned, Serialize};
 
 struct Headers {
     status: u16,
@@ -73,8 +73,7 @@ impl Body {
         Self(Cow::Borrowed(v))
     }
 
-    #[inline]
-    fn owned(v: Vec<u8>) -> Self {
+    const fn owned(v: Vec<u8>) -> Self {
         Self(Cow::Owned(v))
     }
 }
