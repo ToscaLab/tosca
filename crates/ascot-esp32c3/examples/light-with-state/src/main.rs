@@ -12,11 +12,11 @@ use core::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 
 use ascot::route::{LightOffRoute, LightOnRoute, Route};
 
+use esp_hal::Config;
 use esp_hal::clock::CpuClock;
 use esp_hal::gpio::{Input, InputConfig, Level, Output, OutputConfig, Pull};
 use esp_hal::rng::Rng;
 use esp_hal::timer::{systimer::SystemTimer, timg::TimerGroup};
-use esp_hal::Config;
 
 use log::info;
 
@@ -27,7 +27,7 @@ use embassy_time::Timer;
 use ascot_esp32c3::{
     devices::light::Light,
     mdns::Mdns,
-    net::{get_ip, NetworkStack},
+    net::{NetworkStack, get_ip},
     response::{ErrorResponse, OkResponse, SerialResponse},
     server::Server,
     state::{State, ValueFromRef},

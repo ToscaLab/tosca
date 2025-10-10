@@ -4,15 +4,15 @@ use alloc::vec::Vec;
 
 use ascot::response::{
     ErrorKind, ErrorResponse as AscotErrorResponse, OkResponse as AscotOkResponse,
-    SerialResponse as AscotSerialResponse, SERIALIZATION_ERROR,
+    SERIALIZATION_ERROR, SerialResponse as AscotSerialResponse,
 };
 
-use edge_http::io::server::Connection;
 use edge_http::io::Error;
+use edge_http::io::server::Connection;
 
 use embedded_io_async::{Read, Write};
 
-use serde::{de::DeserializeOwned, Serialize};
+use serde::{Serialize, de::DeserializeOwned};
 
 /// A response which transmits a concise JSON message over the network to notify
 /// a controller that an operation completed successfully.
