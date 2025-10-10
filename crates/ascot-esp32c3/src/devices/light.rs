@@ -115,9 +115,9 @@ where
     }
 }
 
-/// A `light` placeholder containing only the route to turn the light on.
+/// A `light` placeholder that includes only the route to turn the light on.
 ///
-/// All of its methods constructs a [`CompleteLight`].
+/// All of its methods return a [`CompleteLight`].
 pub struct LightOnRoute<S = ()>(CompleteLight<S>)
 where
     S: ValueFromRef + Send + Sync + 'static;
@@ -193,7 +193,7 @@ where
     }
 }
 
-/// A `light` device with methods to turn a light on and off.
+/// A `light` device that provides methods to turn a light on and off.
 pub struct CompleteLight<S = ()>
 where
     S: ValueFromRef + Send + Sync + 'static,
