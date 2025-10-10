@@ -173,6 +173,7 @@ where
         let mut server = EdgeServer::<SERVER_SOCKETS, RX_SIZE, MAXIMUM_HEADERS_COUNT>::new();
 
         // Run mdns.
+        //
         // NOTE: Use the same server port for the mDNS-SD service
         self.mdns.run(stack, self.port, spawner)?;
 
