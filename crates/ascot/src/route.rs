@@ -106,6 +106,12 @@ impl core::hash::Hash for RouteConfig {
 }
 
 impl RouteConfig {
+    /// Changes the response kind.
+    pub const fn change_response_kind(mut self, response_kind: ResponseKind) -> Self {
+        self.response_kind = response_kind;
+        self
+    }
+
     fn new(route: Route) -> Self {
         Self {
             rest_kind: route.rest_kind,
