@@ -14,6 +14,139 @@ use embedded_io_async::{Read, Write};
 
 use serde::{de::DeserializeOwned, Serialize};
 
+/// A response which transmits a concise JSON message over the network to notify
+/// a controller that an operation completed successfully.
+pub struct OkResponse(Response);
+
+impl Default for OkResponse {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl OkResponse {
+    /// Creates an [`OkResponse`] containing
+    /// an [`ascot::response::OkResponse`].
+    #[must_use]
+    #[inline]
+    pub fn new() -> Self {
+        Self(json_to_response(Headers::json(), AscotOkResponse::ok()))
+    }
+}
+
+/// A response which transmits a JSON message over the network containing
+/// the data produced during a device operation.
+///
+/// Data must be serializable and deserializable.
+pub struct SerialResponse(Response);
+
+impl SerialResponse {
+    /// Creates a [`SerialResponse`] containing
+    /// a [`ascot::response::SerialResponse`].
+    #[must_use]
+    #[inline]
+    pub fn new<T: Serialize + DeserializeOwned>(value: T) -> Self {
+        Self(json_to_response(
+            Headers::json(),
+            AscotSerialResponse::new(value),
+        ))
+    }
+
+    /// Creates a [`SerialResponse`] containing a
+    /// [`ascot::response::SerialResponse`] derived from a given text.
+    #[must_use]
+    #[inline]
+    pub fn text(value: &str) -> Self {
+        let value = Cow::Borrowed(value);
+        Self(json_to_response(
+            Headers::json(),
+            AscotSerialResponse::new(value),
+        ))
+    }
+}
+
+/// A response providing details about an error encountered during a
+/// device operation.
+///
+/// Contains the [`ascot::response::ErrorKind`], a general error description,
+/// and optional information about the encountered error.
+pub struct ErrorResponse(Response);
+
+impl ErrorResponse {
+    /// Generates an [`ErrorResponse`] containing an
+    /// [`ascot::response::ErrorResponse`].
+    ///
+    /// Requires specifying the [`ErrorKind`] kind and a general
+    /// description.
+    #[must_use]
+    #[inline]
+    pub fn error(error: ErrorKind, description: &str) -> Self {
+        Self(json_to_response(
+            Headers::json_error(),
+            AscotErrorResponse::with_description(error, description),
+        ))
+    }
+
+    /// Generates an [`ErrorResponse`] containing an
+    /// [`ascot::response::ErrorResponse`].
+    ///
+    /// Requires specifying the [`ErrorKind`] kind, a general error
+    /// description, and optional information about the encountered error.
+    #[must_use]
+    #[inline]
+    pub fn error_with_info(error: ErrorKind, description: &str, info: &str) -> Self {
+        Self(json_to_response(
+            Headers::json_error(),
+            AscotErrorResponse::with_description_error(error, description, info),
+        ))
+    }
+
+    /// An alias for the [`Self::error`] API, used to generate
+    /// an [`ErrorResponse`] for invalid data.
+    ///
+    ///
+    /// Requires specifying a general error description.
+    #[must_use]
+    #[inline]
+    pub fn invalid_data(description: &str) -> Self {
+        Self::error(ErrorKind::InvalidData, description)
+    }
+
+    /// An alias for the [`Self::error`] API, used to generate
+    /// an [`ErrorResponse`] for invalid data.
+    ///
+    ///
+    /// Requires specifying a general error description and optional
+    /// information about the encountered error.
+    #[must_use]
+    #[inline]
+    pub fn invalid_data_with_error(description: &str, info: &str) -> Self {
+        Self::error_with_info(ErrorKind::InvalidData, description, info)
+    }
+
+    /// An alias for the [`Self::error`] API, used to generate
+    /// an [`ErrorResponse`] for an internal error.
+    ///
+    /// Requires specifying a general error description.
+    #[must_use]
+    #[inline]
+    pub fn internal(description: &str) -> Self {
+        Self::error(ErrorKind::Internal, description)
+    }
+
+    /// An alias for the [`Self::error`] API, used to generate
+    /// an [`ErrorResponse`] for an internal error.
+    ///
+    ///
+    /// Requires specifying a general error description and optional
+    /// information about the encountered error.
+    #[must_use]
+    #[inline]
+    pub fn internal_with_error(description: &str, info: &str) -> Self {
+        Self::error_with_info(ErrorKind::Internal, description, info)
+    }
+}
+
 struct Headers {
     status: u16,
     message: &'static str,
@@ -89,107 +222,32 @@ fn json_to_response<T: Serialize>(headers: Headers, value: T) -> Response {
     }
 }
 
-/// A server response.
-pub struct Response {
+pub(crate) struct Response {
     headers: Headers,
     body: Body,
 }
 
-impl From<Result<Response, Response>> for Response {
+impl From<Result<OkResponse, ErrorResponse>> for Response {
     #[inline]
-    fn from(result: Result<Response, Response>) -> Response {
+    fn from(result: Result<OkResponse, ErrorResponse>) -> Response {
         match result {
-            Ok(value) => value,
-            Err(err) => err,
+            Ok(value) => value.0,
+            Err(err) => err.0,
+        }
+    }
+}
+
+impl From<Result<SerialResponse, ErrorResponse>> for Response {
+    #[inline]
+    fn from(result: Result<SerialResponse, ErrorResponse>) -> Response {
+        match result {
+            Ok(value) => value.0,
+            Err(err) => err.0,
         }
     }
 }
 
 impl Response {
-    /// Generates a [`Response`] with an `Ok` status and containing an
-    /// [`ascot::response::OkResponse`].
-    #[must_use]
-    #[inline]
-    pub fn ok() -> Response {
-        json_to_response(Headers::json(), AscotOkResponse::ok())
-    }
-
-    /// Generates a [`Response`] with an `Ok` status and containing a
-    /// [`ascot::response::SerialResponse`].
-    #[must_use]
-    #[inline]
-    pub fn serial<T: Serialize + DeserializeOwned>(value: T) -> Self {
-        json_to_response(Headers::json(), AscotSerialResponse::new(value))
-    }
-
-    /// Generates a [`Response`] with an `Ok` status and containing a
-    /// [`ascot::response::SerialResponse`] derived from a given text input.
-    #[must_use]
-    #[inline]
-    pub fn text(value: &str) -> Self {
-        let value = Cow::Borrowed(value);
-        json_to_response(Headers::json(), AscotSerialResponse::new(value))
-    }
-
-    /// Generates a [`Response`] with an `Error` status and containing an
-    /// [`ascot::response::ErrorResponse`].
-    ///
-    /// Requires specifying the [`ErrorKind`] kind and a general
-    /// description.
-    #[must_use]
-    #[inline]
-    pub fn error(error: ErrorKind, description: &str) -> Self {
-        json_to_response(
-            Headers::json_error(),
-            AscotErrorResponse::with_description(error, description),
-        )
-    }
-
-    /// Generates a [`Response`] with an `Error` status and containing a
-    /// [`ascot::response::ErrorResponse`].
-    ///
-    /// Requires specifying the [`ErrorKind`] kind, a general error
-    /// description, and optional information about the encountered error.
-    #[must_use]
-    #[inline]
-    pub fn error_with_info(error: ErrorKind, description: &str, info: &str) -> Self {
-        json_to_response(
-            Headers::json_error(),
-            AscotErrorResponse::with_description_error(error, description, info),
-        )
-    }
-
-    /// An alias for the [`Self::error`] API, used to generate an invalid data
-    /// [`Response`].
-    ///
-    /// Requires specifying a general error description.
-    #[must_use]
-    #[inline]
-    pub fn invalid_data(description: &str) -> Self {
-        Self::error(ErrorKind::InvalidData, description)
-    }
-
-    /// An alias for the [`Self::error`] API, used to generate an internal error
-    /// [`Response`].
-    ///
-    /// Requires specifying a general error description.
-    #[must_use]
-    #[inline]
-    pub fn internal(description: &str) -> Self {
-        Self::error(ErrorKind::Internal, description)
-    }
-
-    /// An alias for the [`Self::error`] API, used to generate an internal error
-    /// [`Response`] with some details about the error.
-    ///
-    /// Requires specifying a general error description and additional
-    /// information about the encountered error.
-    #[must_use]
-    #[inline]
-    pub fn internal_with_error(description: &str, info: &str) -> Self {
-        Self::error_with_info(ErrorKind::Internal, description, info)
-    }
-
     #[inline]
     pub(crate) fn json<T: Serialize>(value: &T) -> Self {
         json_to_response(Headers::json(), value)
