@@ -3,11 +3,12 @@ use core::net::{Ipv4Addr, SocketAddr};
 use core::pin::Pin;
 
 use alloc::boxed::Box;
+use alloc::vec::Vec;
 
 use ascot::route::RestKind;
 
-use edge_http::Method;
 use edge_http::io::server::{Connection, Handler, Server as EdgeServer};
+use edge_http::Method;
 use edge_nal::TcpBind;
 use edge_nal_embassy::{Tcp, TcpBuffers};
 
@@ -21,7 +22,7 @@ use log::info;
 use crate::device::Device;
 use crate::error::Error;
 use crate::mdns::Mdns;
-use crate::response::Response;
+use crate::response::{ErrorResponse, OkResponse, Response, SerialResponse};
 use crate::state::{State, ValueFromRef};
 
 // Default HTTP address.
@@ -36,24 +37,55 @@ const DEFAULT_SERVER_PORT: u16 = 80;
 // Number of sockets used for the HTTP server
 const SERVER_SOCKETS: usize = 1;
 
-pub(crate) type InputFn = Box<
-    dyn Fn() -> Pin<Box<dyn Future<Output = Response> + Send + Sync + 'static>>
-        + Send
+pub(crate) type OkFn = Box<
+    dyn Fn() -> Pin<
+            Box<dyn Future<Output = Result<OkResponse, ErrorResponse>> + Send + Sync + 'static>,
+        > + Send
         + Sync
         + 'static,
 >;
 
-pub(crate) type InputStateFn<S> = Box<
-    dyn Fn(State<S>) -> Pin<Box<dyn Future<Output = Response> + Send + Sync + 'static>>
-        + Send
+pub(crate) type OkStateFn<S> = Box<
+    dyn Fn(
+            State<S>,
+        ) -> Pin<
+            Box<dyn Future<Output = Result<OkResponse, ErrorResponse>> + Send + Sync + 'static>,
+        > + Send
         + Sync
         + 'static,
 >;
+
+pub(crate) type SerialFn = Box<
+    dyn Fn() -> Pin<
+            Box<dyn Future<Output = Result<SerialResponse, ErrorResponse>> + Send + Sync + 'static>,
+        > + Send
+        + Sync
+        + 'static,
+>;
+
+pub(crate) type SerialStateFn<S> = Box<
+    dyn Fn(
+            State<S>,
+        ) -> Pin<
+            Box<dyn Future<Output = Result<SerialResponse, ErrorResponse>> + Send + Sync + 'static>,
+        > + Send
+        + Sync
+        + 'static,
+>;
+
+pub(crate) type Functions<S> = (
+    Vec<OkFn>,
+    Vec<OkStateFn<S>>,
+    Vec<SerialFn>,
+    Vec<SerialStateFn<S>>,
+);
 
 #[derive(Clone, Copy)]
 pub(crate) enum FuncType {
-    First,
-    Second,
+    OkStateless,
+    OkStateful,
+    SerialStateless,
+    SerialStateful,
 }
 
 #[derive(Clone, Copy)]
@@ -89,12 +121,12 @@ pub struct Server<
 }
 
 impl<
-    const TX_SIZE: usize,
-    const RX_SIZE: usize,
-    const MAXIMUM_HEADERS_COUNT: usize,
-    const TIMEOUT: u32,
-    S,
-> Server<TX_SIZE, RX_SIZE, MAXIMUM_HEADERS_COUNT, TIMEOUT, S>
+        const TX_SIZE: usize,
+        const RX_SIZE: usize,
+        const MAXIMUM_HEADERS_COUNT: usize,
+        const TIMEOUT: u32,
+        S,
+    > Server<TX_SIZE, RX_SIZE, MAXIMUM_HEADERS_COUNT, TIMEOUT, S>
 where
     S: ValueFromRef + Send + Sync + 'static,
 {
@@ -254,13 +286,25 @@ where
         let func_index = self.device.index_array[index];
 
         match func_index.func_type {
-            FuncType::First => {
+            FuncType::OkStateless => {
                 let func = &self.device.routes_functions.0[func_index.index];
-                func().await
+                func().await.into()
             }
-            FuncType::Second => {
+            FuncType::OkStateful => {
                 let func = &self.device.routes_functions.1[func_index.index];
-                func(State(S::value_from_ref(&self.device.state.0))).await
+                func(State(S::value_from_ref(&self.device.state.0)))
+                    .await
+                    .into()
+            }
+            FuncType::SerialStateless => {
+                let func = &self.device.routes_functions.2[func_index.index];
+                func().await.into()
+            }
+            FuncType::SerialStateful => {
+                let func = &self.device.routes_functions.3[func_index.index];
+                func(State(S::value_from_ref(&self.device.state.0)))
+                    .await
+                    .into()
             }
         }
     }
