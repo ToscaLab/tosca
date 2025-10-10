@@ -3,7 +3,7 @@ use alloc::vec::Vec;
 use ascot::route::RouteConfigs;
 
 use crate::response::Response;
-use crate::server::{FuncIndex, InputFn, InputStateFn};
+use crate::server::{FuncIndex, Functions};
 use crate::state::{State, ValueFromRef};
 
 /// A general device.
@@ -13,7 +13,7 @@ where
 {
     pub(crate) main_route: &'static str,
     pub(crate) state: State<S>,
-    pub(crate) routes_functions: (Vec<InputFn>, Vec<InputStateFn<S>>),
+    pub(crate) routes_functions: Functions<S>,
     pub(crate) route_configs: RouteConfigs,
     pub(crate) index_array: Vec<FuncIndex>,
     pub(crate) main_route_response: Response,
@@ -27,7 +27,7 @@ where
     pub(crate) fn new(
         main_route: &'static str,
         state: State<S>,
-        routes_functions: (Vec<InputFn>, Vec<InputStateFn<S>>),
+        routes_functions: Functions<S>,
         index_array: Vec<FuncIndex>,
         main_route_response: Response,
         route_configs: RouteConfigs,

@@ -4,6 +4,7 @@ use alloc::vec::Vec;
 
 use ascot::device::{DeviceData, DeviceEnvironment, DeviceKind};
 use ascot::hazards::Hazard;
+use ascot::response::ResponseKind;
 use ascot::route::{Route, RouteConfigs};
 
 use esp_wifi::wifi::WifiDevice;
@@ -11,8 +12,8 @@ use esp_wifi::wifi::WifiDevice;
 use log::error;
 
 use crate::device::Device;
-use crate::response::Response;
-use crate::server::{FuncIndex, FuncType, InputFn, InputStateFn};
+use crate::response::{ErrorResponse, OkResponse, Response, SerialResponse};
+use crate::server::{FuncIndex, FuncType, Functions, OkFn, OkStateFn, SerialFn, SerialStateFn};
 use crate::state::{State, ValueFromRef};
 
 // Default main route.
@@ -47,34 +48,70 @@ where
         Self(CompleteLight::with_state(wifi_interface, state))
     }
 
-    /// Turns a light on using a stateless handler.
+    /// Turns on a light using a stateless handler, returning an [`OkResponse`]
+    /// upon success and an [`ErrorResponse`] in case of failure.
     #[must_use]
     #[inline]
-    pub fn turn_light_on_stateless<F, Fut>(
+    pub fn turn_light_on_stateless_ok<F, Fut>(
         self,
         route: ascot::route::LightOnRoute,
         func: F,
     ) -> LightOnRoute<S>
     where
         F: Fn() -> Fut + Send + Sync + 'static,
-        Fut: Future<Output = Response> + Send + Sync + 'static,
+        Fut: Future<Output = Result<OkResponse, ErrorResponse>> + Send + Sync + 'static,
     {
-        LightOnRoute(self.0.stateless_route(route.into_route(), func))
+        LightOnRoute(self.0.stateless_ok_route(route.into_route(), func))
     }
 
-    /// Turns a light on using a stateful handler.
+    /// Turns on a light using a stateful handler, returning an [`OkResponse`]
+    /// upon success and an [`ErrorResponse`] in case of failure.
     #[must_use]
     #[inline]
-    pub fn turn_light_on_stateful<F, Fut>(
+    pub fn turn_light_on_stateful_ok<F, Fut>(
         self,
         route: ascot::route::LightOnRoute,
         func: F,
     ) -> LightOnRoute<S>
     where
         F: Fn(State<S>) -> Fut + Send + Sync + 'static,
-        Fut: Future<Output = Response> + Send + Sync + 'static,
+        Fut: Future<Output = Result<OkResponse, ErrorResponse>> + Send + Sync + 'static,
     {
-        LightOnRoute(self.0.stateful_route(route.into_route(), func))
+        LightOnRoute(self.0.stateful_ok_route(route.into_route(), func))
+    }
+
+    /// Turns on a light using a stateless handler, returning a
+    /// [`SerialResponse`] upon success and
+    /// an [`ErrorResponse`] in case of failure.
+    #[must_use]
+    #[inline]
+    pub fn turn_light_on_stateless_serial<F, Fut>(
+        self,
+        route: ascot::route::LightOnRoute,
+        func: F,
+    ) -> LightOnRoute<S>
+    where
+        F: Fn() -> Fut + Send + Sync + 'static,
+        Fut: Future<Output = Result<SerialResponse, ErrorResponse>> + Send + Sync + 'static,
+    {
+        LightOnRoute(self.0.stateless_serial_route(route.into_route(), func))
+    }
+
+    /// Turns on a light using a stateful handler, returning a
+    /// [`SerialResponse`] upon success and
+    /// an [`ErrorResponse`] in case of failure.
+    #[must_use]
+    #[inline]
+    pub fn turn_light_on_stateful_serial<F, Fut>(
+        self,
+        route: ascot::route::LightOnRoute,
+        func: F,
+    ) -> LightOnRoute<S>
+    where
+        F: Fn(State<S>) -> Fut + Send + Sync + 'static,
+        Fut: Future<Output = Result<SerialResponse, ErrorResponse>> + Send + Sync + 'static,
+    {
+        LightOnRoute(self.0.stateful_serial_route(route.into_route(), func))
     }
 }
 
@@ -89,34 +126,70 @@ impl<S> LightOnRoute<S>
 where
     S: ValueFromRef + Send + Sync + 'static,
 {
-    /// Turns a light off using a stateless handler.
+    /// Turns off a light using a stateless handler, returning an [`OkResponse`]
+    /// upon success and an [`ErrorResponse`] in case of failure.
     #[must_use]
     #[inline]
-    pub fn turn_light_off_stateless<F, Fut>(
+    pub fn turn_light_off_stateless_ok<F, Fut>(
         self,
         route: ascot::route::LightOffRoute,
         func: F,
     ) -> CompleteLight<S>
     where
         F: Fn() -> Fut + Send + Sync + 'static,
-        Fut: Future<Output = Response> + Send + Sync + 'static,
+        Fut: Future<Output = Result<OkResponse, ErrorResponse>> + Send + Sync + 'static,
     {
-        self.0.stateless_route(route.into_route(), func)
+        self.0.stateless_ok_route(route.into_route(), func)
     }
 
-    /// Turns a light off using a stateful handler.
+    /// Turns off a light using a stateful handler, returning an [`OkResponse`]
+    /// upon success and an [`ErrorResponse`] in case of failure.
     #[must_use]
     #[inline]
-    pub fn turn_light_off_stateful<F, Fut>(
+    pub fn turn_light_off_stateful_ok<F, Fut>(
         self,
         route: ascot::route::LightOffRoute,
         func: F,
     ) -> CompleteLight<S>
     where
         F: Fn(State<S>) -> Fut + Send + Sync + 'static,
-        Fut: Future<Output = Response> + Send + Sync + 'static,
+        Fut: Future<Output = Result<OkResponse, ErrorResponse>> + Send + Sync + 'static,
     {
-        self.0.stateful_route(route.into_route(), func)
+        self.0.stateful_ok_route(route.into_route(), func)
+    }
+
+    /// Turns off a light using a stateless handler, returning a
+    /// [`SerialResponse`] upon success and
+    /// an [`ErrorResponse`] in case of failure.
+    #[must_use]
+    #[inline]
+    pub fn turn_light_off_stateless_serial<F, Fut>(
+        self,
+        route: ascot::route::LightOffRoute,
+        func: F,
+    ) -> CompleteLight<S>
+    where
+        F: Fn() -> Fut + Send + Sync + 'static,
+        Fut: Future<Output = Result<SerialResponse, ErrorResponse>> + Send + Sync + 'static,
+    {
+        self.0.stateless_serial_route(route.into_route(), func)
+    }
+
+    /// Turns off a light using a stateful handler, returning a
+    /// [`SerialResponse`] upon success and
+    /// an [`ErrorResponse`] in case of failure.
+    #[must_use]
+    #[inline]
+    pub fn turn_light_off_stateful_serial<F, Fut>(
+        self,
+        route: ascot::route::LightOffRoute,
+        func: F,
+    ) -> CompleteLight<S>
+    where
+        F: Fn(State<S>) -> Fut + Send + Sync + 'static,
+        Fut: Future<Output = Result<SerialResponse, ErrorResponse>> + Send + Sync + 'static,
+    {
+        self.0.stateful_serial_route(route.into_route(), func)
     }
 }
 
@@ -127,7 +200,7 @@ where
 {
     main_route: &'static str,
     state: State<S>,
-    routes_functions: (Vec<InputFn>, Vec<InputStateFn<S>>),
+    routes_functions: Functions<S>,
     device: DeviceData,
     index_array: Vec<FuncIndex>,
 }
@@ -145,60 +218,80 @@ where
         self
     }
 
-    /// Adds a [`Route`] with a stateless handler.
+    /// Adds a [`Route`] with a stateless handler that returns an [`OkResponse`]
+    /// on success, and an [`ErrorResponse`] on failure.
     #[must_use]
-    pub fn stateless_route<F, Fut>(mut self, route: Route, func: F) -> Self
+    pub fn stateless_ok_route<F, Fut>(self, route: Route, func: F) -> Self
     where
         F: Fn() -> Fut + Send + Sync + 'static,
-        Fut: Future<Output = Response> + Send + Sync + 'static,
+        Fut: Future<Output = Result<OkResponse, ErrorResponse>> + Send + Sync + 'static,
     {
-        let route_config = route
-            .remove_prohibited_hazards(ALLOWED_HAZARDS)
-            .serialize_data();
-
-        if self.device.route_configs.contains(&route_config) {
-            error!(
-                "The route with prefix `{}` already exists!",
-                route_config.data.path
-            );
-        }
-
-        let func: InputFn = Box::new(move || Box::pin(func()));
-        self.routes_functions.0.push(func);
-        self.device.route_configs.add(route_config);
-        self.index_array.push(FuncIndex::new(
-            FuncType::First,
-            self.routes_functions.0.len() - 1,
-        ));
-        self
+        self.route_func_manager(route, ResponseKind::Ok, move |mut func_manager| {
+            let func: OkFn = Box::new(move || Box::pin(func()));
+            func_manager.routes_functions.0.push(func);
+            func_manager.index_array.push(FuncIndex::new(
+                FuncType::OkStateless,
+                func_manager.routes_functions.0.len() - 1,
+            ));
+            func_manager
+        })
     }
 
-    /// Adds a [`Route`] with a stateful handler.
+    /// Adds a [`Route`] with a stateful handler that returns an [`OkResponse`]
+    /// on success, and an [`ErrorResponse`] on failure.
     #[must_use]
-    pub fn stateful_route<F, Fut>(mut self, route: Route, func: F) -> Self
+    pub fn stateful_ok_route<F, Fut>(self, route: Route, func: F) -> Self
     where
         F: Fn(State<S>) -> Fut + Send + Sync + 'static,
-        Fut: Future<Output = Response> + Send + Sync + 'static,
+        Fut: Future<Output = Result<OkResponse, ErrorResponse>> + Send + Sync + 'static,
     {
-        let route_config = route
-            .remove_prohibited_hazards(ALLOWED_HAZARDS)
-            .serialize_data();
+        self.route_func_manager(route, ResponseKind::Ok, move |mut func_manager| {
+            let func: OkStateFn<S> = Box::new(move |state| Box::pin(func(state)));
+            func_manager.routes_functions.1.push(func);
+            func_manager.index_array.push(FuncIndex::new(
+                FuncType::OkStateful,
+                func_manager.routes_functions.1.len() - 1,
+            ));
+            func_manager
+        })
+    }
 
-        if self.device.route_configs.contains(&route_config) {
-            error!(
-                "The route with prefix `{}` already exists!",
-                route_config.data.path
-            );
-        }
+    /// Adds a [`Route`] with a stateless handler that returns a
+    /// [`SerialResponse`] on success, and an [`ErrorResponse`] on failure.
+    #[must_use]
+    pub fn stateless_serial_route<F, Fut>(self, route: Route, func: F) -> Self
+    where
+        F: Fn() -> Fut + Send + Sync + 'static,
+        Fut: Future<Output = Result<SerialResponse, ErrorResponse>> + Send + Sync + 'static,
+    {
+        self.route_func_manager(route, ResponseKind::Serial, move |mut func_manager| {
+            let func: SerialFn = Box::new(move || Box::pin(func()));
+            func_manager.routes_functions.2.push(func);
+            func_manager.index_array.push(FuncIndex::new(
+                FuncType::SerialStateless,
+                func_manager.routes_functions.2.len() - 1,
+            ));
+            func_manager
+        })
+    }
 
-        let func: InputStateFn<S> = Box::new(move |state| Box::pin(func(state)));
-        self.routes_functions.1.push(func);
-        self.device.route_configs.add(route_config);
-        self.index_array.push(FuncIndex::new(
-            FuncType::Second,
-            self.routes_functions.1.len() - 1,
-        ));
-        self
+    /// Adds a [`Route`] with a stateful handler that returns a
+    /// [`SerialResponse`] on success, and an [`ErrorResponse`] on failure.
+    #[must_use]
+    pub fn stateful_serial_route<F, Fut>(self, route: Route, func: F) -> Self
+    where
+        F: Fn(State<S>) -> Fut + Send + Sync + 'static,
+        Fut: Future<Output = Result<SerialResponse, ErrorResponse>> + Send + Sync + 'static,
+    {
+        self.route_func_manager(route, ResponseKind::Serial, move |mut func_manager| {
+            let func: SerialStateFn<S> = Box::new(move |state| Box::pin(func(state)));
+            func_manager.routes_functions.3.push(func);
+            func_manager.index_array.push(FuncIndex::new(
+                FuncType::SerialStateful,
+                func_manager.routes_functions.3.len() - 1,
+            ));
+            func_manager
+        })
     }
 
     /// Builds a [`Device`].
@@ -213,6 +306,33 @@ where
             Response::json(&self.device),
             self.device.route_configs,
         )
+    }
+
+    fn route_func_manager<F>(
+        mut self,
+        route: Route,
+        response_kind: ResponseKind,
+        add_async_function: F,
+    ) -> Self
+    where
+        F: FnOnce(Self) -> Self,
+    {
+        let route_config = route
+            .remove_prohibited_hazards(ALLOWED_HAZARDS)
+            .serialize_data()
+            .change_response_kind(response_kind);
+
+        if self.device.route_configs.contains(&route_config) {
+            error!(
+                "The route with prefix `{}` already exists!",
+                route_config.data.path
+            );
+            return self;
+        }
+
+        self.device.route_configs.add(route_config);
+
+        add_async_function(self)
     }
 
     #[inline]
@@ -233,7 +353,7 @@ where
         Self {
             main_route: MAIN_ROUTE,
             state: State(state),
-            routes_functions: (Vec::new(), Vec::new()),
+            routes_functions: (Vec::new(), Vec::new(), Vec::new(), Vec::new()),
             device,
             index_array: Vec::new(),
         }
