@@ -12,11 +12,11 @@ use core::sync::atomic::{AtomicBool, Ordering};
 
 use ascot::route::{LightOffRoute, LightOnRoute, Route};
 
-use esp_hal::Config;
 use esp_hal::clock::CpuClock;
 use esp_hal::gpio::{Input, InputConfig, Level, Output, OutputConfig, Pull};
 use esp_hal::rng::Rng;
 use esp_hal::timer::{systimer::SystemTimer, timg::TimerGroup};
+use esp_hal::Config;
 
 use log::info;
 
@@ -27,8 +27,8 @@ use embassy_time::Timer;
 use ascot_esp32c3::{
     devices::light::Light,
     mdns::Mdns,
-    net::{NetworkStack, get_ip},
-    response::Response,
+    net::{get_ip, NetworkStack},
+    response::{ErrorResponse, OkResponse, SerialResponse},
     server::Server,
     wifi::Wifi,
 };
@@ -155,7 +155,11 @@ async fn change_led(mut led: Output<'static>) {
 }
 
 #[inline]
-async fn notify_led(led_input: LedInput, message: &str, text_message: &'static str) -> Response {
+async fn notify_led(
+    led_input: LedInput,
+    message: &str,
+    text_message: &'static str,
+) -> Result<SerialResponse, ErrorResponse> {
     // Disable the toggle task.
     TOGGLE_CONTROLLER.store(false, Ordering::Relaxed);
 
@@ -168,14 +172,14 @@ async fn notify_led(led_input: LedInput, message: &str, text_message: &'static s
     log::info!("{message}");
 
     // Returns a serial response from a text.
-    Response::text(text_message)
+    Ok(SerialResponse::text(text_message))
 }
 
-async fn turn_light_on() -> Response {
+async fn turn_light_on() -> Result<SerialResponse, ErrorResponse> {
     notify_led(LedInput::On, "Led turned on through PUT route!", "Light on").await
 }
 
-async fn turn_light_off() -> Response {
+async fn turn_light_off() -> Result<SerialResponse, ErrorResponse> {
     notify_led(
         LedInput::Off,
         "Led turned off through PUT route!",
@@ -240,15 +244,15 @@ async fn main(spawner: Spawner) {
         .expect("Impossible to spawn the task to change the led");
 
     let device = Light::new(&interfaces.ap)
-        .turn_light_on_stateless(
+        .turn_light_on_stateless_serial(
             LightOnRoute::put("On").description("Turn light on."),
             turn_light_on,
         )
-        .turn_light_off_stateless(
+        .turn_light_off_stateless_serial(
             LightOffRoute::put("Off").description("Turn light off."),
             turn_light_off,
         )
-        .stateless_route(
+        .stateless_ok_route(
             Route::get("Toggle", "/toggle").description("Toggle."),
             || async move {
                 // Enable the toggle task.
@@ -259,7 +263,7 @@ async fn main(spawner: Spawner) {
 
                 info!("Led toggled through GET route!");
 
-                Response::ok()
+                Ok(OkResponse::new())
             },
         )
         .build();

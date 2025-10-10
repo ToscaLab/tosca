@@ -12,11 +12,11 @@ use core::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 
 use ascot::route::{LightOffRoute, LightOnRoute, Route};
 
-use esp_hal::Config;
 use esp_hal::clock::CpuClock;
 use esp_hal::gpio::{Input, InputConfig, Level, Output, OutputConfig, Pull};
 use esp_hal::rng::Rng;
 use esp_hal::timer::{systimer::SystemTimer, timg::TimerGroup};
+use esp_hal::Config;
 
 use log::info;
 
@@ -27,8 +27,8 @@ use embassy_time::Timer;
 use ascot_esp32c3::{
     devices::light::Light,
     mdns::Mdns,
-    net::{NetworkStack, get_ip},
-    response::Response,
+    net::{get_ip, NetworkStack},
+    response::{ErrorResponse, OkResponse, SerialResponse},
     server::Server,
     state::{State, ValueFromRef},
     wifi::Wifi,
@@ -165,7 +165,11 @@ async fn change_led(mut led: Output<'static>) {
 }
 
 #[inline]
-async fn notify_led(led_input: LedInput, message: &str, text_message: &'static str) -> Response {
+async fn notify_led(
+    led_input: LedInput,
+    message: &str,
+    text_message: &'static str,
+) -> Result<SerialResponse, ErrorResponse> {
     // Disable the toggle task.
     TOGGLE_CONTROLLER.store(false, Ordering::Relaxed);
 
@@ -178,14 +182,14 @@ async fn notify_led(led_input: LedInput, message: &str, text_message: &'static s
     log::info!("{message}");
 
     // Returns a text response.
-    Response::text(text_message)
+    Ok(SerialResponse::text(text_message))
 }
 
-async fn turn_light_on() -> Response {
+async fn turn_light_on() -> Result<SerialResponse, ErrorResponse> {
     notify_led(LedInput::On, "Led turned on through PUT route!", "Light on").await
 }
 
-async fn turn_light_off() -> Response {
+async fn turn_light_off() -> Result<SerialResponse, ErrorResponse> {
     notify_led(
         LedInput::Off,
         "Led turned off through PUT route!",
@@ -204,7 +208,7 @@ impl ValueFromRef for RequestCounter {
 
 async fn stateful_toggle(
     State(RequestCounter(request_counter)): State<RequestCounter>,
-) -> Response {
+) -> Result<OkResponse, ErrorResponse> {
     // Obtain the current request counter value.
     let old_value = request_counter.load(Ordering::Relaxed);
     // Increment the request counter value.
@@ -220,7 +224,7 @@ async fn stateful_toggle(
 
     info!("Led toggled through GET route!");
 
-    Response::ok()
+    Ok(OkResponse::new())
 }
 
 #[esp_hal_embassy::main]
@@ -280,15 +284,15 @@ async fn main(spawner: Spawner) {
 
     let request_counter = RequestCounter(mk_static!(AtomicU32, AtomicU32::new(0)));
     let device = Light::with_state(&interfaces.ap, request_counter)
-        .turn_light_on_stateless(
+        .turn_light_on_stateless_serial(
             LightOnRoute::put("On").description("Turn light on."),
             || async move { turn_light_on().await },
         )
-        .turn_light_off_stateless(
+        .turn_light_off_stateless_serial(
             LightOffRoute::put("Off").description("Turn light off."),
             || async move { turn_light_off().await },
         )
-        .stateful_route(
+        .stateful_ok_route(
             Route::get("Toggle", "/toggle").description("Toggle."),
             stateful_toggle,
         )
