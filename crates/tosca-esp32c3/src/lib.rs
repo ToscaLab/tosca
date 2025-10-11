@@ -37,6 +37,9 @@
 
 extern crate alloc;
 
+/// FILL
+pub mod config;
+
 /// All device types implementable within firmware.
 pub mod devices;
 

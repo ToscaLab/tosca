@@ -1,0 +1,38 @@
+[device]
+# Define the device kind.
+kind = "Light"
+
+# Search for the mandatories route for light:
+# - on
+# - off
+
+[mandatory]
+on.path = "/on"
+on.hazards = ["FireHazard"]
+on.parameters = ["brightness"]
+
+[parameters]
+brightness.kind = "RangeF64"
+brightness.default = 0.0
+brightness.min = 0.0
+brightness.max = 20.0
+
+# Use ISO-6319 for language
+
+[en]
+device.name = "Light"
+device.description = "A light made by the X producer"
+
+on.name = "On"
+on.description = "Turn light on"
+
+brightness.name = "Brightness"
+
+[it]
+device.name = "Luce"
+device.description = "Una luce fatta dal produttore X"
+
+on.name = "Accendi"
+on.description = "Accende la luce"
+
+brightness.name = "Luminosità"
