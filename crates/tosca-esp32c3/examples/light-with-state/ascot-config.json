@@ -1,0 +1,50 @@
+{
+  "device": {
+    "kind": "Light"
+  },
+  "mandatory": {
+    "on": {
+      "path": "/on",
+      "hazards": [
+        "FireHazard"
+      ],
+      "parameters": [
+        "brightness"
+      ]
+    }
+  },
+  "parameters": {
+    "brightness": {
+      "kind": "RangeF64",
+      "default": 0.0,
+      "min": 0.0,
+      "max": 20.0
+    }
+  },
+  "en": {
+    "device": {
+      "name": "Light",
+      "description": "A light made by the X producer"
+    },
+    "on": {
+      "name": "On",
+      "description": "Turn light on"
+    },
+    "brightness": {
+      "name": "Brightness"
+    }
+  },
+  "it": {
+    "device": {
+      "name": "Luce",
+      "description": "Una luce fatta dal produttore X"
+    },
+    "on": {
+      "name": "Accendi",
+      "description": "Accende la luce"
+    },
+    "brightness": {
+      "name": "Luminosità"
+    }
+  }
+}

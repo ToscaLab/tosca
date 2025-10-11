@@ -14,11 +14,11 @@ use tosca::device::DeviceInfo;
 use tosca::parameters::Parameters;
 use tosca::route::{LightOffRoute, LightOnRoute, Route};
 
-use esp_hal::Config;
 use esp_hal::clock::CpuClock;
 use esp_hal::gpio::{Input, InputConfig, Level, Output, OutputConfig, Pull};
 use esp_hal::rng::Rng;
 use esp_hal::timer::{systimer::SystemTimer, timg::TimerGroup};
+use esp_hal::Config;
 
 use log::info;
 
@@ -26,12 +26,27 @@ use embassy_executor::Spawner;
 use embassy_sync::{blocking_mutex::raw::CriticalSectionRawMutex, signal::Signal};
 use embassy_time::Timer;
 
+<<<<<<< HEAD:crates/tosca-esp32c3/examples/light/src/main.rs
 use tosca_esp32c3::{
+||||||| parent of 0716b50 (Wip):crates/ascot-esp32c3/examples/light/src/main.rs
+use ascot_esp32c3::{
+=======
+use ascot_esp32c3::{
+    config::parse_config,
+>>>>>>> 0716b50 (Wip):crates/ascot-esp32c3/examples/light/src/main.rs
     devices::light::Light,
     mdns::Mdns,
+<<<<<<< HEAD:crates/tosca-esp32c3/examples/light/src/main.rs
     net::{NetworkStack, get_ip},
     parameters::ParametersPayloads,
     response::{ErrorResponse, InfoResponse, OkResponse, SerialResponse},
+||||||| parent of 0716b50 (Wip):crates/ascot-esp32c3/examples/light/src/main.rs
+    net::{NetworkStack, get_ip},
+    response::{ErrorResponse, OkResponse, SerialResponse},
+=======
+    net::{get_ip, NetworkStack},
+    response::{ErrorResponse, OkResponse, SerialResponse},
+>>>>>>> 0716b50 (Wip):crates/ascot-esp32c3/examples/light/src/main.rs
     server::Server,
     wifi::Wifi,
 };
@@ -243,7 +258,9 @@ async fn main(spawner: Spawner) {
 
     info!("Embassy initialized!");
 
-    let rng = Rng::new(peripherals.RNG);
+    parse_config(include_str!("../ascot-config.toml"));
+
+    /*let rng = Rng::new(peripherals.RNG);
     let timer1 = TimerGroup::new(peripherals.TIMG0);
 
     // Retrieve device configuration
@@ -322,5 +339,5 @@ async fn main(spawner: Spawner) {
         .address(ip)
         .run(stack, spawner)
         .await
-        .expect("Failed to run a server");
+        .expect("Failed to run a server");*/
 }

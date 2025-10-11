@@ -64,7 +64,7 @@ rust-mqtt.default-features = false
 # Serialization process
 serde.version = "1.0"
 serde.default-features = false
-serde.features = ["derive"]
+serde.features = ["derive", "alloc"]
 
 serde_json.version = "1"
 serde_json.default-features = false
