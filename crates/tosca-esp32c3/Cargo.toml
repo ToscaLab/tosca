@@ -65,7 +65,7 @@ rust-mqtt.default-features = false
 # Serialization process
 serde.version = "1.0"
 serde.default-features = false
-serde.features = ["derive"]
+serde.features = ["derive", "alloc"]
 
 serde_json.version = "1"
 serde_json.default-features = false
@@ -74,3 +74,14 @@ serde_json.features = ["alloc"]
 # Static cell
 static_cell.version = "2.1.1"
 static_cell.features = ["nightly"]
+
+# Toml parsing
+#toml_parser.version = "1.0"
+#toml_parser.default-features = false
+#toml_parser.features = ["alloc"]
+
+toml_edit.version = "0.23.7"
+toml_edit.features = ["parse"]
+
+winnow = { version = "0.7.13" }
+serde_core = { version = "1.0.225"}
