@@ -12,8 +12,10 @@ use esp_wifi::wifi::WifiDevice;
 use log::error;
 
 use crate::device::Device;
-use crate::response::{ErrorResponse, OkResponse, Response, SerialResponse};
-use crate::server::{FuncIndex, FuncType, Functions, OkFn, OkStateFn, SerialFn, SerialStateFn};
+use crate::response::{ErrorResponse, InfoResponse, OkResponse, Response, SerialResponse};
+use crate::server::{
+    FuncIndex, FuncType, Functions, InfoFn, InfoStateFn, OkFn, OkStateFn, SerialFn, SerialStateFn,
+};
 use crate::state::{State, ValueFromRef};
 
 // Default main route.
@@ -294,6 +296,44 @@ where
         })
     }
 
+    /// Adds a [`Route`] with a stateless handler that returns an
+    /// [`InfoResponse`] on success, and an [`ErrorResponse`] on failure.
+    #[must_use]
+    pub fn stateless_info_route<F, Fut>(self, route: Route, func: F) -> Self
+    where
+        F: Fn() -> Fut + Send + Sync + 'static,
+        Fut: Future<Output = Result<InfoResponse, ErrorResponse>> + Send + Sync + 'static,
+    {
+        self.route_func_manager(route, ResponseKind::Info, move |mut func_manager| {
+            let func: InfoFn = Box::new(move || Box::pin(func()));
+            func_manager.routes_functions.4.push(func);
+            func_manager.index_array.push(FuncIndex::new(
+                FuncType::InfoStateless,
+                func_manager.routes_functions.4.len() - 1,
+            ));
+            func_manager
+        })
+    }
+
+    /// Adds a [`Route`] with a stateful handler that returns an
+    /// [`InfoResponse`] on success, and an [`ErrorResponse`] on failure.
+    #[must_use]
+    pub fn stateful_info_route<F, Fut>(self, route: Route, func: F) -> Self
+    where
+        F: Fn(State<S>) -> Fut + Send + Sync + 'static,
+        Fut: Future<Output = Result<InfoResponse, ErrorResponse>> + Send + Sync + 'static,
+    {
+        self.route_func_manager(route, ResponseKind::Info, move |mut func_manager| {
+            let func: InfoStateFn<S> = Box::new(move |state| Box::pin(func(state)));
+            func_manager.routes_functions.5.push(func);
+            func_manager.index_array.push(FuncIndex::new(
+                FuncType::InfoStateful,
+                func_manager.routes_functions.5.len() - 1,
+            ));
+            func_manager
+        })
+    }
+
     /// Builds a [`Device`].
     #[must_use]
     #[inline]
@@ -353,7 +393,14 @@ where
         Self {
             main_route: MAIN_ROUTE,
             state: State(state),
-            routes_functions: (Vec::new(), Vec::new(), Vec::new(), Vec::new()),
+            routes_functions: (
+                Vec::new(),
+                Vec::new(),
+                Vec::new(),
+                Vec::new(),
+                Vec::new(),
+                Vec::new(),
+            ),
             device,
             index_array: Vec::new(),
         }
