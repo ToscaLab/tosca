@@ -10,6 +10,7 @@ extern crate alloc;
 
 use core::sync::atomic::{AtomicBool, Ordering};
 
+use ascot::device::DeviceInfo;
 use ascot::route::{LightOffRoute, LightOnRoute, Route};
 
 use esp_hal::Config;
@@ -28,7 +29,7 @@ use ascot_esp32c3::{
     devices::light::Light,
     mdns::Mdns,
     net::{NetworkStack, get_ip},
-    response::{ErrorResponse, OkResponse, SerialResponse},
+    response::{ErrorResponse, InfoResponse, OkResponse, SerialResponse},
     server::Server,
     wifi::Wifi,
 };
@@ -265,6 +266,10 @@ async fn main(spawner: Spawner) {
 
                 Ok(OkResponse::new())
             },
+        )
+        .stateless_info_route(
+            Route::get("Info", "/info").description("Info."),
+            || async move { Ok(InfoResponse::new(DeviceInfo::empty())) },
         )
         .build();
 
