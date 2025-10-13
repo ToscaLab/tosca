@@ -4,20 +4,20 @@ on:
   push:
     branches: [master]
     paths:
-      - 'crates/ascot-esp32c3/**/Cargo.lock'
-      - 'crates/ascot-esp32c3/**/*.rs'
-      - 'crates/ascot-esp32c3/**/*.sh'
-      - 'crates/ascot-esp32c3/**/*.yml'
-      - 'crates/ascot-esp32c3/**/*.toml'
+      - 'crates/tosca-esp32c3/**/Cargo.lock'
+      - 'crates/tosca-esp32c3/**/*.rs'
+      - 'crates/tosca-esp32c3/**/*.sh'
+      - 'crates/tosca-esp32c3/**/*.yml'
+      - 'crates/tosca-esp32c3/**/*.toml'
   pull_request:
     branches: [master]
     types: [opened, synchronize]
     paths:
-      - 'crates/ascot-esp32c3/**/Cargo.lock'
-      - 'crates/ascot-esp32c3/**/*.rs'
-      - 'crates/ascot-esp32c3/**/*.sh'
-      - 'crates/ascot-esp32c3/**/*.yml'
-      - 'crates/ascot-esp32c3/**/*.toml'
+      - 'crates/tosca-esp32c3/**/Cargo.lock'
+      - 'crates/tosca-esp32c3/**/*.rs'
+      - 'crates/tosca-esp32c3/**/*.sh'
+      - 'crates/tosca-esp32c3/**/*.yml'
+      - 'crates/tosca-esp32c3/**/*.toml'
 
 jobs:
   rustfmt-clippy-build:
@@ -36,56 +36,56 @@ jobs:
         run: |
           cargo install ldproxy
 
-################################## ascot-esp32c3 ##############################
+################################## tosca-esp32c3 ##############################
 
-      - name: Run rustfmt (ascot-esp32c3)
-        working-directory: crates/ascot-esp32c3
+      - name: Run rustfmt (tosca-esp32c3)
+        working-directory: crates/tosca-esp32c3
         run: cargo fmt --all -- --check --verbose
 
-      - name: Run cargo clippy (ascot-esp32c3)
-        working-directory: crates/ascot-esp32c3
+      - name: Run cargo clippy (tosca-esp32c3)
+        working-directory: crates/tosca-esp32c3
         run: cargo clippy -- -Dclippy::all -Dclippy::pedantic
 
-      - name: Run cargo doc (ascot-esp32c3)
-        working-directory: crates/ascot-esp32c3
+      - name: Run cargo doc (tosca-esp32c3)
+        working-directory: crates/tosca-esp32c3
         run: cargo doc --verbose
 
-      - name: Build (ascot-esp32c3)
-        working-directory: crates/ascot-esp32c3
+      - name: Build (tosca-esp32c3)
+        working-directory: crates/tosca-esp32c3
         run: cargo build --verbose
 
 ################################## light ######################################
 
       - name: Run rustfmt (light)
-        working-directory: crates/ascot-esp32c3/examples/light
+        working-directory: crates/tosca-esp32c3/examples/light
         run: cargo fmt --all -- --check --verbose
 
       - name: Set up cfg.toml
-        working-directory: crates/ascot-esp32c3/examples/light
+        working-directory: crates/tosca-esp32c3/examples/light
         run: cp cfg.toml.example cfg.toml
 
       - name: Run cargo clippy (light)
-        working-directory: crates/ascot-esp32c3/examples/light
+        working-directory: crates/tosca-esp32c3/examples/light
         run: cargo clippy -- -Dclippy::all -Dclippy::pedantic
 
       - name: Build (light)
-        working-directory: crates/ascot-esp32c3/examples/light
+        working-directory: crates/tosca-esp32c3/examples/light
         run: cargo build --verbose
 
 ################################## light-with-state ###########################
 
       - name: Run rustfmt (light)
-        working-directory: crates/ascot-esp32c3/examples/light-with-state
+        working-directory: crates/tosca-esp32c3/examples/light-with-state
         run: cargo fmt --all -- --check --verbose
 
       - name: Set up cfg.toml
-        working-directory: crates/ascot-esp32c3/examples/light-with-state
+        working-directory: crates/tosca-esp32c3/examples/light-with-state
         run: cp cfg.toml.example cfg.toml
 
       - name: Run cargo clippy (light)
-        working-directory: crates/ascot-esp32c3/examples/light-with-state
+        working-directory: crates/tosca-esp32c3/examples/light-with-state
         run: cargo clippy -- -Dclippy::all -Dclippy::pedantic
 
       - name: Build (light)
-        working-directory: crates/ascot-esp32c3/examples/light-with-state
+        working-directory: crates/tosca-esp32c3/examples/light-with-state
         run: cargo build --verbose

@@ -1,0 +1,62 @@
+[package]
+name = "ip-camera"
+version = "0.1.0"
+edition = "2024"
+authors = ["Michele Valsesia <luni-4@hotmail.it>"]
+description = "An ip-camera implemented with the tosca-os crate."
+license = "MIT"
+resolver = "2"
+publish = false
+
+[dependencies]
+tosca.path = "../../../tosca"
+tosca.version = "0.1"
+
+tosca-os.path = "../../"
+tosca-os.version = "0.1"
+
+async-lock.version = "3.3"
+async-lock.default-features = false
+
+clap.version = "4.5"
+clap.features = ["derive"]
+
+serde.version = "1.0"
+serde.default-features = false
+serde.features = ["derive"]
+
+tokio.version = "1.0"
+tokio.default-features = false
+tokio.features = ["rt", "rt-multi-thread"]
+
+tokio-stream.version = "0.1"
+tokio-stream.default-features = false
+
+tracing.version = "0.1"
+tracing.default-features = false
+
+tracing-subscriber.version = "0.3"
+tracing-subscriber.default-features = false
+tracing-subscriber.features = ["env-filter", "fmt", "std"]
+
+[dependencies.image]
+version = "0.25"
+default-features = false
+features = ["png"]
+
+[dependencies.nokhwa]
+version = "0.10"
+default-features = false
+features = ["input-native", "serialize", "output-threaded"]
+
+[profile.release]
+opt-level = 3
+debug = false
+rpath = false
+lto = true
+debug-assertions = false
+codegen-units = 1
+panic = "unwind"
+incremental = false
+overflow-checks = false
+strip = "debuginfo"

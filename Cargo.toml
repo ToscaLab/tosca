@@ -1,10 +1,10 @@
 [workspace]
 members = [
-    "crates/ascot",
-    "crates/ascot-os",
-    "crates/ascot-controller",
+    "crates/tosca",
+    "crates/tosca-os",
+    "crates/tosca-controller",
 ]
-exclude = ["crates/ascot-esp32c3"]
+exclude = ["crates/tosca-esp32c3"]
 resolver = "2"
 
 [workspace.dependencies]

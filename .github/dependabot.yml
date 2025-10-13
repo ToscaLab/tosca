@@ -9,7 +9,7 @@ updates:
   - package-ecosystem: "cargo"
     directories:
       - "/"
-      - "crates/ascot"
-      - "crates/ascot-*"
+      - "crates/tosca"
+      - "crates/tosca-*"
     schedule:
       interval: "weekly"

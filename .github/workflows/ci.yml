@@ -117,7 +117,7 @@ jobs:
 
     env:
       RUSTFLAGS: "-Cinstrument-coverage"
-      LLVM_PROFILE_FILE: "ascot-%p-%m.profraw"
+      LLVM_PROFILE_FILE: "tosca-%p-%m.profraw"
       # Sets the CI variable to true in order to skip those tests that cannot be executed on virtual machines.
       CI: true
 
