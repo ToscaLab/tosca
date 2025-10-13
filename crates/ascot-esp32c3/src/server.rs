@@ -22,7 +22,7 @@ use log::info;
 use crate::device::Device;
 use crate::error::Error;
 use crate::mdns::Mdns;
-use crate::response::{ErrorResponse, OkResponse, Response, SerialResponse};
+use crate::response::{ErrorResponse, InfoResponse, OkResponse, Response, SerialResponse};
 use crate::state::{State, ValueFromRef};
 
 // Default HTTP address.
@@ -73,11 +73,31 @@ pub(crate) type SerialStateFn<S> = Box<
         + 'static,
 >;
 
+pub(crate) type InfoFn = Box<
+    dyn Fn() -> Pin<
+            Box<dyn Future<Output = Result<InfoResponse, ErrorResponse>> + Send + Sync + 'static>,
+        > + Send
+        + Sync
+        + 'static,
+>;
+
+pub(crate) type InfoStateFn<S> = Box<
+    dyn Fn(
+            State<S>,
+        ) -> Pin<
+            Box<dyn Future<Output = Result<InfoResponse, ErrorResponse>> + Send + Sync + 'static>,
+        > + Send
+        + Sync
+        + 'static,
+>;
+
 pub(crate) type Functions<S> = (
     Vec<OkFn>,
     Vec<OkStateFn<S>>,
     Vec<SerialFn>,
     Vec<SerialStateFn<S>>,
+    Vec<InfoFn>,
+    Vec<InfoStateFn<S>>,
 );
 
 #[derive(Clone, Copy)]
@@ -86,6 +106,8 @@ pub(crate) enum FuncType {
     OkStateful,
     SerialStateless,
     SerialStateful,
+    InfoStateless,
+    InfoStateful,
 }
 
 #[derive(Clone, Copy)]
@@ -303,6 +325,16 @@ where
             }
             FuncType::SerialStateful => {
                 let func = &self.device.routes_functions.3[func_index.index];
+                func(State(S::value_from_ref(&self.device.state.0)))
+                    .await
+                    .into()
+            }
+            FuncType::InfoStateless => {
+                let func = &self.device.routes_functions.4[func_index.index];
+                func().await.into()
+            }
+            FuncType::InfoStateful => {
+                let func = &self.device.routes_functions.5[func_index.index];
                 func(State(S::value_from_ref(&self.device.state.0)))
                     .await
                     .into()
