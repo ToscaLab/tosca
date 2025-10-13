@@ -2,9 +2,10 @@ use alloc::borrow::Cow;
 use alloc::string::ToString;
 use alloc::vec::Vec;
 
+use ascot::device::DeviceInfo;
 use ascot::response::{
-    ErrorKind, ErrorResponse as AscotErrorResponse, OkResponse as AscotOkResponse,
-    SERIALIZATION_ERROR, SerialResponse as AscotSerialResponse,
+    ErrorKind, ErrorResponse as AscotErrorResponse, InfoResponse as AscotInfoResponse,
+    OkResponse as AscotOkResponse, SERIALIZATION_ERROR, SerialResponse as AscotSerialResponse,
 };
 
 use edge_http::io::Error;
@@ -61,6 +62,23 @@ impl SerialResponse {
         Self(json_to_response(
             Headers::json(),
             AscotSerialResponse::new(value),
+        ))
+    }
+}
+
+/// A response which transmits a JSON message over the network containing
+/// a device's energy and economy information.
+pub struct InfoResponse(Response);
+
+impl InfoResponse {
+    /// Creates a [`InfoResponse`] containing
+    /// a [`ascot::response::InfoResponse`].
+    #[must_use]
+    #[inline]
+    pub fn new(device_info: DeviceInfo) -> Self {
+        Self(json_to_response(
+            Headers::json(),
+            AscotInfoResponse::new(device_info),
         ))
     }
 }
@@ -240,6 +258,16 @@ impl From<Result<OkResponse, ErrorResponse>> for Response {
 impl From<Result<SerialResponse, ErrorResponse>> for Response {
     #[inline]
     fn from(result: Result<SerialResponse, ErrorResponse>) -> Response {
+        match result {
+            Ok(value) => value.0,
+            Err(err) => err.0,
+        }
+    }
+}
+
+impl From<Result<InfoResponse, ErrorResponse>> for Response {
+    #[inline]
+    fn from(result: Result<InfoResponse, ErrorResponse>) -> Response {
         match result {
             Ok(value) => value.0,
             Err(err) => err.0,
