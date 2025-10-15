@@ -1,11 +1,12 @@
 use std::borrow::Cow;
 
+use tosca::parameters::ParametersValues;
+
 use tracing::warn;
 
 use crate::device::{Device, Devices};
 use crate::discovery::Discovery;
 use crate::error::{Error, ErrorKind};
-use crate::parameters::Parameters;
 use crate::policy::Policy;
 use crate::request::Request;
 use crate::response::Response;
@@ -49,7 +50,7 @@ impl RequestSender<'_> {
     /// affect the returned response.
     pub async fn send_with_parameters(
         &self,
-        parameters: &Parameters<'_>,
+        parameters: &ParametersValues<'_>,
     ) -> Result<Response, Error> {
         if self.request.parameters_data.is_empty() {
             warn!("The request does not have input parameters.");
@@ -244,6 +245,7 @@ mod tests {
     use tracing::warn;
 
     use tosca::hazards::{Hazard, Hazards};
+    use tosca::parameters::ParametersValues;
     use tosca::response::{OkResponse, SerialResponse};
 
     use serde::{Serialize, de::DeserializeOwned};
@@ -253,7 +255,6 @@ mod tests {
 
     use crate::device::Devices;
     use crate::error::Error;
-    use crate::parameters::Parameters;
     use crate::policy::Policy;
     use crate::response::Response;
 
@@ -306,7 +307,7 @@ mod tests {
     async fn check_ok_response_with_parameters(
         device_sender: &DeviceSender<'_>,
         route: &str,
-        parameters: &Parameters<'_>,
+        parameters: &ParametersValues<'_>,
     ) {
         check_ok_response(device_sender, route, async move |request_sender| {
             request_sender.send_with_parameters(parameters).await
@@ -355,7 +356,7 @@ mod tests {
     >(
         device_sender: &DeviceSender<'_>,
         route: &str,
-        parameters: &Parameters<'_>,
+        parameters: &ParametersValues<'_>,
         value: T,
     ) {
         check_serial_response(
@@ -428,7 +429,7 @@ mod tests {
         .await;
 
         // With parameters
-        let mut parameters = Parameters::new();
+        let mut parameters = ParametersValues::new();
         parameters.u64("brightness", 5);
 
         // Run "/on" request and get an "Ok" response with parameters.

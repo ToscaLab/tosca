@@ -8,12 +8,11 @@ use tracing::error;
 
 use tosca::device::DeviceEnvironment;
 use tosca::hazards::Hazards;
-use tosca::parameters::ParametersData;
+use tosca::parameters::{ParameterId, ParameterValue, ParametersData, ParametersValues};
 use tosca::response::{ResponseKind, SERIALIZATION_ERROR};
 use tosca::route::{RestKind, RouteConfig, RouteConfigs};
 
 use crate::error::{Error, ErrorKind};
-use crate::parameters::{Parameters, convert_to_parameter_value};
 use crate::response::{InfoResponseParser, OkResponseParser, Response, SerialResponseParser};
 
 fn slash_end(s: &str) -> &str {
@@ -34,6 +33,30 @@ fn slash_start(s: &str) -> &str {
 
 fn slash_start_end(s: &str) -> &str {
     slash_start(slash_end(s))
+}
+
+fn compare_values_with_params_data(
+    parameter_values: &ParametersValues,
+    parameters_data: &ParametersData,
+) -> Result<(), Error> {
+    for (name, parameter_value) in parameter_values.iter() {
+        let Some(parameter_kind) = parameters_data.get(*name) else {
+            return Err(parameter_error(format!("`{name}` does not exist")));
+        };
+
+        if !parameter_value.compare_with_kind(parameter_kind) {
+            return Err(parameter_error(format!(
+                "`{name}` must be of type `{}`",
+                ParameterId::from_parameter_kind(parameter_kind).as_type(),
+            )));
+        }
+    }
+    Ok(())
+}
+
+fn parameter_error(message: String) -> Error {
+    error!(message);
+    Error::new(ErrorKind::WrongParameter, message)
 }
 
 #[derive(Debug, PartialEq)]
@@ -201,7 +224,7 @@ impl Request {
 
     pub(crate) async fn create_response(
         &self,
-        parameters: &Parameters<'_>,
+        parameters: &ParametersValues<'_>,
     ) -> Result<reqwest::Response, Error> {
         let request_data = self.create_request(parameters)?;
         self.parameters_send(request_data).await
@@ -273,9 +296,9 @@ impl Request {
         RequestData::new(request, parameters)
     }
 
-    fn create_request(&self, parameters: &Parameters) -> Result<RequestData, Error> {
-        // Check parameters.
-        parameters.check_parameters(&self.parameters_data)?;
+    fn create_request(&self, parameters: &ParametersValues) -> Result<RequestData, Error> {
+        // Compare parameters values with parameters data.
+        compare_values_with_params_data(parameters, &self.parameters_data)?;
 
         Ok(self.request_data(
             || self.axum_get(parameters),
@@ -290,7 +313,7 @@ impl Request {
             if let Err(e) = write!(
                 route,
                 "/{}",
-                convert_to_parameter_value(parameter_kind).as_string()
+                ParameterValue::from_parameter_kind(parameter_kind)
             ) {
                 error!("Error in adding a path to a route : {e}");
                 break;
@@ -304,7 +327,7 @@ impl Request {
         for (name, parameter_kind) in &self.parameters_data {
             params.insert(
                 name.to_string(),
-                convert_to_parameter_value(parameter_kind).as_string(),
+                format!("{}", ParameterValue::from_parameter_kind(parameter_kind)),
             );
         }
         params
@@ -312,13 +335,13 @@ impl Request {
 
     // Axum parameters: hello/{{1}}/{{2}}
     //                  hello/0.5/1
-    fn axum_get(&self, parameters: &Parameters) -> String {
+    fn axum_get(&self, parameters: &ParametersValues) -> String {
         let mut route = String::from(&self.route);
         for (name, parameter_kind) in &self.parameters_data {
             let value = if let Some(value) = parameters.get(name) {
-                value.as_string()
+                format!("{value}")
             } else {
-                convert_to_parameter_value(parameter_kind).as_string()
+                format!("{}", ParameterValue::from_parameter_kind(parameter_kind))
             };
             // TODO: Consider returning `Option<String>`
             if let Err(e) = write!(route, "/{value}") {
@@ -330,13 +353,16 @@ impl Request {
         route
     }
 
-    fn create_params(&self, parameters: &Parameters<'_>) -> HashMap<String, String> {
+    fn create_params(&self, parameters: &ParametersValues<'_>) -> HashMap<String, String> {
         let mut params = HashMap::new();
         for (name, parameter_kind) in &self.parameters_data {
             let (name, value) = if let Some(value) = parameters.get(name) {
-                (name, value.as_string())
+                (name, format!("{value}"))
             } else {
-                (name, convert_to_parameter_value(parameter_kind).as_string())
+                (
+                    name,
+                    format!("{}", ParameterValue::from_parameter_kind(parameter_kind)),
+                )
             };
             params.insert(name.to_string(), value);
         }
@@ -350,12 +376,10 @@ mod tests {
 
     use tosca::device::DeviceEnvironment;
     use tosca::hazards::{Hazard, Hazards};
-    use tosca::parameters::{ParameterKind, Parameters as ToscaParameters, ParametersData};
+    use tosca::parameters::{ParameterKind, Parameters, ParametersData, ParametersValues};
     use tosca::route::{RestKind, Route, RouteConfig};
 
-    use crate::parameters::{Parameters, parameter_error};
-
-    use super::{Request, RequestData, ResponseKind};
+    use super::{Request, RequestData, ResponseKind, parameter_error};
 
     const ADDRESS_ROUTE: &str = "http://tosca.local/";
     const ADDRESS_ROUTE_WITHOUT_SLASH: &str = "http://tosca.local/";
@@ -388,7 +412,7 @@ mod tests {
     fn request_with_parameters(route: Route, kind: RestKind, hazards: &Hazards) {
         let route = route
             .with_parameters(
-                ToscaParameters::new()
+                Parameters::new()
                     .rangeu64_with_default("rangeu64", (0, 20, 1), 5)
                     .rangef64("rangef64", (0., 20., 0.1)),
             )
@@ -436,13 +460,13 @@ mod tests {
 
         // Non-existent parameter.
         assert_eq!(
-            request.create_request(Parameters::new().u64("wrong", 0)),
+            request.create_request(ParametersValues::new().u64("wrong", 0)),
             Err(parameter_error("`wrong` does not exist".into()))
         );
 
         // Wrong parameter type.
         assert_eq!(
-            request.create_request(Parameters::new().f64("rangeu64", 0.)),
+            request.create_request(ParametersValues::new().f64("rangeu64", 0.)),
             Err(parameter_error("`rangeu64` must be of type `u64`".into()))
         );
 
@@ -451,7 +475,7 @@ mod tests {
         parameters.insert("rangef64".into(), "0".into());
 
         assert_eq!(
-            request.create_request(Parameters::new().u64("rangeu64", 3)),
+            request.create_request(ParametersValues::new().u64("rangeu64", 3)),
             Ok(RequestData {
                 request: if kind == RestKind::Get {
                     format!("{COMPLETE_ROUTE}/3/0")

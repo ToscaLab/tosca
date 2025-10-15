@@ -29,8 +29,6 @@ pub mod device;
 pub mod discovery;
 /// Error handling.
 pub mod error;
-/// All supported request input parameters.
-pub mod parameters;
 /// A privacy and security policy manager to allow or prevent a request
 /// from being sent.
 pub mod policy;
