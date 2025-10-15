@@ -620,6 +620,187 @@ impl Parameters {
     }
 }
 
+/// All supported parameter values extracted from or
+/// used to construct a request.
+#[derive(Debug)]
+pub enum ParameterValue {
+    /// A [`bool`] value.
+    Bool(bool),
+    /// A [`u8`] value.
+    U8(u8),
+    /// A [`u16`] value.
+    U16(u16),
+    /// A [`u32`] value.
+    U32(u32),
+    /// A [`u64`] value.
+    U64(u64),
+    /// A [`f32`] value.
+    F32(f32),
+    /// A [`f64`] value.
+    F64(f64),
+    /// A characters sequence.
+    CharsSequence(Cow<'static, str>),
+}
+
+impl core::fmt::Display for ParameterValue {
+    #[inline]
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match self {
+            Self::Bool(v) => v.fmt(f),
+            Self::U8(v) => v.fmt(f),
+            Self::U16(v) => v.fmt(f),
+            Self::U32(v) => v.fmt(f),
+            Self::U64(v) => v.fmt(f),
+            Self::F32(v) => v.fmt(f),
+            Self::F64(v) => v.fmt(f),
+            Self::CharsSequence(v) => v.fmt(f),
+        }
+    }
+}
+
+impl ParameterValue {
+    /// Creates a [`ParameterValue`] from [`ParameterKind`].
+    #[must_use]
+    pub fn from_parameter_kind(parameter_kind: &ParameterKind) -> Self {
+        match parameter_kind {
+            ParameterKind::Bool { default } => Self::Bool(*default),
+            ParameterKind::U8 { default, .. } => Self::U8(*default),
+            ParameterKind::U16 { default, .. } => Self::U16(*default),
+            ParameterKind::U32 { default, .. } => Self::U32(*default),
+            ParameterKind::U64 { default, .. } | ParameterKind::RangeU64 { default, .. } => {
+                Self::U64(*default)
+            }
+            ParameterKind::F32 { default, .. } => Self::F32(*default),
+            ParameterKind::F64 { default, .. } | ParameterKind::RangeF64 { default, .. } => {
+                Self::F64(*default)
+            }
+            ParameterKind::CharsSequence { default, .. } => Self::CharsSequence(default.clone()),
+        }
+    }
+
+    /// Verifies whether the provided [`ParameterValue`] matches the type of
+    /// the given [`ParameterKind`].
+    #[must_use]
+    pub const fn compare_with_kind(&self, parameter_kind: &ParameterKind) -> bool {
+        matches!(
+            (self, parameter_kind),
+            (Self::Bool(_), ParameterKind::Bool { .. })
+                | (Self::U8(_), ParameterKind::U8 { .. })
+                | (Self::U16(_), ParameterKind::U16 { .. })
+                | (Self::U32(_), ParameterKind::U32 { .. })
+                | (
+                    Self::U64(_),
+                    ParameterKind::U64 { .. } | ParameterKind::RangeU64 { .. }
+                )
+                | (Self::F32(_), ParameterKind::F32 { .. })
+                | (
+                    Self::F64(_),
+                    ParameterKind::F64 { .. } | ParameterKind::RangeF64 { .. }
+                )
+                | (Self::CharsSequence(_), ParameterKind::CharsSequence { .. })
+        )
+    }
+}
+
+/// Route input parameters values.
+#[derive(Debug)]
+pub struct ParametersValues<'a>(IndexMap<&'a str, ParameterValue, DefaultHashBuilder>);
+
+impl Default for ParametersValues<'_> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl<'a> IntoIterator for &'a ParametersValues<'a> {
+    type Item = (&'a &'a str, &'a ParameterValue);
+    type IntoIter = Iter<'a, &'a str, ParameterValue>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+
+impl<'a> ParametersValues<'a> {
+    /// Creates [`ParametersValues`].
+    #[must_use]
+    #[inline]
+    pub fn new() -> Self {
+        Self(IndexMap::with_hasher(DefaultHashBuilder::default()))
+    }
+
+    /// Adds a [`bool`] value.
+    #[inline]
+    pub fn bool(&mut self, name: &'a str, value: bool) -> &mut Self {
+        self.add_value_parameter(name, ParameterValue::Bool(value))
+    }
+
+    /// Adds an [`u8`] parameter.
+    #[inline]
+    pub fn u8(&mut self, name: &'a str, value: u8) -> &mut Self {
+        self.add_value_parameter(name, ParameterValue::U8(value))
+    }
+
+    /// Adds an [`u16`] parameter.
+    #[inline]
+    pub fn u16(&mut self, name: &'a str, value: u16) -> &mut Self {
+        self.add_value_parameter(name, ParameterValue::U16(value))
+    }
+
+    /// Adds an [`u32`] parameter.
+    #[inline]
+    pub fn u32(&mut self, name: &'a str, value: u32) -> &mut Self {
+        self.add_value_parameter(name, ParameterValue::U32(value))
+    }
+
+    /// Adds an [`u64`] parameter.
+    #[inline]
+    pub fn u64(&mut self, name: &'a str, value: u64) -> &mut Self {
+        self.add_value_parameter(name, ParameterValue::U64(value))
+    }
+
+    /// Adds a [`f32`] parameter.
+    #[inline]
+    pub fn f32(&mut self, name: &'a str, value: f32) -> &mut Self {
+        self.add_value_parameter(name, ParameterValue::F32(value))
+    }
+
+    /// Adds a [`f64`] parameter.
+    #[inline]
+    pub fn f64(&mut self, name: &'a str, value: f64) -> &mut Self {
+        self.add_value_parameter(name, ParameterValue::F64(value))
+    }
+
+    /// Adds a characters sequence.
+    #[inline]
+    pub fn characters_sequence(&mut self, name: &'a str, value: String) -> &mut Self {
+        self.add_value_parameter(name, ParameterValue::CharsSequence(value.into()))
+    }
+
+    /// Retrieves the [`ParameterValue`] by name.
+    ///
+    /// If [`None`], the parameter does not exist.
+    #[must_use]
+    #[inline]
+    pub fn get<'b>(&'b self, name: &'b str) -> Option<&'b ParameterValue> {
+        self.0.get(name)
+    }
+
+    /// Returns an iterator over [`ParameterValue`]s.
+    ///
+    /// **Iterates over the elements in the order they were inserted.**
+    #[must_use]
+    #[inline]
+    pub fn iter(&self) -> Iter<'_, &str, ParameterValue> {
+        self.0.iter()
+    }
+
+    fn add_value_parameter(&mut self, name: &'a str, parameter_value: ParameterValue) -> &mut Self {
+        self.0.insert(name, parameter_value);
+        self
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use alloc::string::String;
