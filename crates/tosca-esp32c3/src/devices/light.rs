@@ -56,15 +56,12 @@ where
     /// upon success and an [`ErrorResponse`] in case of failure.
     #[must_use]
     #[inline]
-    pub fn turn_light_on_stateless_ok<F, Fut>(
-        self,
-        //route: tosca::route::LightOnRoute,
-        func: F,
-    ) -> LightOnRoute<S>
+    pub fn turn_light_on_stateless_ok<F, Fut>(mut self, func: F) -> LightOnRoute<S>
     where
         F: Fn(ParametersPayloads) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<OkResponse, ErrorResponse>> + Send + Sync + 'static,
     {
+        self.0.response_kind.push(ResponseKind::Ok);
         LightOnRoute(self.0.stateless_ok_route(func))
     }
 
@@ -72,15 +69,12 @@ where
     /// upon success and an [`ErrorResponse`] in case of failure.
     #[must_use]
     #[inline]
-    pub fn turn_light_on_stateful_ok<F, Fut>(
-        self,
-        //route: tosca::route::LightOnRoute,
-        func: F,
-    ) -> LightOnRoute<S>
+    pub fn turn_light_on_stateful_ok<F, Fut>(mut self, func: F) -> LightOnRoute<S>
     where
         F: Fn(State<S>, ParametersPayloads) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<OkResponse, ErrorResponse>> + Send + Sync + 'static,
     {
+        self.0.response_kind.push(ResponseKind::Ok);
         LightOnRoute(self.0.stateful_ok_route(func))
     }
 
@@ -89,15 +83,12 @@ where
     /// an [`ErrorResponse`] in case of failure.
     #[must_use]
     #[inline]
-    pub fn turn_light_on_stateless_serial<F, Fut>(
-        self,
-        //route: tosca::route::LightOnRoute,
-        func: F,
-    ) -> LightOnRoute<S>
+    pub fn turn_light_on_stateless_serial<F, Fut>(mut self, func: F) -> LightOnRoute<S>
     where
         F: Fn(ParametersPayloads) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<SerialResponse, ErrorResponse>> + Send + Sync + 'static,
     {
+        self.0.response_kind.push(ResponseKind::Serial);
         LightOnRoute(self.0.stateless_serial_route(func))
     }
 
@@ -106,15 +97,12 @@ where
     /// an [`ErrorResponse`] in case of failure.
     #[must_use]
     #[inline]
-    pub fn turn_light_on_stateful_serial<F, Fut>(
-        self,
-        //route: tosca::route::LightOnRoute,
-        func: F,
-    ) -> LightOnRoute<S>
+    pub fn turn_light_on_stateful_serial<F, Fut>(mut self, func: F) -> LightOnRoute<S>
     where
         F: Fn(State<S>, ParametersPayloads) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<SerialResponse, ErrorResponse>> + Send + Sync + 'static,
     {
+        self.0.response_kind.push(ResponseKind::Serial);
         LightOnRoute(self.0.stateful_serial_route(func))
     }
 }
@@ -134,15 +122,12 @@ where
     /// upon success and an [`ErrorResponse`] in case of failure.
     #[must_use]
     #[inline]
-    pub fn turn_light_off_stateless_ok<F, Fut>(
-        self,
-        //route: tosca::route::LightOffRoute,
-        func: F,
-    ) -> CompleteLight<S>
+    pub fn turn_light_off_stateless_ok<F, Fut>(mut self, func: F) -> CompleteLight<S>
     where
         F: Fn(ParametersPayloads) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<OkResponse, ErrorResponse>> + Send + Sync + 'static,
     {
+        self.0.response_kind.push(ResponseKind::Ok);
         self.0.stateless_ok_route(func)
     }
 
@@ -150,15 +135,12 @@ where
     /// upon success and an [`ErrorResponse`] in case of failure.
     #[must_use]
     #[inline]
-    pub fn turn_light_off_stateful_ok<F, Fut>(
-        self,
-        //route: tosca::route::LightOffRoute,
-        func: F,
-    ) -> CompleteLight<S>
+    pub fn turn_light_off_stateful_ok<F, Fut>(mut self, func: F) -> CompleteLight<S>
     where
         F: Fn(State<S>, ParametersPayloads) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<OkResponse, ErrorResponse>> + Send + Sync + 'static,
     {
+        self.0.response_kind.push(ResponseKind::Ok);
         self.0.stateful_ok_route(func)
     }
 
@@ -167,15 +149,12 @@ where
     /// an [`ErrorResponse`] in case of failure.
     #[must_use]
     #[inline]
-    pub fn turn_light_off_stateless_serial<F, Fut>(
-        self,
-        //route: tosca::route::LightOffRoute,
-        func: F,
-    ) -> CompleteLight<S>
+    pub fn turn_light_off_stateless_serial<F, Fut>(mut self, func: F) -> CompleteLight<S>
     where
         F: Fn(ParametersPayloads) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<SerialResponse, ErrorResponse>> + Send + Sync + 'static,
     {
+        self.0.response_kind.push(ResponseKind::Serial);
         self.0.stateless_serial_route(func)
     }
 
@@ -184,15 +163,12 @@ where
     /// an [`ErrorResponse`] in case of failure.
     #[must_use]
     #[inline]
-    pub fn turn_light_off_stateful_serial<F, Fut>(
-        self,
-        //route: tosca::route::LightOffRoute,
-        func: F,
-    ) -> CompleteLight<S>
+    pub fn turn_light_off_stateful_serial<F, Fut>(mut self, func: F) -> CompleteLight<S>
     where
         F: Fn(State<S>, ParametersPayloads) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<SerialResponse, ErrorResponse>> + Send + Sync + 'static,
     {
+        self.0.response_kind.push(ResponseKind::Serial);
         self.0.stateful_serial_route(func)
     }
 }
@@ -208,8 +184,6 @@ where
     state: State<S>,
     routes_functions: Functions<S>,
     index_array: Vec<FuncIndex>,
-    turn_light_on: ResponseKind,
-    turn_light_off: ResponseKind,
     response_kind: Vec<ResponseKind>,
 }
 
@@ -414,7 +388,6 @@ where
         Self {
             id,
             main_route: MAIN_ROUTE,
-            //device,
             config,
             state: State(state),
             routes_functions: (
@@ -426,8 +399,6 @@ where
                 Vec::new(),
             ),
             index_array: Vec::new(),
-            turn_light_on: ResponseKind::Ok,
-            turn_light_off: ResponseKind::Ok,
             response_kind: Vec::new(),
         }
     }
