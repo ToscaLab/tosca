@@ -346,6 +346,16 @@ map! {
   pub struct ParametersData(IndexMap<String, ParameterKind, DefaultHashBuilder>);
 }
 
+impl ParametersData {
+    /// Retrieves the value associated with the specified key
+    /// from [`ParametersData`].
+    #[must_use]
+    #[inline]
+    pub fn get(&self, key: &str) -> Option<&ParameterKind> {
+        self.0.get(key)
+    }
+}
+
 /// Route input parameters.
 #[derive(Debug, Clone)]
 pub struct Parameters(IndexMap<&'static str, ParameterKind, DefaultHashBuilder>);

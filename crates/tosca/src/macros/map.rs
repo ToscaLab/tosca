@@ -68,15 +68,6 @@ macro_rules! map {
                 self.0.len()
             }
 
-            #[doc = concat!("Retrieves the value associated with the specified key from [`", stringify!($name), "`].")]
-            #[inline]
-            pub fn get<Q>(&self, key: &Q) -> Option<&$value>
-            where
-                Q: ?Sized + core::hash::Hash + indexmap::Equivalent<$key>,
-            {
-                self.0.get(key)
-            }
-
             #[doc = concat!("Returns an iterator over [`", stringify!($name), "`].")]
             #[doc = ""]
             #[doc = "**Iterates over the elements in the order they were inserted.**"]
