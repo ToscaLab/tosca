@@ -39,8 +39,8 @@ fn compare_values_with_params_data(
     parameter_values: &ParametersValues,
     parameters_data: &ParametersData,
 ) -> Result<(), Error> {
-    for (name, parameter_value) in parameter_values.iter() {
-        let Some(parameter_kind) = parameters_data.get(*name) else {
+    for (name, parameter_value) in parameter_values {
+        let Some(parameter_kind) = parameters_data.get(name) else {
             return Err(parameter_error(format!("`{name}` does not exist")));
         };
 
