@@ -146,7 +146,7 @@ impl ParametersValues {
         let value = self
             .0
             .get(name)
-            .ok_or(invalid_data(&format!("`{name}` not found.")))?;
+            .ok_or_else(|| invalid_data(&format!("`{name}` not found.")))?;
 
         func(value)
     }
