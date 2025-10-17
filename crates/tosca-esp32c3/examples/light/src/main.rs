@@ -11,6 +11,7 @@ extern crate alloc;
 use core::sync::atomic::{AtomicBool, Ordering};
 
 use tosca::device::DeviceInfo;
+use tosca::parameters::Parameters;
 use tosca::route::{LightOffRoute, LightOnRoute, Route};
 
 use esp_hal::Config;
@@ -29,6 +30,7 @@ use tosca_esp32c3::{
     devices::light::Light,
     mdns::Mdns,
     net::{NetworkStack, get_ip},
+    parameters::ParametersValues,
     response::{ErrorResponse, InfoResponse, OkResponse, SerialResponse},
     server::Server,
     wifi::Wifi,
@@ -72,7 +74,7 @@ struct DeviceConfig {
 enum LedInput {
     On,
     Off,
-    Toggle,
+    Toggle(u64),
     Button,
 }
 
@@ -141,11 +143,10 @@ async fn change_led(mut led: Output<'static>) {
             LedInput::Button => {
                 toggle_led(&mut led);
             }
-            LedInput::Toggle => {
+            LedInput::Toggle(seconds) => {
                 while TOGGLE_CONTROLLER.load(Ordering::Relaxed) {
                     toggle_led(&mut led);
-                    // Pause for 1 second before toggling the LED again.
-                    Timer::after_secs(1).await;
+                    Timer::after_secs(seconds).await;
                 }
             }
         }
@@ -176,17 +177,52 @@ async fn notify_led(
     Ok(SerialResponse::text(text_message))
 }
 
-async fn turn_light_on() -> Result<SerialResponse, ErrorResponse> {
+async fn turn_light_on(_parameters: ParametersValues) -> Result<SerialResponse, ErrorResponse> {
     notify_led(LedInput::On, "Led turned on through PUT route!", "Light on").await
 }
 
-async fn turn_light_off() -> Result<SerialResponse, ErrorResponse> {
+async fn turn_light_off(parameters: ParametersValues) -> Result<SerialResponse, ErrorResponse> {
+    let test_value = parameters.u8("test-value")?;
+
+    info!("Test value: {test_value}");
+
     notify_led(
         LedInput::Off,
         "Led turned off through PUT route!",
         "Light off",
     )
     .await
+}
+
+async fn toggle(_parameters: ParametersValues) -> Result<OkResponse, ErrorResponse> {
+    // Enable the toggle task.
+    TOGGLE_CONTROLLER.store(true, Ordering::Relaxed);
+
+    // Notify led.
+    NOTIFY_LED.signal(LedInput::Toggle(1));
+
+    info!("Led toggled through GET route!");
+
+    Ok(OkResponse::new())
+}
+
+async fn toggle_with_parameters(parameters: ParametersValues) -> Result<OkResponse, ErrorResponse> {
+    let test_value = parameters.bool("test-value")?;
+    // TODO: Add ParameterValues for range.
+    let seconds = parameters.u64("seconds")?.min(5);
+
+    info!("Test value: {test_value}");
+    info!("Seconds: {seconds}");
+
+    // Enable the toggle task.
+    TOGGLE_CONTROLLER.store(true, Ordering::Relaxed);
+
+    // Notify led.
+    NOTIFY_LED.signal(LedInput::Toggle(seconds));
+
+    info!("Led toggled through GET route and parameters!");
+
+    Ok(OkResponse::new())
 }
 
 #[esp_hal_embassy::main]
@@ -218,7 +254,7 @@ async fn main(spawner: Spawner) {
     // needs. If the number of task is less than the actual number of tasks,
     // there may be malfunctions.
     //
-    // In this case, the value is 13 because we have:
+    // In this case, the value is 6 because we have:
     // - 1 server tasks
     // - 1 wifi task
     // - 1 mdns task
@@ -250,26 +286,28 @@ async fn main(spawner: Spawner) {
             turn_light_on,
         )
         .turn_light_off_stateless_serial(
-            LightOffRoute::put("Off").description("Turn light off."),
+            LightOffRoute::put("Off")
+                .description("Turn light off.")
+                .with_parameters(Parameters::new().u8("test-value", 42)),
             turn_light_off,
         )
         .stateless_ok_route(
-            Route::get("Toggle", "/toggle").description("Toggle."),
-            || async move {
-                // Enable the toggle task.
-                TOGGLE_CONTROLLER.store(true, Ordering::Relaxed);
-
-                // Notify led.
-                NOTIFY_LED.signal(LedInput::Toggle);
-
-                info!("Led toggled through GET route!");
-
-                Ok(OkResponse::new())
-            },
+            Route::get("Toggle", "/toggle/default/run").description("Toggle with default run."),
+            toggle,
+        )
+        .stateless_ok_route(
+            Route::get("Toggle", "/toggle/with-parameters")
+                .description("Toggle.")
+                .with_parameters(
+                    Parameters::new()
+                        .rangeu64_with_default("seconds", (1, 5, 1), 1)
+                        .bool("test-value", false),
+                ),
+            toggle_with_parameters,
         )
         .stateless_info_route(
             Route::get("Info", "/info").description("Info."),
-            || async move { Ok(InfoResponse::new(DeviceInfo::empty())) },
+            |_| async move { Ok(InfoResponse::new(DeviceInfo::empty())) },
         )
         .build();
 

@@ -11,6 +11,7 @@ extern crate alloc;
 use core::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 
 use tosca::device::DeviceInfo;
+use tosca::parameters::Parameters;
 use tosca::route::{LightOffRoute, LightOnRoute, Route};
 
 use esp_hal::Config;
@@ -29,6 +30,7 @@ use tosca_esp32c3::{
     devices::light::Light,
     mdns::Mdns,
     net::{NetworkStack, get_ip},
+    parameters::ParametersValues,
     response::{ErrorResponse, InfoResponse, OkResponse, SerialResponse},
     server::Server,
     state::{State, ValueFromRef},
@@ -82,7 +84,7 @@ struct DeviceConfig {
 enum LedInput {
     On,
     Off,
-    Toggle,
+    Toggle(u64),
     Button,
 }
 
@@ -151,11 +153,10 @@ async fn change_led(mut led: Output<'static>) {
             LedInput::Button => {
                 toggle_led(&mut led);
             }
-            LedInput::Toggle => {
+            LedInput::Toggle(seconds) => {
                 while TOGGLE_CONTROLLER.load(Ordering::Relaxed) {
                     toggle_led(&mut led);
-                    // Pause for 1 second before toggling the LED again.
-                    Timer::after_secs(1).await;
+                    Timer::after_secs(seconds).await;
                 }
             }
         }
@@ -209,6 +210,7 @@ impl ValueFromRef for RequestCounter {
 
 async fn stateful_toggle(
     State(RequestCounter(request_counter)): State<RequestCounter>,
+    parameters: ParametersValues,
 ) -> Result<OkResponse, ErrorResponse> {
     // Obtain the current request counter value.
     let old_value = request_counter.load(Ordering::Relaxed);
@@ -217,11 +219,18 @@ async fn stateful_toggle(
 
     log::info!("Request number: {request_counter:?}");
 
+    let test_value = parameters.bool("test-value")?;
+    // TODO: Add ParameterValues for range.
+    let seconds = parameters.u64("seconds")?.min(5);
+
+    info!("Test value: {test_value}");
+    info!("Seconds: {seconds}");
+
     // Enable the toggle task.
     TOGGLE_CONTROLLER.store(true, Ordering::Relaxed);
 
     // Notify led.
-    NOTIFY_LED.signal(LedInput::Toggle);
+    NOTIFY_LED.signal(LedInput::Toggle(seconds));
 
     info!("Led toggled through GET route!");
 
@@ -257,7 +266,7 @@ async fn main(spawner: Spawner) {
     // needs. If the number of task is less than the actual number of tasks,
     // there may be malfunctions.
     //
-    // In this case, the value is 13 because we have:
+    // In this case, the value is 6 because we have:
     // - 1 server tasks
     // - 1 wifi task
     // - 1 mdns task
@@ -287,19 +296,33 @@ async fn main(spawner: Spawner) {
     let device = Light::with_state(&interfaces.ap, request_counter)
         .turn_light_on_stateless_serial(
             LightOnRoute::put("On").description("Turn light on."),
-            || async move { turn_light_on().await },
+            |_| async move { turn_light_on().await },
         )
         .turn_light_off_stateless_serial(
-            LightOffRoute::put("Off").description("Turn light off."),
-            || async move { turn_light_off().await },
+            LightOffRoute::put("Off")
+                .description("Turn light off.")
+                .with_parameters(Parameters::new().u8("test-value", 42)),
+            |parameters| async move {
+                let test_value = parameters.u8("test-value")?;
+
+                info!("Test value: {test_value}");
+
+                turn_light_off().await
+            },
         )
         .stateful_ok_route(
-            Route::get("Toggle", "/toggle").description("Toggle."),
+            Route::get("Toggle", "/toggle")
+                .description("Toggle.")
+                .with_parameters(
+                    Parameters::new()
+                        .rangeu64_with_default("seconds", (1, 5, 1), 1)
+                        .bool("test-value", false),
+                ),
             stateful_toggle,
         )
         .stateless_info_route(
             Route::get("Info", "/info").description("Info."),
-            || async move { Ok(InfoResponse::new(DeviceInfo::empty())) },
+            |_| async move { Ok(InfoResponse::new(DeviceInfo::empty())) },
         )
         .build();
 
