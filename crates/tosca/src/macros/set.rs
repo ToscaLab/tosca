@@ -84,6 +84,12 @@ macro_rules! set {
                 self.0.len()
             }
 
+            #[doc = concat!("Gets an element from [`", stringify!($name), "`] by index.")]
+            #[inline]
+            pub fn get_index(&self, index: usize) -> Option<&$element> {
+                self.0.get_index(index)
+            }
+
             #[doc = concat!("Returns an iterator over [`", stringify!($name), "`].")]
             #[doc = ""]
             #[doc = "**Iterates over the elements in the order they were inserted.**"]
