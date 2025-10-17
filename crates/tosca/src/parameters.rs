@@ -820,7 +820,7 @@ mod tests {
 
     use crate::{deserialize, serialize};
 
-    use super::{ParameterKind, Parameters, ParametersData};
+    use super::{ParameterKind, Parameters, ParametersData, ParametersValues};
 
     fn expected_parameters_data() -> ParametersData {
         ParametersData::new()
@@ -931,5 +931,21 @@ mod tests {
             deserialize::<ParametersData>(serialize(parameters.serialize_data())),
             expected_parameters_data(),
         );
+    }
+
+    #[test]
+    fn test_deserialize_parameters_values() {
+        let mut parameters = ParametersValues::new();
+        parameters.bool("one", true);
+        parameters.u8("two", 8);
+        parameters.f32("three", 3.0);
+
+        let json_value = serde_json::json!({
+            "one": true,
+            "two": 8,
+            "three": 3.0,
+        });
+
+        assert_eq!(deserialize::<ParametersValues>(json_value), parameters);
     }
 }
