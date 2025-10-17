@@ -88,7 +88,7 @@ impl InfoResponse {
 ///
 /// Contains the [`tosca::response::ErrorKind`], a general error description,
 /// and optional information about the encountered error.
-pub struct ErrorResponse(Response);
+pub struct ErrorResponse(pub(crate) Response);
 
 impl ErrorResponse {
     /// Generates an [`ErrorResponse`] containing an

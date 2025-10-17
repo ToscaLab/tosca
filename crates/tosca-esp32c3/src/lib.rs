@@ -48,6 +48,8 @@ pub mod error;
 pub mod mdns;
 /// All methods associated with the network stack.
 pub mod net;
+/// All route parameters.
+pub mod parameters;
 /// All supported response types.
 pub mod response;
 /// All methods to initialize and run the firmware server.

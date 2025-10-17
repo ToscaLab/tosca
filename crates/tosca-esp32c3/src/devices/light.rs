@@ -12,6 +12,7 @@ use esp_wifi::wifi::WifiDevice;
 use log::error;
 
 use crate::device::Device;
+use crate::parameters::ParametersValues;
 use crate::response::{ErrorResponse, InfoResponse, OkResponse, Response, SerialResponse};
 use crate::server::{
     FuncIndex, FuncType, Functions, InfoFn, InfoStateFn, OkFn, OkStateFn, SerialFn, SerialStateFn,
@@ -60,7 +61,7 @@ where
         func: F,
     ) -> LightOnRoute<S>
     where
-        F: Fn() -> Fut + Send + Sync + 'static,
+        F: Fn(ParametersValues) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<OkResponse, ErrorResponse>> + Send + Sync + 'static,
     {
         LightOnRoute(self.0.stateless_ok_route(route.into_route(), func))
@@ -76,7 +77,7 @@ where
         func: F,
     ) -> LightOnRoute<S>
     where
-        F: Fn(State<S>) -> Fut + Send + Sync + 'static,
+        F: Fn(State<S>, ParametersValues) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<OkResponse, ErrorResponse>> + Send + Sync + 'static,
     {
         LightOnRoute(self.0.stateful_ok_route(route.into_route(), func))
@@ -93,7 +94,7 @@ where
         func: F,
     ) -> LightOnRoute<S>
     where
-        F: Fn() -> Fut + Send + Sync + 'static,
+        F: Fn(ParametersValues) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<SerialResponse, ErrorResponse>> + Send + Sync + 'static,
     {
         LightOnRoute(self.0.stateless_serial_route(route.into_route(), func))
@@ -110,7 +111,7 @@ where
         func: F,
     ) -> LightOnRoute<S>
     where
-        F: Fn(State<S>) -> Fut + Send + Sync + 'static,
+        F: Fn(State<S>, ParametersValues) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<SerialResponse, ErrorResponse>> + Send + Sync + 'static,
     {
         LightOnRoute(self.0.stateful_serial_route(route.into_route(), func))
@@ -138,7 +139,7 @@ where
         func: F,
     ) -> CompleteLight<S>
     where
-        F: Fn() -> Fut + Send + Sync + 'static,
+        F: Fn(ParametersValues) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<OkResponse, ErrorResponse>> + Send + Sync + 'static,
     {
         self.0.stateless_ok_route(route.into_route(), func)
@@ -154,7 +155,7 @@ where
         func: F,
     ) -> CompleteLight<S>
     where
-        F: Fn(State<S>) -> Fut + Send + Sync + 'static,
+        F: Fn(State<S>, ParametersValues) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<OkResponse, ErrorResponse>> + Send + Sync + 'static,
     {
         self.0.stateful_ok_route(route.into_route(), func)
@@ -171,7 +172,7 @@ where
         func: F,
     ) -> CompleteLight<S>
     where
-        F: Fn() -> Fut + Send + Sync + 'static,
+        F: Fn(ParametersValues) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<SerialResponse, ErrorResponse>> + Send + Sync + 'static,
     {
         self.0.stateless_serial_route(route.into_route(), func)
@@ -188,7 +189,7 @@ where
         func: F,
     ) -> CompleteLight<S>
     where
-        F: Fn(State<S>) -> Fut + Send + Sync + 'static,
+        F: Fn(State<S>, ParametersValues) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<SerialResponse, ErrorResponse>> + Send + Sync + 'static,
     {
         self.0.stateful_serial_route(route.into_route(), func)
@@ -225,11 +226,11 @@ where
     #[must_use]
     pub fn stateless_ok_route<F, Fut>(self, route: Route, func: F) -> Self
     where
-        F: Fn() -> Fut + Send + Sync + 'static,
+        F: Fn(ParametersValues) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<OkResponse, ErrorResponse>> + Send + Sync + 'static,
     {
         self.route_func_manager(route, ResponseKind::Ok, move |mut func_manager| {
-            let func: OkFn = Box::new(move || Box::pin(func()));
+            let func: OkFn = Box::new(move |parameters_values| Box::pin(func(parameters_values)));
             func_manager.routes_functions.0.push(func);
             func_manager.index_array.push(FuncIndex::new(
                 FuncType::OkStateless,
@@ -244,11 +245,12 @@ where
     #[must_use]
     pub fn stateful_ok_route<F, Fut>(self, route: Route, func: F) -> Self
     where
-        F: Fn(State<S>) -> Fut + Send + Sync + 'static,
+        F: Fn(State<S>, ParametersValues) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<OkResponse, ErrorResponse>> + Send + Sync + 'static,
     {
         self.route_func_manager(route, ResponseKind::Ok, move |mut func_manager| {
-            let func: OkStateFn<S> = Box::new(move |state| Box::pin(func(state)));
+            let func: OkStateFn<S> =
+                Box::new(move |state, parameters_values| Box::pin(func(state, parameters_values)));
             func_manager.routes_functions.1.push(func);
             func_manager.index_array.push(FuncIndex::new(
                 FuncType::OkStateful,
@@ -263,11 +265,12 @@ where
     #[must_use]
     pub fn stateless_serial_route<F, Fut>(self, route: Route, func: F) -> Self
     where
-        F: Fn() -> Fut + Send + Sync + 'static,
+        F: Fn(ParametersValues) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<SerialResponse, ErrorResponse>> + Send + Sync + 'static,
     {
         self.route_func_manager(route, ResponseKind::Serial, move |mut func_manager| {
-            let func: SerialFn = Box::new(move || Box::pin(func()));
+            let func: SerialFn =
+                Box::new(move |parameters_values| Box::pin(func(parameters_values)));
             func_manager.routes_functions.2.push(func);
             func_manager.index_array.push(FuncIndex::new(
                 FuncType::SerialStateless,
@@ -282,11 +285,12 @@ where
     #[must_use]
     pub fn stateful_serial_route<F, Fut>(self, route: Route, func: F) -> Self
     where
-        F: Fn(State<S>) -> Fut + Send + Sync + 'static,
+        F: Fn(State<S>, ParametersValues) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<SerialResponse, ErrorResponse>> + Send + Sync + 'static,
     {
         self.route_func_manager(route, ResponseKind::Serial, move |mut func_manager| {
-            let func: SerialStateFn<S> = Box::new(move |state| Box::pin(func(state)));
+            let func: SerialStateFn<S> =
+                Box::new(move |state, parameters_values| Box::pin(func(state, parameters_values)));
             func_manager.routes_functions.3.push(func);
             func_manager.index_array.push(FuncIndex::new(
                 FuncType::SerialStateful,
@@ -301,11 +305,11 @@ where
     #[must_use]
     pub fn stateless_info_route<F, Fut>(self, route: Route, func: F) -> Self
     where
-        F: Fn() -> Fut + Send + Sync + 'static,
+        F: Fn(ParametersValues) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<InfoResponse, ErrorResponse>> + Send + Sync + 'static,
     {
         self.route_func_manager(route, ResponseKind::Info, move |mut func_manager| {
-            let func: InfoFn = Box::new(move || Box::pin(func()));
+            let func: InfoFn = Box::new(move |parameters_values| Box::pin(func(parameters_values)));
             func_manager.routes_functions.4.push(func);
             func_manager.index_array.push(FuncIndex::new(
                 FuncType::InfoStateless,
@@ -320,11 +324,12 @@ where
     #[must_use]
     pub fn stateful_info_route<F, Fut>(self, route: Route, func: F) -> Self
     where
-        F: Fn(State<S>) -> Fut + Send + Sync + 'static,
+        F: Fn(State<S>, ParametersValues) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<InfoResponse, ErrorResponse>> + Send + Sync + 'static,
     {
         self.route_func_manager(route, ResponseKind::Info, move |mut func_manager| {
-            let func: InfoStateFn<S> = Box::new(move |state| Box::pin(func(state)));
+            let func: InfoStateFn<S> =
+                Box::new(move |state, parameters_values| Box::pin(func(state, parameters_values)));
             func_manager.routes_functions.5.push(func);
             func_manager.index_array.push(FuncIndex::new(
                 FuncType::InfoStateful,
