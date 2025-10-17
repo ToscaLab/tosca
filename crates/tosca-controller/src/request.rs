@@ -44,10 +44,14 @@ fn compare_values_with_params_data(
             return Err(parameter_error(format!("`{name}` does not exist")));
         };
 
-        if !parameter_value.compare_with_kind(parameter_kind) {
+        let parameter_value_id = ParameterId::from_parameter_value(parameter_value);
+        let parameter_kind_id = ParameterId::from_parameter_kind(parameter_kind);
+
+        if parameter_value_id != parameter_kind_id {
             return Err(parameter_error(format!(
-                "`{name}` must be of type `{}`",
-                ParameterId::from_parameter_kind(parameter_kind).as_type(),
+                "Found `{name}` of kind `{}`, expected kind `{}`",
+                parameter_value_id.to_str(),
+                parameter_kind_id.to_str(),
             )));
         }
     }
