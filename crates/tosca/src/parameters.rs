@@ -310,15 +310,9 @@ pub enum ParameterKind {
         default: f64,
     },
     /// A characters sequence.
-    ///
-    /// This kind of input parameter can contain an unknown or a precise
-    /// sequence of characters.
     CharsSequence {
-        /// Initial characters sequence, which also represents the default
-        /// value.
+        /// A character sequence representing the default value.
         default: Cow<'static, str>,
-        /// The character sequence length.
-        length: usize,
     },
 }
 
@@ -616,12 +610,10 @@ impl Parameters {
         name: &'static str,
         default: impl Into<Cow<'static, str>>,
     ) -> Self {
-        let default = default.into();
         self.create_parameter(
             name,
             ParameterKind::CharsSequence {
-                length: default.len(),
-                default,
+                default: default.into(),
             },
         )
     }
@@ -897,14 +889,12 @@ mod tests {
                 "greeting".into(),
                 ParameterKind::CharsSequence {
                     default: "hello".into(),
-                    length: 5,
                 },
             )
             .insert(
                 "greeting2".into(),
                 ParameterKind::CharsSequence {
                     default: "hello".into(),
-                    length: 5,
                 },
             )
     }
