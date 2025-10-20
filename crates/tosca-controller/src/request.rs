@@ -468,7 +468,9 @@ mod tests {
         // Wrong parameter type.
         assert_eq!(
             request.create_request(ParametersValues::new().f64("rangeu64", 0.)),
-            Err(parameter_error("`rangeu64` must be of type `u64`".into()))
+            Err(parameter_error(
+                "Found type `f64` for `rangeu64`, expected type `u64`".into()
+            ))
         );
 
         let mut parameters = HashMap::with_capacity(2);
