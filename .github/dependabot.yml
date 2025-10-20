@@ -11,5 +11,6 @@ updates:
       - "/"
       - "crates/tosca"
       - "crates/tosca-*"
+      - "crates/tosca-*/examples"
     schedule:
       interval: "weekly"
