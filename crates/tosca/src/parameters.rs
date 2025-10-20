@@ -92,98 +92,6 @@ fn f64_max() -> f64 {
     f64::MAX
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
-/// All route input parameters identifiers.
-pub enum ParameterId {
-    /// A [`bool`] value.
-    Bool,
-    /// An [`u8`] value.
-    U8,
-    /// An [`u16`] value.
-    U16,
-    /// An [`u32`] value.
-    U32,
-    /// An [`u64`] value.
-    U64,
-    /// A range of [`u64`].
-    RangeU64,
-    /// A [`f32`] value.
-    F32,
-    /// A [`f64`] value.
-    F64,
-    /// A range of [`f64`].
-    RangeF64,
-    /// A characters sequence.
-    CharsSequence,
-}
-
-impl ParameterId {
-    /// Converts a [`ParameterKind`] into a [`ParameterId`].
-    #[must_use]
-    pub const fn from_parameter_kind(parameter_kind: &ParameterKind) -> Self {
-        match parameter_kind {
-            ParameterKind::Bool { .. } => Self::Bool,
-            ParameterKind::U8 { .. } => Self::U8,
-            ParameterKind::U16 { .. } => Self::U16,
-            ParameterKind::U32 { .. } => Self::U32,
-            ParameterKind::U64 { .. } => Self::U64,
-            ParameterKind::RangeU64 { .. } => Self::RangeU64,
-            ParameterKind::F32 { .. } => Self::F32,
-            ParameterKind::F64 { .. } => Self::F64,
-            ParameterKind::RangeF64 { .. } => Self::RangeF64,
-            ParameterKind::CharsSequence { .. } => Self::CharsSequence,
-        }
-    }
-
-    /// Converts a [`ParameterValue`] into a [`ParameterId`].
-    #[must_use]
-    pub const fn from_parameter_value(parameter_value: &ParameterValue) -> Self {
-        match parameter_value {
-            ParameterValue::Bool(_) => Self::Bool,
-            ParameterValue::U8(_) => Self::U8,
-            ParameterValue::U16(_) => Self::U16,
-            ParameterValue::U32(_) => Self::U32,
-            ParameterValue::U64(_) => Self::U64,
-            ParameterValue::F32(_) => Self::F32,
-            ParameterValue::F64(_) => Self::F64,
-            ParameterValue::CharsSequence(_) => Self::CharsSequence,
-        }
-    }
-
-    /// Shows a [`ParameterId`] as a [`&str`].
-    #[must_use]
-    pub const fn to_str(&self) -> &'static str {
-        match self {
-            Self::Bool => "Bool",
-            Self::U8 => "U8",
-            Self::U16 => "U16",
-            Self::U32 => "U32",
-            Self::U64 => "U64",
-            Self::RangeU64 => "RangeU64",
-            Self::F32 => "F32",
-            Self::F64 => "F64",
-            Self::RangeF64 => "RangeF64",
-            Self::CharsSequence => "String",
-        }
-    }
-
-    /// Prints the type associated with a [`ParameterId`] formatted
-    /// as a [`&str`].
-    #[must_use]
-    pub const fn as_type(&self) -> &'static str {
-        match self {
-            Self::Bool => "bool",
-            Self::U8 => "u8",
-            Self::U16 => "u16",
-            Self::U32 => "u32",
-            Self::U64 | Self::RangeU64 => "u64",
-            Self::F32 => "f32",
-            Self::F64 | Self::RangeF64 => "f64",
-            Self::CharsSequence => "String",
-        }
-    }
-}
-
 /// All supported kinds of route input parameters.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum ParameterKind {
@@ -314,6 +222,40 @@ pub enum ParameterKind {
         /// A character sequence representing the default value.
         default: Cow<'static, str>,
     },
+}
+
+impl ParameterKind {
+    /// Returns the name associated with a [`ParameterKind`].
+    #[must_use]
+    pub const fn name(&self) -> &'static str {
+        match self {
+            Self::Bool { .. } => "Bool",
+            Self::U8 { .. } => "U8",
+            Self::U16 { .. } => "U16",
+            Self::U32 { .. } => "U32",
+            Self::U64 { .. } => "U64",
+            Self::RangeU64 { .. } => "RangeU64",
+            Self::F32 { .. } => "F32",
+            Self::F64 { .. } => "F64",
+            Self::RangeF64 { .. } => "RangeF64",
+            Self::CharsSequence { .. } => "CharsSequence",
+        }
+    }
+
+    /// Returns the type associated with a [`ParameterKind`] as a [`&str`].
+    #[must_use]
+    pub const fn as_type(&self) -> &'static str {
+        match self {
+            Self::Bool { .. } => "bool",
+            Self::U8 { .. } => "u8",
+            Self::U16 { .. } => "u16",
+            Self::U32 { .. } => "u32",
+            Self::U64 { .. } | Self::RangeU64 { .. } => "u64",
+            Self::F32 { .. } => "f32",
+            Self::F64 { .. } | Self::RangeF64 { .. } => "f64",
+            Self::CharsSequence { .. } => "String",
+        }
+    }
 }
 
 /// Floating point decimal precision.
@@ -694,6 +636,43 @@ impl ParameterValue {
             }
             ParameterKind::CharsSequence { default, .. } => Self::CharsSequence(default.clone()),
         }
+    }
+
+    /// Returns the type associated with a [`ParameterValue`] as a [`&str`].
+    #[must_use]
+    pub const fn as_type(&self) -> &'static str {
+        match self {
+            Self::Bool(_) => "bool",
+            Self::U8(_) => "u8",
+            Self::U16(_) => "u16",
+            Self::U32(_) => "u32",
+            Self::U64(_) => "u64",
+            Self::F32(_) => "f32",
+            Self::F64(_) => "f64",
+            Self::CharsSequence(_) => "String",
+        }
+    }
+
+    /// Checks if the [`ParameterValue`] matches the given [`ParameterKind`].
+    #[must_use]
+    pub const fn match_kind(&self, parameter_kind: &ParameterKind) -> bool {
+        matches!(
+            (self, parameter_kind),
+            (Self::Bool(_), ParameterKind::Bool { .. })
+                | (Self::U8(_), ParameterKind::U8 { .. })
+                | (Self::U16(_), ParameterKind::U16 { .. })
+                | (Self::U32(_), ParameterKind::U32 { .. })
+                | (
+                    Self::U64(_),
+                    ParameterKind::U64 { .. } | ParameterKind::RangeU64 { .. }
+                )
+                | (Self::F32(_), ParameterKind::F32 { .. })
+                | (
+                    Self::F64(_),
+                    ParameterKind::F64 { .. } | ParameterKind::RangeF64 { .. }
+                )
+                | (Self::CharsSequence(_), ParameterKind::CharsSequence { .. })
+        )
     }
 }
 
