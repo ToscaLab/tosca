@@ -8,7 +8,7 @@ use tracing::error;
 
 use tosca::device::DeviceEnvironment;
 use tosca::hazards::Hazards;
-use tosca::parameters::{ParameterId, ParameterValue, ParametersData, ParametersValues};
+use tosca::parameters::{ParameterValue, ParametersData, ParametersValues};
 use tosca::response::{ResponseKind, SERIALIZATION_ERROR};
 use tosca::route::{RestKind, RouteConfig, RouteConfigs};
 
@@ -44,14 +44,11 @@ fn compare_values_with_params_data(
             return Err(parameter_error(format!("`{name}` does not exist")));
         };
 
-        let parameter_value_id = ParameterId::from_parameter_value(parameter_value);
-        let parameter_kind_id = ParameterId::from_parameter_kind(parameter_kind);
-
-        if parameter_value_id != parameter_kind_id {
+        if !parameter_value.match_kind(parameter_kind) {
             return Err(parameter_error(format!(
-                "Found `{name}` of kind `{}`, expected kind `{}`",
-                parameter_value_id.to_str(),
-                parameter_kind_id.to_str(),
+                "Found type `{}` for `{name}`, expected type `{}`",
+                parameter_value.as_type(),
+                parameter_kind.as_type(),
             )));
         }
     }
