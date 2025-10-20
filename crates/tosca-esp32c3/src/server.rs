@@ -9,13 +9,11 @@ use alloc::str::SplitTerminator;
 use alloc::string::ToString;
 use alloc::vec::Vec;
 
-use tosca::parameters::{
-    ParameterId, ParameterKind, ParameterValue, ParametersValues as ToscaParametersValues,
-};
+use tosca::parameters::{ParameterKind, ParameterValue, ParametersValues as ToscaParametersValues};
 use tosca::route::{RestKind, RouteConfig};
 
-use edge_http::io::Body;
 use edge_http::io::server::{Connection, Handler, Server as EdgeServer};
+use edge_http::io::Body;
 use edge_http::{Headers, Method};
 use edge_nal::TcpBind;
 use edge_nal_embassy::{Tcp, TcpBuffers};
@@ -164,12 +162,12 @@ pub struct Server<
 }
 
 impl<
-    const TX_SIZE: usize,
-    const RX_SIZE: usize,
-    const MAXIMUM_HEADERS_COUNT: usize,
-    const TIMEOUT: u32,
-    S,
-> Server<TX_SIZE, RX_SIZE, MAXIMUM_HEADERS_COUNT, TIMEOUT, S>
+        const TX_SIZE: usize,
+        const RX_SIZE: usize,
+        const MAXIMUM_HEADERS_COUNT: usize,
+        const TIMEOUT: u32,
+        S,
+    > Server<TX_SIZE, RX_SIZE, MAXIMUM_HEADERS_COUNT, TIMEOUT, S>
 where
     S: ValueFromRef + Send + Sync + 'static,
 {
@@ -482,14 +480,12 @@ where
                     invalid_data_response(&format!("Parameter `{}` not found", parameter_config.0))
                 })?;
 
-            let route_parameter_value_id = ParameterId::from_parameter_value(route_parameter_value);
-            let route_parameter_kind_id = ParameterId::from_parameter_kind(parameter_config.1);
-
-            if route_parameter_value_id != route_parameter_kind_id {
+            if !route_parameter_value.match_kind(parameter_config.1) {
                 return Err(invalid_data_response(&format!(
-                    "Found id `{}`, expected id `{}`",
-                    route_parameter_value_id.to_str(),
-                    route_parameter_kind_id.to_str()
+                    "Found type `{}` for `{}`, expected type `{}`",
+                    parameter_config.0,
+                    route_parameter_value.as_type(),
+                    parameter_config.1.as_type(),
                 )));
             }
         }
