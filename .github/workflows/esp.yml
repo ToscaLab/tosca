@@ -4,6 +4,10 @@ on:
   push:
     branches: [master]
     paths:
+      - 'crates/tosca/**/Cargo.lock'
+      - 'crates/tosca/**/*.rs'
+      - 'crates/tosca/**/*.toml'
+
       - 'crates/tosca-esp32c3/**/Cargo.lock'
       - 'crates/tosca-esp32c3/**/*.rs'
       - 'crates/tosca-esp32c3/**/*.sh'
@@ -13,6 +17,10 @@ on:
     branches: [master]
     types: [opened, synchronize]
     paths:
+      - 'crates/tosca/**/Cargo.lock'
+      - 'crates/tosca/**/*.rs'
+      - 'crates/tosca/**/*.toml'
+
       - 'crates/tosca-esp32c3/**/Cargo.lock'
       - 'crates/tosca-esp32c3/**/*.rs'
       - 'crates/tosca-esp32c3/**/*.sh'
