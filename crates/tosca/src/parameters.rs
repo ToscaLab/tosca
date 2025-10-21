@@ -6,7 +6,7 @@ use alloc::string::String;
 
 use hashbrown::DefaultHashBuilder;
 
-use indexmap::map::{IndexMap, Iter};
+use indexmap::map::{IndexMap, IntoIter, Iter};
 
 use serde::{Deserialize, Serialize};
 
@@ -687,6 +687,15 @@ impl Default for ParametersValues<'_> {
     }
 }
 
+impl<'a> IntoIterator for ParametersValues<'a> {
+    type Item = (Cow<'a, str>, ParameterValue);
+    type IntoIter = IntoIter<Cow<'a, str>, ParameterValue>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.into_iter()
+    }
+}
+
 impl<'a> IntoIterator for &'a ParametersValues<'a> {
     type Item = (&'a Cow<'a, str>, &'a ParameterValue);
     type IntoIter = Iter<'a, Cow<'a, str>, ParameterValue>;
@@ -783,6 +792,53 @@ impl<'a> ParametersValues<'a> {
     #[inline]
     pub fn iter(&self) -> Iter<'_, Cow<'_, str>, ParameterValue> {
         self.0.iter()
+    }
+}
+
+/// Parameter payload data.
+///
+/// A payload consists of parameter metadata ([`ParameterKind`]) and
+/// its associated value ([`ParameterValue`]).
+pub struct ParameterPayload {
+    /// Parameter metadata.
+    pub kind: ParameterKind,
+    /// Parameter value.
+    pub value: ParameterValue,
+}
+
+impl ParameterPayload {
+    /// Creates a [`ParameterPayload`].
+    #[must_use]
+    pub const fn new(kind: ParameterKind, value: ParameterValue) -> Self {
+        Self { kind, value }
+    }
+}
+
+map! {
+  /// A map that associates each parameter name with its
+  /// corresponding [`ParameterPayload`].
+  pub struct ParametersPayloads<'a>(IndexMap<Cow<'a, str>, ParameterPayload, DefaultHashBuilder>);
+}
+
+impl<'a> ParametersPayloads<'a> {
+    /// Retrieves a [`ParameterPayload`] by name.
+    ///
+    /// If [`None`], the parameter does not exist.
+    #[must_use]
+    #[inline]
+    pub fn get<'b>(&'b self, name: impl Into<Cow<'b, str>>) -> Option<&'b ParameterPayload> {
+        self.0.get(&name.into())
+    }
+
+    /// Extracts a [`ParameterPayload`] by name.
+    ///
+    /// **It consumes the parameter.**
+    ///
+    /// If [`None`], the parameter does not exist.
+    #[must_use]
+    #[inline]
+    pub fn extract(&mut self, name: impl Into<Cow<'a, str>>) -> Option<ParameterPayload> {
+        self.0.swap_remove(&name.into())
     }
 }
 

@@ -2,28 +2,28 @@ macro_rules! map {
     (
         /// $desc:expr
         $(#[$attrs:meta])*
-        pub struct $name:ident(IndexMap<$key:ty, $value:ty, DefaultHashBuilder>);
+        pub struct $name:ident$(<$a:lifetime>)?(IndexMap<$key:ty, $value:ty, DefaultHashBuilder>);
     ) => {
         ///
         $(#[$attrs])*
-        pub struct $name(IndexMap<$key, $value, DefaultHashBuilder>);
+        pub struct $name$(<$a>)?(IndexMap<$key, $value, DefaultHashBuilder>);
 
-        impl<'a> IntoIterator for &'a $name {
-            type Item = (&'a $key, &'a $value);
-            type IntoIter = Iter<'a, $key, $value>;
+        impl<$($a,)? 'b> IntoIterator for &'b $name$(<$a>)? {
+            type Item = (&'b $key, &'b $value);
+            type IntoIter = Iter<'b, $key, $value>;
 
             fn into_iter(self) -> Self::IntoIter {
                 self.iter()
             }
         }
 
-        impl Default for $name {
+        impl$(<$a>)? Default for $name$(<$a>)? {
             fn default() -> Self {
                 Self::new()
             }
         }
 
-        impl $name {
+        impl$(<$a>)? $name$(<$a>)? {
             #[doc = concat!("Creates an empty [`", stringify!($name), "`].")]
             #[must_use]
             #[inline]
