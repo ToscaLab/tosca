@@ -9,7 +9,10 @@ use alloc::str::SplitTerminator;
 use alloc::string::ToString;
 use alloc::vec::Vec;
 
-use tosca::parameters::{ParameterKind, ParameterValue, ParametersValues as ToscaParametersValues};
+use tosca::parameters::{
+    ParameterKind, ParameterPayload, ParameterValue, ParametersPayloads as ToscaParametersPayloads,
+    ParametersValues,
+};
 use tosca::route::{RestKind, RouteConfig};
 
 use edge_http::io::Body;
@@ -28,7 +31,7 @@ use log::{error, info};
 use crate::device::Device;
 use crate::error::Error;
 use crate::mdns::Mdns;
-use crate::parameters::ParametersValues;
+use crate::parameters::ParametersPayloads;
 use crate::response::{ErrorResponse, InfoResponse, OkResponse, Response, SerialResponse};
 use crate::state::{State, ValueFromRef};
 
@@ -49,7 +52,7 @@ const MAXIMUM_REQUEST_SIZE: usize = 128;
 
 pub(crate) type OkFn = Box<
     dyn Fn(
-            ParametersValues,
+            ParametersPayloads,
         ) -> Pin<
             Box<dyn Future<Output = Result<OkResponse, ErrorResponse>> + Send + Sync + 'static>,
         > + Send
@@ -60,7 +63,7 @@ pub(crate) type OkFn = Box<
 pub(crate) type OkStateFn<S> = Box<
     dyn Fn(
             State<S>,
-            ParametersValues,
+            ParametersPayloads,
         ) -> Pin<
             Box<dyn Future<Output = Result<OkResponse, ErrorResponse>> + Send + Sync + 'static>,
         > + Send
@@ -70,7 +73,7 @@ pub(crate) type OkStateFn<S> = Box<
 
 pub(crate) type SerialFn = Box<
     dyn Fn(
-            ParametersValues,
+            ParametersPayloads,
         ) -> Pin<
             Box<dyn Future<Output = Result<SerialResponse, ErrorResponse>> + Send + Sync + 'static>,
         > + Send
@@ -81,7 +84,7 @@ pub(crate) type SerialFn = Box<
 pub(crate) type SerialStateFn<S> = Box<
     dyn Fn(
             State<S>,
-            ParametersValues,
+            ParametersPayloads,
         ) -> Pin<
             Box<dyn Future<Output = Result<SerialResponse, ErrorResponse>> + Send + Sync + 'static>,
         > + Send
@@ -91,7 +94,7 @@ pub(crate) type SerialStateFn<S> = Box<
 
 pub(crate) type InfoFn = Box<
     dyn Fn(
-            ParametersValues,
+            ParametersPayloads,
         ) -> Pin<
             Box<dyn Future<Output = Result<InfoResponse, ErrorResponse>> + Send + Sync + 'static>,
         > + Send
@@ -102,7 +105,7 @@ pub(crate) type InfoFn = Box<
 pub(crate) type InfoStateFn<S> = Box<
     dyn Fn(
             State<S>,
-            ParametersValues,
+            ParametersPayloads,
         ) -> Pin<
             Box<dyn Future<Output = Result<InfoResponse, ErrorResponse>> + Send + Sync + 'static>,
         > + Send
@@ -265,14 +268,14 @@ pub(crate) fn invalid_data(description: &str) -> ErrorResponse {
 
 struct RouteInfo {
     index: usize,
-    parameters_values: ParametersValues,
+    parameters_payloads: ParametersPayloads,
 }
 
 impl RouteInfo {
-    const fn new(index: usize, parameters_values: ToscaParametersValues<'static>) -> Self {
+    const fn new(index: usize, parameters_payloads: ToscaParametersPayloads<'static>) -> Self {
         Self {
             index,
-            parameters_values: ParametersValues(parameters_values),
+            parameters_payloads: ParametersPayloads(parameters_payloads),
         }
     }
 }
@@ -366,7 +369,7 @@ where
             // Otherwise, save the index and break the loop,
             // as there are parameters to analyze.
             if route.data.parameters.is_empty() {
-                return Ok(RouteInfo::new(index, ToscaParametersValues::new()));
+                return Ok(RouteInfo::new(index, ToscaParametersPayloads::new()));
             }
 
             route_index = index;
@@ -386,16 +389,16 @@ where
             // the check has already been performed earlier.
             _ => Self::parse_headers_parameters(route_config, headers, body).await,
         }
-        .map(|parameters_values| RouteInfo::new(route_index, parameters_values))
+        .map(|parameters_payloads| RouteInfo::new(route_index, parameters_payloads))
     }
 
     #[inline]
     fn parse_get_parameters(
         route_config: &RouteConfig,
         mut route_iter: SplitTerminator<'_, char>,
-    ) -> Result<ToscaParametersValues<'static>, Response> {
-        // Create parameters values.
-        let mut parameters_values = ToscaParametersValues::new();
+    ) -> Result<ToscaParametersPayloads<'static>, Response> {
+        // Create parameters payloads.
+        let mut parameters_payloads = ToscaParametersPayloads::new();
 
         for (index, parameter) in route_config.data.parameters.iter().enumerate() {
             let parameter_value = route_iter.nth(0).ok_or_else(|| {
@@ -414,12 +417,15 @@ where
             info!("Parameter value as string: {parameter_value}");
             let parameter_value = Self::parse_parameter_value(parameter_value, parameter.1)?;
 
-            parameters_values.parameter_value(parameter.0.clone(), parameter_value);
+            parameters_payloads.add(
+                parameter.0.clone().into(),
+                ParameterPayload::new(parameter.1.clone(), parameter_value),
+            );
         }
 
         // NOTE: We do not check whether a route path still contains other ,
         // as this is unnecessary since all parameters have been taken.
-        Ok(parameters_values)
+        Ok(parameters_payloads)
     }
 
     #[inline]
@@ -427,7 +433,7 @@ where
         route_config: &RouteConfig,
         headers: &Headers<'_, N>,
         body: &mut Body<'_, T>,
-    ) -> Result<ToscaParametersValues<'static>, Response> {
+    ) -> Result<ToscaParametersPayloads<'static>, Response> {
         info!("Headers: {headers:?}");
 
         let content_length = headers
@@ -462,35 +468,41 @@ where
             error_response_with_error("Error reading the request bytes", &format!("{e:?}"))
         })?;
 
-        let route_parameters = serde_json::from_slice::<ToscaParametersValues>(
-            &bytes[0..content_length],
-        )
-        .map_err(|e| {
-            error_response_with_error(
-                "Failed to convert bytes into a sequence of parameters",
-                &format!("{e}"),
-            )
-        })?;
+        let route_parameters =
+            serde_json::from_slice::<ParametersValues>(&bytes[0..content_length]).map_err(|e| {
+                error_response_with_error(
+                    "Failed to convert bytes into a sequence of parameters",
+                    &format!("{e}"),
+                )
+            })?;
 
         info!("Route parameters: {route_parameters:?}");
 
-        for parameter_config in &route_config.data.parameters {
-            let route_parameter_value =
-                route_parameters.get(parameter_config.0).ok_or_else(|| {
-                    invalid_data_response(&format!("Parameter `{}` not found", parameter_config.0))
+        let mut parameters_payloads = ToscaParametersPayloads::new();
+        for (parameter_name, parameter_value) in route_parameters {
+            let parameter_kind = route_config
+                .data
+                .parameters
+                .get(&parameter_name)
+                .ok_or_else(|| {
+                    invalid_data_response(&format!("Parameter `{parameter_name}` not found"))
                 })?;
 
-            if !route_parameter_value.match_kind(parameter_config.1) {
+            if !parameter_value.match_kind(parameter_kind) {
                 return Err(invalid_data_response(&format!(
-                    "Found type `{}` for `{}`, expected type `{}`",
-                    parameter_config.0,
-                    route_parameter_value.as_type(),
-                    parameter_config.1.as_type(),
+                    "Found type `{}` for `{parameter_name}`, expected type `{}`",
+                    parameter_value.as_type(),
+                    parameter_kind.as_type(),
                 )));
             }
+
+            parameters_payloads.add(
+                parameter_name,
+                ParameterPayload::new(parameter_kind.clone(), parameter_value),
+            );
         }
 
-        Ok(route_parameters)
+        Ok(parameters_payloads)
     }
 
     fn parse_parameter_value(
@@ -548,45 +560,49 @@ where
     }
 
     #[inline]
-    async fn run_function(&self, index: usize, parameters_values: ParametersValues) -> Response {
+    async fn run_function(
+        &self,
+        index: usize,
+        parameters_payloads: ParametersPayloads,
+    ) -> Response {
         let func_index = self.device.index_array[index];
 
         match func_index.func_type {
             FuncType::OkStateless => {
                 let func = &self.device.routes_functions.0[func_index.index];
-                func(parameters_values).await.into()
+                func(parameters_payloads).await.into()
             }
             FuncType::OkStateful => {
                 let func = &self.device.routes_functions.1[func_index.index];
                 func(
                     State(S::value_from_ref(&self.device.state.0)),
-                    parameters_values,
+                    parameters_payloads,
                 )
                 .await
                 .into()
             }
             FuncType::SerialStateless => {
                 let func = &self.device.routes_functions.2[func_index.index];
-                func(parameters_values).await.into()
+                func(parameters_payloads).await.into()
             }
             FuncType::SerialStateful => {
                 let func = &self.device.routes_functions.3[func_index.index];
                 func(
                     State(S::value_from_ref(&self.device.state.0)),
-                    parameters_values,
+                    parameters_payloads,
                 )
                 .await
                 .into()
             }
             FuncType::InfoStateless => {
                 let func = &self.device.routes_functions.4[func_index.index];
-                func(parameters_values).await.into()
+                func(parameters_payloads).await.into()
             }
             FuncType::InfoStateful => {
                 let func = &self.device.routes_functions.5[func_index.index];
                 func(
                     State(S::value_from_ref(&self.device.state.0)),
-                    parameters_values,
+                    parameters_payloads,
                 )
                 .await
                 .into()
@@ -636,10 +652,10 @@ impl<S: ValueFromRef + Send + Sync + 'static> Handler for ServerHandler<S> {
 
         let RouteInfo {
             index,
-            parameters_values,
+            parameters_payloads,
         } = route_info;
 
-        let response = self.run_function(index, parameters_values).await;
+        let response = self.run_function(index, parameters_payloads).await;
         response.write(conn).await
     }
 }

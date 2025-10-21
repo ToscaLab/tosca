@@ -12,7 +12,7 @@ use esp_wifi::wifi::WifiDevice;
 use log::error;
 
 use crate::device::Device;
-use crate::parameters::ParametersValues;
+use crate::parameters::ParametersPayloads;
 use crate::response::{ErrorResponse, InfoResponse, OkResponse, Response, SerialResponse};
 use crate::server::{
     FuncIndex, FuncType, Functions, InfoFn, InfoStateFn, OkFn, OkStateFn, SerialFn, SerialStateFn,
@@ -61,7 +61,7 @@ where
         func: F,
     ) -> LightOnRoute<S>
     where
-        F: Fn(ParametersValues) -> Fut + Send + Sync + 'static,
+        F: Fn(ParametersPayloads) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<OkResponse, ErrorResponse>> + Send + Sync + 'static,
     {
         LightOnRoute(self.0.stateless_ok_route(route.into_route(), func))
@@ -77,7 +77,7 @@ where
         func: F,
     ) -> LightOnRoute<S>
     where
-        F: Fn(State<S>, ParametersValues) -> Fut + Send + Sync + 'static,
+        F: Fn(State<S>, ParametersPayloads) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<OkResponse, ErrorResponse>> + Send + Sync + 'static,
     {
         LightOnRoute(self.0.stateful_ok_route(route.into_route(), func))
@@ -94,7 +94,7 @@ where
         func: F,
     ) -> LightOnRoute<S>
     where
-        F: Fn(ParametersValues) -> Fut + Send + Sync + 'static,
+        F: Fn(ParametersPayloads) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<SerialResponse, ErrorResponse>> + Send + Sync + 'static,
     {
         LightOnRoute(self.0.stateless_serial_route(route.into_route(), func))
@@ -111,7 +111,7 @@ where
         func: F,
     ) -> LightOnRoute<S>
     where
-        F: Fn(State<S>, ParametersValues) -> Fut + Send + Sync + 'static,
+        F: Fn(State<S>, ParametersPayloads) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<SerialResponse, ErrorResponse>> + Send + Sync + 'static,
     {
         LightOnRoute(self.0.stateful_serial_route(route.into_route(), func))
@@ -139,7 +139,7 @@ where
         func: F,
     ) -> CompleteLight<S>
     where
-        F: Fn(ParametersValues) -> Fut + Send + Sync + 'static,
+        F: Fn(ParametersPayloads) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<OkResponse, ErrorResponse>> + Send + Sync + 'static,
     {
         self.0.stateless_ok_route(route.into_route(), func)
@@ -155,7 +155,7 @@ where
         func: F,
     ) -> CompleteLight<S>
     where
-        F: Fn(State<S>, ParametersValues) -> Fut + Send + Sync + 'static,
+        F: Fn(State<S>, ParametersPayloads) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<OkResponse, ErrorResponse>> + Send + Sync + 'static,
     {
         self.0.stateful_ok_route(route.into_route(), func)
@@ -172,7 +172,7 @@ where
         func: F,
     ) -> CompleteLight<S>
     where
-        F: Fn(ParametersValues) -> Fut + Send + Sync + 'static,
+        F: Fn(ParametersPayloads) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<SerialResponse, ErrorResponse>> + Send + Sync + 'static,
     {
         self.0.stateless_serial_route(route.into_route(), func)
@@ -189,7 +189,7 @@ where
         func: F,
     ) -> CompleteLight<S>
     where
-        F: Fn(State<S>, ParametersValues) -> Fut + Send + Sync + 'static,
+        F: Fn(State<S>, ParametersPayloads) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<SerialResponse, ErrorResponse>> + Send + Sync + 'static,
     {
         self.0.stateful_serial_route(route.into_route(), func)
@@ -226,7 +226,7 @@ where
     #[must_use]
     pub fn stateless_ok_route<F, Fut>(self, route: Route, func: F) -> Self
     where
-        F: Fn(ParametersValues) -> Fut + Send + Sync + 'static,
+        F: Fn(ParametersPayloads) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<OkResponse, ErrorResponse>> + Send + Sync + 'static,
     {
         self.route_func_manager(route, ResponseKind::Ok, move |mut func_manager| {
@@ -245,7 +245,7 @@ where
     #[must_use]
     pub fn stateful_ok_route<F, Fut>(self, route: Route, func: F) -> Self
     where
-        F: Fn(State<S>, ParametersValues) -> Fut + Send + Sync + 'static,
+        F: Fn(State<S>, ParametersPayloads) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<OkResponse, ErrorResponse>> + Send + Sync + 'static,
     {
         self.route_func_manager(route, ResponseKind::Ok, move |mut func_manager| {
@@ -265,7 +265,7 @@ where
     #[must_use]
     pub fn stateless_serial_route<F, Fut>(self, route: Route, func: F) -> Self
     where
-        F: Fn(ParametersValues) -> Fut + Send + Sync + 'static,
+        F: Fn(ParametersPayloads) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<SerialResponse, ErrorResponse>> + Send + Sync + 'static,
     {
         self.route_func_manager(route, ResponseKind::Serial, move |mut func_manager| {
@@ -285,7 +285,7 @@ where
     #[must_use]
     pub fn stateful_serial_route<F, Fut>(self, route: Route, func: F) -> Self
     where
-        F: Fn(State<S>, ParametersValues) -> Fut + Send + Sync + 'static,
+        F: Fn(State<S>, ParametersPayloads) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<SerialResponse, ErrorResponse>> + Send + Sync + 'static,
     {
         self.route_func_manager(route, ResponseKind::Serial, move |mut func_manager| {
@@ -305,7 +305,7 @@ where
     #[must_use]
     pub fn stateless_info_route<F, Fut>(self, route: Route, func: F) -> Self
     where
-        F: Fn(ParametersValues) -> Fut + Send + Sync + 'static,
+        F: Fn(ParametersPayloads) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<InfoResponse, ErrorResponse>> + Send + Sync + 'static,
     {
         self.route_func_manager(route, ResponseKind::Info, move |mut func_manager| {
@@ -324,7 +324,7 @@ where
     #[must_use]
     pub fn stateful_info_route<F, Fut>(self, route: Route, func: F) -> Self
     where
-        F: Fn(State<S>, ParametersValues) -> Fut + Send + Sync + 'static,
+        F: Fn(State<S>, ParametersPayloads) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<InfoResponse, ErrorResponse>> + Send + Sync + 'static,
     {
         self.route_func_manager(route, ResponseKind::Info, move |mut func_manager| {
