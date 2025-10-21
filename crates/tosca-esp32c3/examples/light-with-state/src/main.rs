@@ -30,7 +30,7 @@ use tosca_esp32c3::{
     devices::light::Light,
     mdns::Mdns,
     net::{NetworkStack, get_ip},
-    parameters::ParametersValues,
+    parameters::ParametersPayloads,
     response::{ErrorResponse, InfoResponse, OkResponse, SerialResponse},
     server::Server,
     state::{State, ValueFromRef},
@@ -210,7 +210,7 @@ impl ValueFromRef for RequestCounter {
 
 async fn stateful_toggle(
     State(RequestCounter(request_counter)): State<RequestCounter>,
-    parameters: ParametersValues,
+    mut parameters: ParametersPayloads,
 ) -> Result<OkResponse, ErrorResponse> {
     // Obtain the current request counter value.
     let old_value = request_counter.load(Ordering::Relaxed);
@@ -219,9 +219,10 @@ async fn stateful_toggle(
 
     log::info!("Request number: {request_counter:?}");
 
-    let test_value = parameters.bool("test-value")?;
-    // TODO: Add ParameterValues for range.
-    let seconds = parameters.u64("seconds")?.min(5);
+    let test_value = parameters.bool("test-value")?.value;
+
+    let seconds = parameters.u64("seconds")?;
+    let seconds = seconds.value.min(seconds.max);
 
     info!("Test value: {test_value}");
     info!("Seconds: {seconds}");
@@ -302,8 +303,8 @@ async fn main(spawner: Spawner) {
             LightOffRoute::put("Off")
                 .description("Turn light off.")
                 .with_parameters(Parameters::new().u8("test-value", 42)),
-            |parameters| async move {
-                let test_value = parameters.u8("test-value")?;
+            |mut parameters| async move {
+                let test_value = parameters.u8("test-value")?.value;
 
                 info!("Test value: {test_value}");
 

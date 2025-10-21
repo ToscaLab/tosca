@@ -30,7 +30,7 @@ use tosca_esp32c3::{
     devices::light::Light,
     mdns::Mdns,
     net::{NetworkStack, get_ip},
-    parameters::ParametersValues,
+    parameters::ParametersPayloads,
     response::{ErrorResponse, InfoResponse, OkResponse, SerialResponse},
     server::Server,
     wifi::Wifi,
@@ -177,12 +177,14 @@ async fn notify_led(
     Ok(SerialResponse::text(text_message))
 }
 
-async fn turn_light_on(_parameters: ParametersValues) -> Result<SerialResponse, ErrorResponse> {
+async fn turn_light_on(_parameters: ParametersPayloads) -> Result<SerialResponse, ErrorResponse> {
     notify_led(LedInput::On, "Led turned on through PUT route!", "Light on").await
 }
 
-async fn turn_light_off(parameters: ParametersValues) -> Result<SerialResponse, ErrorResponse> {
-    let test_value = parameters.u8("test-value")?;
+async fn turn_light_off(
+    mut parameters: ParametersPayloads,
+) -> Result<SerialResponse, ErrorResponse> {
+    let test_value = parameters.u8("test-value")?.value;
 
     info!("Test value: {test_value}");
 
@@ -194,7 +196,7 @@ async fn turn_light_off(parameters: ParametersValues) -> Result<SerialResponse, 
     .await
 }
 
-async fn toggle(_parameters: ParametersValues) -> Result<OkResponse, ErrorResponse> {
+async fn toggle(_parameters: ParametersPayloads) -> Result<OkResponse, ErrorResponse> {
     // Enable the toggle task.
     TOGGLE_CONTROLLER.store(true, Ordering::Relaxed);
 
@@ -206,10 +208,12 @@ async fn toggle(_parameters: ParametersValues) -> Result<OkResponse, ErrorRespon
     Ok(OkResponse::new())
 }
 
-async fn toggle_with_parameters(parameters: ParametersValues) -> Result<OkResponse, ErrorResponse> {
-    let test_value = parameters.bool("test-value")?;
-    // TODO: Add ParameterValues for range.
-    let seconds = parameters.u64("seconds")?.min(5);
+async fn toggle_with_parameters(
+    mut parameters: ParametersPayloads,
+) -> Result<OkResponse, ErrorResponse> {
+    let test_value = parameters.bool("test-value")?.value;
+    let seconds = parameters.u64("seconds")?;
+    let seconds = seconds.value.min(seconds.max);
 
     info!("Test value: {test_value}");
     info!("Seconds: {seconds}");
