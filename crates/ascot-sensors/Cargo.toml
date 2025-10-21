@@ -10,7 +10,8 @@ embedded-hal = "1.0.0"
 embedded-hal-async = "1.0.0"
 
 [features]
-default = ["dht22", "bh1750", "am312"]
+default = ["dht22", "bh1750", "am312", "ds18b20"]
 dht22 = []
 bh1750 = []
 am312 = []
+ds18b20 = []

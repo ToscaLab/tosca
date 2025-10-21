@@ -14,18 +14,18 @@ use core::result::Result;
 
 use embedded_hal::digital::InputPin;
 
-use embedded_hal_async::digital::Wait;
 use embedded_hal_async::delay::DelayNs;
+use embedded_hal_async::digital::Wait;
 
 /// AM312 driver.
 pub struct Am312<P, D>
 where
-        P: InputPin + Wait,
-        D: DelayNs,
-    {
-        pin: P,
-        delay: D
-    }
+    P: InputPin + Wait,
+    D: DelayNs,
+{
+    pin: P,
+    delay: D,
+}
 
 impl<P, D> Am312<P, D>
 where
@@ -38,10 +38,7 @@ where
     #[must_use]
     #[inline]
     pub async fn new(pin: P, delay: D) -> Self {
-        Self {
-            pin,
-            delay
-        }
+        Self { pin, delay }
     }
 
     /// Waits until motion is detected.

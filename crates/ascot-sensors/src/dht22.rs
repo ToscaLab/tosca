@@ -12,10 +12,10 @@
 //! For detailed information and specifications, see the [datasheet](https://www.alldatasheet.com/datasheet-pdf/pdf/1132459/ETC2/DHT22.html)
 //! and a description of the proprietary [communication protocol](https://www.ocfreaks.com/basics-interfacing-dht11-dht22-humidity-temperature-sensor-mcu/).
 
-use core::result::Result::{self, Ok, Err};
+use core::result::Result::{self, Err, Ok};
 
-use embedded_hal::digital::{InputPin, OutputPin, PinState};
 use embedded_hal::delay::DelayNs as SyncDelay;
+use embedded_hal::digital::{InputPin, OutputPin, PinState};
 
 use embedded_hal_async::delay::DelayNs as AsyncDelay;
 
@@ -61,11 +61,11 @@ where
     D: SyncDelay + AsyncDelay,
 {
     // Protocol-specific timing constants.
-    const START_SIGNAL_LOW_MS: u32 = 18;    // MCU pulls line low for at least 18 ms to initiate communication.
-    const START_SIGNAL_HIGH_US: u32 = 40;   // Then releases the line (high) for ~20–40 µs.
-    const BIT_SAMPLE_DELAY_US: u32 = 35;    // Time after which to sample the data bit.
-    const POLL_DELAY_US: u32 = 1;           // Delay between pin state polls when waiting for edges.
-    const MAX_ATTEMPTS: usize = 100;        // Maximum polling iterations before timeout.
+    const START_SIGNAL_LOW_MS: u32 = 18; // MCU pulls line low for at least 18 ms to initiate communication.
+    const START_SIGNAL_HIGH_US: u32 = 40; // Then releases the line (high) for ~20–40 µs.
+    const BIT_SAMPLE_DELAY_US: u32 = 35; // Time after which to sample the data bit.
+    const POLL_DELAY_US: u32 = 1; // Delay between pin state polls when waiting for edges.
+    const MAX_ATTEMPTS: usize = 100; // Maximum polling iterations before timeout.
 
     /// Creates a new [`Dht22`] driver with the given pin and delay provider.
     #[must_use]
@@ -126,7 +126,13 @@ where
     }
 
     #[inline]
-    fn validate_checksum(hh: u8, hl: u8, th: u8, tl: u8, checksum: u8) -> Result<(), Dht22Error<P::Error>> {
+    fn validate_checksum(
+        hh: u8,
+        hl: u8,
+        th: u8,
+        tl: u8,
+        checksum: u8,
+    ) -> Result<(), Dht22Error<P::Error>> {
         // The checksum is the low 8 bits of the sum of the first four bytes.
         let sum = hh.wrapping_add(hl).wrapping_add(th).wrapping_add(tl);
 
@@ -178,7 +184,7 @@ where
         // Each bit transmission consists of a low pulse followed by a high pulse.
         // The duration of the high pulse determines whether the bit is 0 or 1.
         for i in 0..8 {
-            self.wait_until_state(PinState::Low)?;  // Wait for the start of bit transmission.
+            self.wait_until_state(PinState::Low)?; // Wait for the start of bit transmission.
             self.wait_until_state(PinState::High)?; // Wait for the high phase.
 
             // Sample after ~30 µs to determine bit value.

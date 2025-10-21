@@ -9,8 +9,8 @@
 
 use core::result::Result::{self, Ok};
 
-use embedded_hal_async::i2c::I2c;
 use embedded_hal_async::delay::DelayNs;
+use embedded_hal_async::i2c::I2c;
 
 /// Errors that may occur while interacting with the BH1750 sensor.
 #[derive(Debug, Copy, Clone)]
@@ -125,9 +125,9 @@ where
     const MTREG_HIGH: u8 = 0x40;
     const MTREG_LOW: u8 = 0x60;
 
-    const MTREG_MIN: u8 = 31;       // Minimum allowed MTreg value.
-    const MTREG_MAX: u8 = 254;      // Maximum allowed MTreg value.
-    const DEFAULT_MTREG: u8 = 69;   // Default per datasheet.
+    const MTREG_MIN: u8 = 31; // Minimum allowed MTreg value.
+    const MTREG_MAX: u8 = 254; // Maximum allowed MTreg value.
+    const DEFAULT_MTREG: u8 = 69; // Default per datasheet.
 
     /// Creates a new [`Bh1750`] driver with the given I²C bus, delay provider, and address.
     ///
@@ -198,8 +198,12 @@ where
     ///
     /// The chosen resolution is stored internally, allowing later calls to [`Self::read_continuous_measurement`].
     #[must_use]
-    pub async fn start_continuous_measurement(&mut self, res: Resolution) -> Result<(), Bh1750Error<E>> {
-        self.send_instruction(res.continuous_measurement_opcode()).await?;
+    pub async fn start_continuous_measurement(
+        &mut self,
+        res: Resolution,
+    ) -> Result<(), Bh1750Error<E>> {
+        self.send_instruction(res.continuous_measurement_opcode())
+            .await?;
         self.continuous_resolution = Some(res);
 
         Ok(())
@@ -223,7 +227,8 @@ where
     }
 
     async fn start_one_time_measurement(&mut self, res: Resolution) -> Result<(), Bh1750Error<E>> {
-        self.send_instruction(res.one_time_measurement_opcode()).await
+        self.send_instruction(res.one_time_measurement_opcode())
+            .await
     }
 
     async fn read_raw(&mut self) -> Result<u16, E> {

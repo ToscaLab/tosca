@@ -18,3 +18,6 @@ pub mod bh1750;
 
 #[cfg(feature = "dht22")]
 pub mod dht22;
+
+#[cfg(feature = "ds18b20")]
+pub mod ds18b20;
