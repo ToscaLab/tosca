@@ -767,7 +767,7 @@ impl<'a> ParametersValues<'a> {
         self.parameter_value(name, ParameterValue::CharsSequence(value.into()))
     }
 
-    /// Retrieves the [`ParameterValue`] by name.
+    /// Retrieves a [`ParameterValue`] by name.
     ///
     /// If [`None`], the parameter does not exist.
     #[must_use]
