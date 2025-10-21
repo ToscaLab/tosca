@@ -227,3 +227,113 @@ where
         crc
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    use embedded_hal_mock::eh1::delay::NoopDelay;
+    use embedded_hal_mock::eh1::digital::{Mock as PinMock, State, Transaction as PinTransaction};
+
+    fn raw_to_temp(data: [u8; 9]) -> f32 {
+        let raw = ((data[1] as i16) << 8) | (data[0] as i16);
+        raw as f32 * Ds18b20::<PinMock, NoopDelay>::TEMPERATURE_RESOLUTION_C_PER_LSB
+    }
+
+    #[test]
+    fn test_reset_detects_presence() {
+        let expectations = [
+            PinTransaction::set(State::Low),
+            PinTransaction::set(State::High),
+            PinTransaction::get(State::Low), // Presence pulse from sensor.
+        ];
+
+        let pin = PinMock::new(&expectations);
+        let delay = NoopDelay::new();
+        let mut ds18b20 = Ds18b20::new(pin, delay);
+
+        let present = ds18b20.reset().unwrap();
+        assert!(present);
+
+        ds18b20.pin.done();
+    }
+
+    #[test]
+    fn test_reset_no_presence() {
+        let expectations = [
+            PinTransaction::set(State::Low),
+            PinTransaction::set(State::High),
+            PinTransaction::get(State::High), // Line remains high: no device detected.
+        ];
+
+        let pin = PinMock::new(&expectations);
+        let delay = NoopDelay::new();
+        let mut ds18b20 = Ds18b20::new(pin, delay);
+
+        let present = ds18b20.reset().unwrap();
+        assert!(!present);
+
+        ds18b20.pin.done();
+    }
+
+    #[test]
+    fn test_read_temperature_no_presence() {
+        let expectations = [
+            // Simulate a reset sequence with no presence pulse.
+            PinTransaction::set(State::Low),
+            PinTransaction::set(State::High),
+            PinTransaction::get(State::High),
+        ];
+
+        let pin = PinMock::new(&expectations);
+        let delay = NoopDelay::new();
+        let mut ds18b20 = Ds18b20::new(pin, delay);
+
+        let result = ds18b20.read_temperature();
+        assert!(matches!(result, Err(Ds18b20Error::NoPresence)));
+
+        ds18b20.pin.done();
+    }
+
+    #[test]
+    fn test_read_temperature_crc_mismatch() {
+        // Simulate a scratchpad read with incorrect CRC.
+        let data = [0x50, 0x05, 0, 0, 0, 0, 0, 0, 0x00];
+
+        let crc_ok = Ds18b20::<PinMock, NoopDelay>::crc8(&data[0..8]);
+        assert_ne!(crc_ok, data[8]); // Confirms that CRC mismatch exists.
+    }
+
+    #[test]
+    fn test_crc8_computation() {
+        // Example data set with a known correct CRC-8 value.
+        let data = [0x02, 0x4E, 0xB8, 0x1C, 0x46, 0x7F, 0xFF, 0x0C];
+
+        let crc = Ds18b20::<PinMock, NoopDelay>::crc8(&data);
+        assert_eq!(crc, 0xBE); // Expected CRC known value.
+    }
+
+    #[test]
+    fn test_read_temperature_valid_data() {
+        // Raw reading: 0x0550 = 85.0 °C.
+        let mut data = [0x50, 0x05, 0, 0, 0, 0, 0, 0, 0];
+        data[8] = Ds18b20::<PinMock, NoopDelay>::crc8(&data[0..8]);
+
+        // Test CRC correctness.
+        let crc_ok = Ds18b20::<PinMock, NoopDelay>::crc8(&data[0..8]);
+        assert_eq!(crc_ok, data[8]);
+
+        let temp = raw_to_temp(data);
+        assert!((temp - 85.0).abs() < f32::EPSILON);
+    }
+
+    #[test]
+    fn test_read_temperature_negative_value() {
+        // Raw reading: 0xFF90 = -7.0 °C.
+        let mut data = [0x90, 0xFF, 0, 0, 0, 0, 0, 0, 0];
+        data[8] = Ds18b20::<PinMock, NoopDelay>::crc8(&data[0..8]);
+
+        let temp = raw_to_temp(data);
+        assert!((temp + 7.0).abs() < f32::EPSILON);
+    }
+}

@@ -199,3 +199,124 @@ where
         Ok(byte)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    extern crate std;
+    use std::vec;
+
+    use embedded_hal_mock::eh1::delay::NoopDelay;
+    use embedded_hal_mock::eh1::digital::{Mock as PinMock, State, Transaction as PinTransaction};
+
+    #[test]
+    fn test_send_start_signal() {
+        let expectations = [
+            PinTransaction::set(State::Low),
+            PinTransaction::set(State::High),
+        ];
+
+        let pin = PinMock::new(&expectations);
+        let delay = NoopDelay::new();
+        let mut dht22 = Dht22::new(pin, delay);
+
+        dht22.send_start_signal().unwrap();
+
+        dht22.pin.done();
+    }
+
+    #[test]
+    fn test_wait_for_sensor_response_success() {
+        let expectations = [
+            PinTransaction::get(State::Low),
+            PinTransaction::get(State::High),
+        ];
+
+        let pin = PinMock::new(&expectations);
+        let delay = NoopDelay::new();
+        let mut dht22 = Dht22::new(pin, delay);
+
+        dht22.wait_for_sensor_response().unwrap();
+
+        dht22.pin.done();
+    }
+
+    #[test]
+    fn test_wait_until_state_timeout() {
+        // Simulate all MAX_ATTEMPTS calls without ever reaching the desired state.
+        let expectations =
+            vec![PinTransaction::get(State::High); Dht22::<PinMock, NoopDelay>::MAX_ATTEMPTS];
+
+        let pin = PinMock::new(&expectations);
+        let delay = NoopDelay::new();
+        let mut dht22 = Dht22::new(pin, delay);
+
+        let result = dht22.wait_until_state(PinState::Low);
+        assert!(matches!(result, Err(Dht22Error::Timeout)));
+
+        dht22.pin.done();
+    }
+
+    #[test]
+    fn test_read_byte_all_zeros() {
+        let mut expectations = vec![];
+
+        // 8 bits: for each bit, wait for line low (start of bit), then high (bit signal), then sample line to determine 0.
+        for _ in 0..8 {
+            expectations.push(PinTransaction::get(State::Low)); // Falling edge.
+            expectations.push(PinTransaction::get(State::High)); // Rising edge.
+            expectations.push(PinTransaction::get(State::Low)); // Sampling: line low → bit 0.
+        }
+
+        let pin = PinMock::new(&expectations);
+        let delay = NoopDelay::new();
+        let mut dht22 = Dht22::new(pin, delay);
+
+        let byte = dht22.read_byte().unwrap();
+        assert_eq!(byte, 0x00);
+
+        dht22.pin.done();
+    }
+
+    #[test]
+    fn test_read_byte_all_ones() {
+        let mut expectations = vec![];
+
+        // 8 bits: for each bit, wait for line low (start of bit), then high (bit signal), then sample line to determine 1.
+        for _ in 0..8 {
+            expectations.push(PinTransaction::get(State::Low)); // Falling edge.
+            expectations.push(PinTransaction::get(State::High)); // Rising edge.
+            expectations.push(PinTransaction::get(State::High)); // Sampling: line high → bit 1.
+        }
+
+        let pin = PinMock::new(&expectations);
+        let delay = NoopDelay::new();
+        let mut dht22 = Dht22::new(pin, delay);
+
+        let byte = dht22.read_byte().unwrap();
+        assert_eq!(byte, 0xFF);
+
+        dht22.pin.done();
+    }
+
+    #[test]
+    fn test_decode_humidity_temperature() {
+        let humidity = Dht22::<PinMock, NoopDelay>::decode_humidity(0x02, 0x58); // 600 → 60.0%.
+        let temperature = Dht22::<PinMock, NoopDelay>::decode_temperature(0x00, 0xFA); // 250 → 25.0°C.
+        let temperature_neg = Dht22::<PinMock, NoopDelay>::decode_temperature(0x80, 0xFA); // Negative: -25.0°C.
+
+        assert!((humidity - 60.0).abs() < f32::EPSILON);
+        assert!((temperature - 25.0).abs() < f32::EPSILON);
+        assert!((temperature_neg + 25.0).abs() < f32::EPSILON);
+    }
+
+    #[test]
+    fn test_validate_checksum() {
+        let result_ok = Dht22::<PinMock, NoopDelay>::validate_checksum(1, 2, 3, 4, 10);
+        assert!(result_ok.is_ok());
+
+        let result_err = Dht22::<PinMock, NoopDelay>::validate_checksum(1, 2, 3, 4, 9);
+        assert!(matches!(result_err, Err(Dht22Error::ChecksumMismatch)));
+    }
+}

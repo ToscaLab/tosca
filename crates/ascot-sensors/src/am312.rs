@@ -37,7 +37,7 @@ where
     /// Creates a new [`Am312`] driver with the given input pin.
     #[must_use]
     #[inline]
-    pub async fn new(pin: P, delay: D) -> Self {
+    pub fn new(pin: P, delay: D) -> Self {
         Self { pin, delay }
     }
 
@@ -74,5 +74,77 @@ where
     #[inline]
     pub fn is_motion_detected(&mut self) -> Result<bool, P::Error> {
         self.pin.is_high()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    use embedded_hal_mock::eh1::delay::NoopDelay;
+    use embedded_hal_mock::eh1::digital::{
+        Edge, Mock as PinMock, State, Transaction as PinTransaction,
+    };
+
+    #[tokio::test]
+    async fn test_wait_for_motion_start() {
+        let expectations = [
+            PinTransaction::wait_for_edge(Edge::Rising),
+            PinTransaction::get(State::High),
+        ];
+
+        let pin = PinMock::new(&expectations);
+        let delay = NoopDelay::new();
+        let mut am312 = Am312::new(pin, delay);
+
+        let res = am312.wait_for_motion_start().await;
+        assert!(res.is_ok());
+
+        am312.pin.done();
+    }
+
+    #[tokio::test]
+    async fn test_wait_for_motion_end() {
+        let expectations = [
+            PinTransaction::wait_for_edge(Edge::Falling),
+            PinTransaction::get(State::Low),
+        ];
+
+        let pin = PinMock::new(&expectations);
+        let delay = NoopDelay::new();
+        let mut am312 = Am312::new(pin, delay);
+
+        let res = am312.wait_for_motion_end().await;
+        assert!(res.is_ok());
+
+        am312.pin.done();
+    }
+
+    #[test]
+    fn test_is_motion_detected_true() {
+        let expectations = [PinTransaction::get(State::High)];
+
+        let pin = PinMock::new(&expectations);
+        let delay = NoopDelay::new();
+        let mut am312 = Am312::new(pin, delay);
+
+        let res = am312.is_motion_detected().unwrap();
+        assert!(res);
+
+        am312.pin.done();
+    }
+
+    #[test]
+    fn test_is_motion_detected_false() {
+        let expectations = [PinTransaction::get(State::Low)];
+
+        let pin = PinMock::new(&expectations);
+        let delay = NoopDelay::new();
+        let mut am312 = Am312::new(pin, delay);
+
+        let res = am312.is_motion_detected().unwrap();
+        assert!(!res);
+
+        am312.pin.done();
     }
 }

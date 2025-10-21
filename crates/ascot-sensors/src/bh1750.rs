@@ -165,7 +165,7 @@ where
 
     /// Sets the measurement time register (`MTreg`) to adjust sensitivity.
     ///
-    /// The value is automatically clamped between [`MTREG_MIN`] and [`MTREG_MAX`].
+    /// The value is automatically clamped between [`Bh1750::MTREG_MIN`] and [`Bh1750::MTREG_MAX`].
     #[must_use]
     pub async fn set_mtreg(&mut self, mtreg: u8) -> Result<(), Bh1750Error<E>> {
         let mt = mtreg.clamp(Self::MTREG_MIN, Self::MTREG_MAX);
@@ -266,5 +266,152 @@ where
         self.i2c.write(self.address as u8, &[instr]).await?;
 
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    extern crate std;
+    use std::vec;
+
+    use embedded_hal_mock::eh1::delay::NoopDelay;
+    use embedded_hal_mock::eh1::i2c::{Mock as I2cMock, Transaction as I2cTransaction};
+
+    fn raw_to_lux(raw: u16, res: Resolution, mtreg: u8) -> f32 {
+        raw as f32
+            * res.default_resolution_lx_count()
+            * (mtreg as f32 / Bh1750::<I2cMock, NoopDelay>::DEFAULT_MTREG as f32)
+            / 1.2
+    }
+
+    #[tokio::test]
+    async fn test_power_on() {
+        let expectations = [I2cTransaction::write(0x23, vec![0x01])]; // POWER_ON.
+
+        let i2c = I2cMock::new(&expectations);
+        let delay = NoopDelay::new();
+        let mut bh1750 = Bh1750::new(i2c, delay, Address::Low);
+
+        bh1750.power_on().await.unwrap();
+
+        bh1750.i2c.done();
+    }
+
+    #[tokio::test]
+    async fn test_power_down() {
+        let expectations = [I2cTransaction::write(0x23, vec![0x00])]; // POWER_DOWN.
+
+        let i2c = I2cMock::new(&expectations);
+        let delay = NoopDelay::new();
+        let mut bh1750 = Bh1750::new(i2c, delay, Address::Low);
+
+        bh1750.power_down().await.unwrap();
+
+        bh1750.i2c.done();
+    }
+
+    #[tokio::test]
+    async fn test_reset() {
+        let expectations = [I2cTransaction::write(0x23, vec![0x07])]; // RESET.
+
+        let i2c = I2cMock::new(&expectations);
+        let delay = NoopDelay::new();
+        let mut bh1750 = Bh1750::new(i2c, delay, Address::Low);
+
+        bh1750.reset().await.unwrap();
+
+        bh1750.i2c.done();
+    }
+
+    #[tokio::test]
+    async fn test_set_mtreg_clamping_high() {
+        // MTreg equal to 255 should be clamped to 254 (max).
+        let high = 0x40 | (254 >> 5);
+        let low = 0x60 | (254 & 0x1F);
+        let expectations = [
+            I2cTransaction::write(0x23, vec![high]),
+            I2cTransaction::write(0x23, vec![low]),
+        ];
+
+        let i2c = I2cMock::new(&expectations);
+        let delay = NoopDelay::new();
+        let mut bh1750 = Bh1750::new(i2c, delay, Address::Low);
+
+        bh1750.set_mtreg(255).await.unwrap();
+        assert_eq!(bh1750.mtreg, 254);
+
+        bh1750.i2c.done();
+    }
+
+    #[tokio::test]
+    async fn test_one_time_measurement() {
+        // One-time measurement opcode (High resolution): 0x20.
+        // Raw value read: 0x1234.
+        let expectations = [
+            I2cTransaction::write(0x23, vec![0x20]), // Start one-time.
+            I2cTransaction::read(0x23, vec![0x12, 0x34]),
+        ];
+
+        let i2c = I2cMock::new(&expectations);
+        let delay = NoopDelay::new();
+        let mut bh1750 = Bh1750::new(i2c, delay, Address::Low);
+
+        let lux = bh1750.one_time_measurement(Resolution::High).await.unwrap();
+        assert!(
+            (lux - raw_to_lux(
+                0x1234,
+                Resolution::High,
+                Bh1750::<I2cMock, NoopDelay>::DEFAULT_MTREG
+            ))
+            .abs()
+                < f32::EPSILON
+        );
+        bh1750.i2c.done();
+    }
+
+    #[tokio::test]
+    async fn test_continuous_measurement_flow() {
+        // Start continuous measurement (High resolution): 0x10.
+        // Read value: 0x5678.
+        let expectations = [
+            I2cTransaction::write(0x23, vec![0x10]), // Start continuous.
+            I2cTransaction::read(0x23, vec![0x56, 0x78]),
+        ];
+
+        let i2c = I2cMock::new(&expectations);
+        let delay = NoopDelay::new();
+
+        let mut bh1750 = Bh1750::new(i2c, delay, Address::Low);
+        bh1750
+            .start_continuous_measurement(Resolution::High)
+            .await
+            .unwrap();
+
+        let lux = bh1750.read_continuous_measurement().await.unwrap();
+        assert!(
+            (lux - raw_to_lux(
+                0x5678,
+                Resolution::High,
+                Bh1750::<I2cMock, NoopDelay>::DEFAULT_MTREG
+            ))
+            .abs()
+                < f32::EPSILON
+        );
+
+        bh1750.i2c.done();
+    }
+
+    #[tokio::test]
+    async fn test_continuous_measurement_error_if_not_started() {
+        let i2c = I2cMock::new(&[]);
+        let delay = NoopDelay::new();
+        let mut bh1750 = Bh1750::new(i2c, delay, Address::Low);
+
+        let err = bh1750.read_continuous_measurement().await.unwrap_err();
+        matches!(err, Bh1750Error::ContinuousMeasurementNotStarted);
+
+        bh1750.i2c.done();
     }
 }
