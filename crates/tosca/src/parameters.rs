@@ -292,7 +292,8 @@ impl DecimalPrecision {
 }
 
 map! {
-  /// A map of serializable and deserializable [`Parameters`] data.
+  /// A map that associates each parameter name with its
+  /// corresponding [`ParameterKind`].
   #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
   pub struct ParametersData(IndexMap<String, ParameterKind, DefaultHashBuilder>);
 }
