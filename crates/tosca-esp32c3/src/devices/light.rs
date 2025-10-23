@@ -387,10 +387,10 @@ where
         let device = DeviceData::new(
             DeviceKind::Light,
             DeviceEnvironment::Esp32,
-            MAIN_ROUTE,
-            RouteConfigs::new(),
             Some(id),
             None,
+            MAIN_ROUTE,
+            RouteConfigs::new(),
             2,
         )
         .description("A light device.");
