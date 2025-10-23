@@ -13,7 +13,7 @@ use log::error;
 
 use crate::device::Device;
 use crate::parameters::ParametersPayloads;
-use crate::response::{ErrorResponse, InfoResponse, OkResponse, Response, SerialResponse};
+use crate::response::{ErrorResponse, InfoResponse, OkResponse, SerialResponse};
 use crate::server::{
     FuncIndex, FuncType, Functions, InfoFn, InfoStateFn, OkFn, OkStateFn, SerialFn, SerialStateFn,
 };
@@ -201,10 +201,11 @@ pub struct CompleteLight<S = ()>
 where
     S: ValueFromRef + Send + Sync + 'static,
 {
+    wifi_mac: [u8; 6],
     main_route: &'static str,
     state: State<S>,
     routes_functions: Functions<S>,
-    device: DeviceData,
+    device_data: DeviceData,
     index_array: Vec<FuncIndex>,
 }
 
@@ -217,7 +218,7 @@ where
     #[inline]
     pub fn main_route(mut self, main_route: &'static str) -> Self {
         self.main_route = main_route;
-        self.device.main_route = Cow::Borrowed(main_route);
+        self.device_data.main_route = Cow::Borrowed(main_route);
         self
     }
 
@@ -344,12 +345,12 @@ where
     #[inline]
     pub fn build(self) -> Device<S> {
         Device::new(
-            self.main_route,
+            self.wifi_mac,
             self.state,
+            self.device_data,
+            self.main_route,
             self.routes_functions,
             self.index_array,
-            Response::json(&self.device),
-            self.device.route_configs,
         )
     }
 
@@ -367,7 +368,7 @@ where
             .serialize_data()
             .change_response_kind(response_kind);
 
-        if self.device.route_configs.contains(&route_config) {
+        if self.device_data.route_configs.contains(&route_config) {
             error!(
                 "The route with prefix `{}` already exists!",
                 route_config.data.path
@@ -375,19 +376,19 @@ where
             return self;
         }
 
-        self.device.route_configs.add(route_config);
+        self.device_data.route_configs.add(route_config);
 
         add_async_function(self)
     }
 
     #[inline]
     fn with_state(wifi_interface: &WifiDevice<'_>, state: S) -> Self {
-        let id = wifi_interface.mac_address();
+        let wifi_mac = wifi_interface.mac_address();
 
-        let device = DeviceData::new(
+        let device_data = DeviceData::new(
             DeviceKind::Light,
             DeviceEnvironment::Esp32,
-            Some(id),
+            None,
             None,
             MAIN_ROUTE,
             RouteConfigs::new(),
@@ -396,6 +397,7 @@ where
         .description("A light device.");
 
         Self {
+            wifi_mac,
             main_route: MAIN_ROUTE,
             state: State(state),
             routes_functions: (
@@ -406,7 +408,7 @@ where
                 Vec::new(),
                 Vec::new(),
             ),
-            device,
+            device_data,
             index_array: Vec::new(),
         }
     }

@@ -1,0 +1,8 @@
+[toolchain]
+# The latest nightly version.
+channel = "nightly"
+# Download the Rust source code required to recompile the standard library (std)
+# for the `ESP` target.
+components = ["rust-src"]
+# The RISC-V architecture target.
+targets = ["riscv32imc-unknown-none-elf"]

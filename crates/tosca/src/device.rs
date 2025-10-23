@@ -2,6 +2,7 @@ use serde::Serialize;
 
 use crate::economy::Economy;
 use crate::energy::Energy;
+use crate::events::EventsDescription;
 use crate::route::RouteConfigs;
 
 /// A device kind.
@@ -111,6 +112,8 @@ pub struct DeviceData {
     pub route_configs: RouteConfigs,
     /// Number of mandatory routes.
     pub mandatory_routes: u8,
+    /// Events description.
+    pub events_description: Option<EventsDescription>,
 }
 
 impl DeviceData {
@@ -134,6 +137,7 @@ impl DeviceData {
             main_route: main_route.into(),
             route_configs,
             mandatory_routes,
+            events_description: None,
         }
     }
 
@@ -141,6 +145,14 @@ impl DeviceData {
     #[must_use]
     pub fn description(mut self, description: impl Into<alloc::borrow::Cow<'static, str>>) -> Self {
         self.description = Some(description.into());
+        self
+    }
+
+    /// Adds an [`EventsDescription`].
+    #[must_use]
+    #[inline]
+    pub fn events_description(mut self, events_description: EventsDescription) -> Self {
+        self.events_description = Some(events_description);
         self
     }
 }
