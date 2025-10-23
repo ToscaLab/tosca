@@ -94,17 +94,17 @@ pub struct DeviceData {
     pub environment: DeviceEnvironment,
     /// Device description.
     pub description: Option<alloc::borrow::Cow<'static, str>>,
-    /// Device main route.
-    #[serde(rename = "main route")]
-    pub main_route: alloc::borrow::Cow<'static, str>,
-    /// All device route configurations.
-    pub route_configs: RouteConfigs,
     /// Wi-Fi MAC address.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub wifi_mac: Option<[u8; 6]>,
     /// Ethernet MAC address.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub ethernet_mac: Option<[u8; 6]>,
+    /// Device main route.
+    #[serde(rename = "main route")]
+    pub main_route: alloc::borrow::Cow<'static, str>,
+    /// All device route configurations.
+    pub route_configs: RouteConfigs,
     /// Number of mandatory routes.
     pub mandatory_routes: u8,
 }
@@ -115,20 +115,20 @@ impl DeviceData {
     pub fn new(
         kind: DeviceKind,
         environment: DeviceEnvironment,
-        main_route: impl Into<alloc::borrow::Cow<'static, str>>,
-        route_configs: RouteConfigs,
         wifi_mac: Option<[u8; 6]>,
         ethernet_mac: Option<[u8; 6]>,
+        main_route: impl Into<alloc::borrow::Cow<'static, str>>,
+        route_configs: RouteConfigs,
         mandatory_routes: u8,
     ) -> Self {
         Self {
             kind,
             environment,
             description: None,
-            main_route: main_route.into(),
-            route_configs,
             wifi_mac,
             ethernet_mac,
+            main_route: main_route.into(),
+            route_configs,
             mandatory_routes,
         }
     }
@@ -222,10 +222,10 @@ mod tests {
         let device_data = DeviceData::new(
             DeviceKind::Light,
             DeviceEnvironment::Os,
+            None,
+            None,
             "/light",
             routes(),
-            None,
-            None,
             2,
         )
         .description("A light device.");
