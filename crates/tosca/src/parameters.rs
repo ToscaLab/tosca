@@ -20,6 +20,7 @@ fn is_u8_min(value: &u8) -> bool {
     *value == u8::MIN
 }
 
+#[cfg(feature = "deserialize")]
 fn u8_max() -> u8 {
     u8::MAX
 }
@@ -32,6 +33,7 @@ fn is_u16_min(value: &u16) -> bool {
     *value == u16::MIN
 }
 
+#[cfg(feature = "deserialize")]
 fn u16_max() -> u16 {
     u16::MAX
 }
@@ -44,6 +46,7 @@ fn is_u32_min(value: &u32) -> bool {
     *value == u32::MIN
 }
 
+#[cfg(feature = "deserialize")]
 fn u32_max() -> u32 {
     u32::MAX
 }
@@ -56,6 +59,7 @@ fn is_u64_min(value: &u64) -> bool {
     *value == u64::MIN
 }
 
+#[cfg(feature = "deserialize")]
 fn u64_max() -> u64 {
     u64::MAX
 }
@@ -68,10 +72,12 @@ fn is_f32_min(value: &f32) -> bool {
     *value == f32::MIN
 }
 
+#[cfg(feature = "deserialize")]
 fn f32_min() -> f32 {
     f32::MIN
 }
 
+#[cfg(feature = "deserialize")]
 fn f32_max() -> f32 {
     f32::MAX
 }
@@ -84,16 +90,19 @@ fn is_f64_min(value: &f64) -> bool {
     *value == f64::MIN
 }
 
+#[cfg(feature = "deserialize")]
 fn f64_min() -> f64 {
     f64::MIN
 }
 
+#[cfg(feature = "deserialize")]
 fn f64_max() -> f64 {
     f64::MAX
 }
 
 /// All supported kinds of route input parameters.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
+#[cfg_attr(feature = "deserialize", derive(serde::Deserialize))]
 pub enum ParameterKind {
     /// A [`bool`] value.
     Bool {
@@ -259,7 +268,8 @@ impl ParameterKind {
 }
 
 /// Floating point decimal precision.
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize)]
+#[cfg_attr(feature = "deserialize", derive(serde::Deserialize))]
 pub enum DecimalPrecision {
     /// One digit.
     OneDigit,
@@ -294,7 +304,8 @@ impl DecimalPrecision {
 map! {
   /// A map that associates each parameter name with its
   /// corresponding [`ParameterKind`].
-  #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+  #[derive(Debug, Clone, PartialEq, Serialize)]
+  #[cfg_attr(feature = "deserialize", derive(serde::Deserialize))]
   pub struct ParametersData(IndexMap<String, ParameterKind, DefaultHashBuilder>);
 }
 
@@ -843,6 +854,7 @@ impl<'a> ParametersPayloads<'a> {
 }
 
 #[cfg(test)]
+#[cfg(feature = "deserialize")]
 mod tests {
     use alloc::string::String;
 

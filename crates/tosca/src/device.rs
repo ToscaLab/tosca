@@ -1,11 +1,12 @@
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
 use crate::economy::Economy;
 use crate::energy::Energy;
 use crate::route::RouteConfigs;
 
 /// A device kind.
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize)]
+#[cfg_attr(feature = "deserialize", derive(serde::Deserialize))]
 pub enum DeviceKind {
     /// Unknown.
     Unknown,
@@ -39,7 +40,8 @@ impl core::fmt::Display for DeviceKind {
 ///
 /// This enumerator allows to discriminate the different implementations among
 /// the supported architectures on a controller side.
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize)]
+#[cfg_attr(feature = "deserialize", derive(serde::Deserialize))]
 pub enum DeviceEnvironment {
     /// Operating system.
     Os,
@@ -48,7 +50,8 @@ pub enum DeviceEnvironment {
 }
 
 /// Device information.
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Clone, Serialize)]
+#[cfg_attr(feature = "deserialize", derive(serde::Deserialize))]
 pub struct DeviceInfo {
     /// Energy information.
     #[serde(skip_serializing_if = "Energy::is_empty")]
@@ -86,7 +89,8 @@ impl DeviceInfo {
 }
 
 /// Device data.
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Serialize)]
+#[cfg_attr(feature = "deserialize", derive(serde::Deserialize))]
 pub struct DeviceData {
     /// Device kind.
     pub kind: DeviceKind,
@@ -142,6 +146,7 @@ impl DeviceData {
 }
 
 #[cfg(test)]
+#[cfg(feature = "deserialize")]
 mod tests {
     use crate::route::{Route, RouteConfigs};
 

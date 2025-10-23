@@ -6,7 +6,7 @@ use indexmap::set::{IndexSet, IntoIter, Iter};
 
 use log::error;
 
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
 use crate::hazards::{Hazard, Hazards};
 use crate::parameters::{Parameters, ParametersData};
@@ -15,7 +15,8 @@ use crate::response::ResponseKind;
 use crate::macros::{mandatory_route, set};
 
 /// `REST` requests kind.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize)]
+#[cfg_attr(feature = "deserialize", derive(serde::Deserialize))]
 pub enum RestKind {
     /// `GET` request.
     Get,
@@ -40,7 +41,8 @@ impl core::fmt::Display for RestKind {
 }
 
 /// Route data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize)]
+#[cfg_attr(feature = "deserialize", derive(serde::Deserialize))]
 pub struct RouteData {
     /// Name.
     pub name: Cow<'static, str>,
@@ -77,7 +79,8 @@ impl RouteData {
 }
 
 /// A server route configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize)]
+#[cfg_attr(feature = "deserialize", derive(serde::Deserialize))]
 pub struct RouteConfig {
     /// Route.
     #[serde(flatten)]
@@ -124,7 +127,8 @@ impl RouteConfig {
 
 set! {
   /// A collection of [`RouteConfig`]s.
-  #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+  #[derive(Debug, Clone, PartialEq, Serialize)]
+  #[cfg_attr(feature = "deserialize", derive(serde::Deserialize))]
   pub struct RouteConfigs(IndexSet<RouteConfig, DefaultHashBuilder>);
 }
 
@@ -327,6 +331,7 @@ mandatory_route!(LightOnRoute, "/on", methods: [post, put]);
 mandatory_route!(LightOffRoute, "/off", methods: [post, put]);
 
 #[cfg(test)]
+#[cfg(feature = "deserialize")]
 mod tests {
     use crate::hazards::{Hazard, Hazards};
     use crate::parameters::{ParameterKind, Parameters, ParametersData};
@@ -489,6 +494,14 @@ mod tests {
             expected
         );
     }
+}
+
+#[cfg(test)]
+#[cfg(not(feature = "deserialize"))]
+mod tests {
+    use crate::route::{Hazard, Hazards};
+
+    use super::Route;
 
     #[test]
     fn test_allowed_hazards() {

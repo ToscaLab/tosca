@@ -35,7 +35,8 @@ pub const ALL_HAZARDS: &[Hazard] = &[
 ];
 
 /// All possible hazards for a device action.
-#[derive(Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Serialize)]
+#[cfg_attr(feature = "deserialize", derive(serde::Deserialize))]
 pub enum Hazard {
     /// The execution may release toxic gases.
     AirPoisoning,
@@ -325,7 +326,8 @@ impl Hazard {
 
 set! {
   /// A collection of [`Hazard`]s.
-  #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+  #[derive(Debug, Clone, PartialEq, Serialize)]
+  #[cfg_attr(feature = "deserialize", derive(serde::Deserialize))]
   pub struct Hazards(IndexSet<Hazard, DefaultHashBuilder>);
 }
 
@@ -445,6 +447,7 @@ impl Category {
 }
 
 #[cfg(test)]
+#[cfg(feature = "deserialize")]
 mod tests {
     use crate::{deserialize, serialize};
 

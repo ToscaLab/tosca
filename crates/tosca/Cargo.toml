@@ -22,4 +22,5 @@ serde_json.features = ["alloc"]
 
 [features]
 stream = []
-default = ["stream"]
+deserialize = []
+default = ["stream", "deserialize"]

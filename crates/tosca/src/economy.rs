@@ -2,13 +2,14 @@ use hashbrown::DefaultHashBuilder;
 
 use indexmap::set::{IndexSet, IntoIter, Iter};
 
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
 use crate::energy::EnergyClass;
 use crate::macros::set;
 
 /// Timespan for a cost computation.
-#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy, Serialize)]
+#[cfg_attr(feature = "deserialize", derive(serde::Deserialize))]
 pub enum CostTimespan {
     /// Week
     Week,
@@ -35,7 +36,8 @@ impl core::fmt::Display for CostTimespan {
 }
 
 /// A device cost in terms of expenses/savings.
-#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy, Serialize)]
+#[cfg_attr(feature = "deserialize", derive(serde::Deserialize))]
 pub struct Cost {
     /// Amount of money in USD currency.
     #[serde(rename = "usd")]
@@ -73,12 +75,14 @@ impl Cost {
 
 set! {
   /// A collection of [`Cost`]s.
-  #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+  #[derive(Debug, Clone, PartialEq, Serialize)]
+  #[cfg_attr(feature = "deserialize", derive(serde::Deserialize))]
   pub struct Costs(IndexSet<Cost, DefaultHashBuilder>);
 }
 
 /// Return on investments (ROI).
-#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy, Serialize)]
+#[cfg_attr(feature = "deserialize", derive(serde::Deserialize))]
 pub struct Roi {
     /// Years timespan to calculate the ROI.
     pub years: u8,
@@ -123,12 +127,14 @@ impl Roi {
 
 set! {
   /// A collection of [`Roi`]s.
-  #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+  #[derive(Debug, Clone, PartialEq, Serialize)]
+  #[cfg_attr(feature = "deserialize", derive(serde::Deserialize))]
   pub struct Rois(IndexSet<Roi, DefaultHashBuilder>);
 }
 
 /// Economy data for a device.
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Clone, Serialize)]
+#[cfg_attr(feature = "deserialize", derive(serde::Deserialize))]
 pub struct Economy {
     /// Costs.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -192,6 +198,7 @@ impl Economy {
 }
 
 #[cfg(test)]
+#[cfg(feature = "deserialize")]
 mod tests {
     use super::Economy;
 

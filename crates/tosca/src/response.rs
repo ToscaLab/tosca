@@ -1,6 +1,6 @@
 use alloc::borrow::Cow;
 
-use serde::{Deserialize, Serialize, de::DeserializeOwned};
+use serde::{Serialize, de::DeserializeOwned};
 
 use crate::device::DeviceInfo;
 
@@ -12,7 +12,8 @@ use crate::device::DeviceInfo;
 pub const SERIALIZATION_ERROR: &str = "Serialization-Error";
 
 /// Response kinds.
-#[derive(Debug, Clone, Copy, Default, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Serialize)]
+#[cfg_attr(feature = "deserialize", derive(serde::Deserialize))]
 pub enum ResponseKind {
     /// This response transmits a concise JSON message over the network to
     /// notify a controller that an operation completed successfully.
@@ -45,7 +46,8 @@ impl core::fmt::Display for ResponseKind {
 
 /// A response which transmits a concise JSON message over the network to notify
 /// a controller that an operation completed successfully.
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Serialize)]
+#[cfg_attr(feature = "deserialize", derive(serde::Deserialize))]
 pub struct OkResponse {
     action_terminated_correctly: bool,
 }
@@ -64,7 +66,8 @@ impl OkResponse {
 /// the data produced during a device operation.
 ///
 /// Data must be serializable and deserializable.
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Serialize)]
+#[cfg_attr(feature = "deserialize", derive(serde::Deserialize))]
 #[serde(bound = "T: Serialize + DeserializeOwned")]
 pub struct SerialResponse<T: DeserializeOwned>(T);
 
@@ -78,7 +81,8 @@ impl<T: Serialize + DeserializeOwned> SerialResponse<T> {
 
 /// A response which transmits a JSON message over the network containing
 /// a device's energy and economy information.
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Serialize)]
+#[cfg_attr(feature = "deserialize", derive(serde::Deserialize))]
 pub struct InfoResponse(DeviceInfo);
 
 impl InfoResponse {
@@ -90,7 +94,8 @@ impl InfoResponse {
 }
 
 /// All possible errors that may cause a device operation to fail.
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Serialize)]
+#[cfg_attr(feature = "deserialize", derive(serde::Deserialize))]
 pub enum ErrorKind {
     /// Some data encountered during a device operation is invalid or malformed.
     InvalidData,
@@ -104,7 +109,8 @@ pub enum ErrorKind {
 ///
 /// Contains the [`ErrorKind`], a general error description,
 /// and optional information about the encountered error.
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Serialize)]
+#[cfg_attr(feature = "deserialize", derive(serde::Deserialize))]
 pub struct ErrorResponse<'a> {
     /// Error kind.
     pub error: ErrorKind,
@@ -184,10 +190,13 @@ impl<'a> ErrorResponse<'a> {
 }
 
 #[cfg(test)]
+#[cfg(feature = "deserialize")]
 mod tests {
+    use serde::Deserialize;
+
     use crate::{deserialize, serialize};
 
-    use super::{Deserialize, OkResponse, SerialResponse, Serialize};
+    use super::{OkResponse, SerialResponse, Serialize};
 
     use super::{Cow, DeviceInfo, ErrorKind, ErrorResponse, InfoResponse};
 
