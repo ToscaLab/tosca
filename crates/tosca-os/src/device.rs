@@ -129,10 +129,10 @@ where
             DeviceData::new(
                 self.kind,
                 DeviceEnvironment::Os,
-                self.main_route,
-                self.route_configs,
                 wifi_mac,
                 ethernet_mac,
+                self.main_route,
+                self.route_configs,
                 self.num_mandatory_routes,
             ),
             self.router,
