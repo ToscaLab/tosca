@@ -39,6 +39,8 @@ pub mod device;
 pub mod economy;
 /// Information about the energy device aspects.
 pub mod energy;
+/// Events descriptions and methods.
+pub mod events;
 /// Hazards descriptions and methods.
 pub mod hazards;
 /// Route input parameters.
