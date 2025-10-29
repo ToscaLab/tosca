@@ -28,7 +28,7 @@ use embedded_io_async::{Read, Write};
 
 use log::{error, info};
 
-use crate::device::Device;
+use crate::device::{Device, InternalDevice};
 use crate::error::Error;
 use crate::mdns::Mdns;
 use crate::parameters::ParametersPayloads;
@@ -180,7 +180,7 @@ where
         Self {
             address: DEFAULT_HTTP_ADDRESS,
             port: DEFAULT_SERVER_PORT,
-            handler: ServerHandler::new(device),
+            handler: ServerHandler::new(device.into_internal()),
             mdns,
         }
     }
@@ -284,7 +284,7 @@ struct ServerHandler<S>
 where
     S: ValueFromRef + Send + Sync + 'static,
 {
-    device: Device<S>,
+    device: InternalDevice<S>,
 }
 
 impl<S> ServerHandler<S>
@@ -292,7 +292,7 @@ where
     S: ValueFromRef + Send + Sync + 'static,
 {
     #[inline]
-    fn new(device: Device<S>) -> Self {
+    fn new(device: InternalDevice<S>) -> Self {
         Self { device }
     }
 

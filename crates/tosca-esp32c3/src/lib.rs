@@ -44,6 +44,8 @@ pub mod devices;
 pub mod device;
 /// The error manager.
 pub mod error;
+/// The events manager and its configuration setter.
+pub mod events;
 /// All methods to configure the `mDNS-SD` service.
 pub mod mdns;
 /// All methods associated with the network stack.
