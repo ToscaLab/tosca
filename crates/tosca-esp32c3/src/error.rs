@@ -15,6 +15,8 @@ pub enum ErrorKind {
     Socket,
     /// Spawning a task error.
     SpawningTask,
+    /// Timeout error.
+    Timeout,
     /// `TCP` error.
     Tcp,
     /// Wi-Fi connection error.
@@ -31,6 +33,7 @@ impl ErrorKind {
             Self::Server => "Server",
             Self::Socket => "Socket",
             Self::SpawningTask => "Spawning task",
+            Self::Timeout => "Timeout",
             Self::Tcp => "TCP",
             Self::WiFi => "Wi-Fi",
         }
