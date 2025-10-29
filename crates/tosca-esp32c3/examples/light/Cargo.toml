@@ -10,6 +10,7 @@ license = "MIT"
 [dependencies]
 tosca.version = "0.1.0"
 tosca.path = "../../../tosca"
+tosca.default-features = false
 
 tosca-esp32c3.version = "0.1.0"
 tosca-esp32c3.path = "../../"
