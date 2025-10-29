@@ -26,7 +26,7 @@ edge-nal.version = "0.5.0"
 edge-nal-embassy.version = "0.6.0"
 
 # Embassy framework
-embassy-executor.version = "0.7.0"
+embassy-executor.version = "0.9.1"
 embassy-executor.features = ["log", "task-arena-size-65536"]
 
 embassy-net.version = "0.7.0"
