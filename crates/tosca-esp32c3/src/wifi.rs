@@ -17,7 +17,7 @@ use log::{error, info};
 use crate::error::{Error, ErrorKind, Result};
 use crate::mk_static;
 
-const SECONDS_TO_WAIT_FOR_RECONNECTION: u64 = 5;
+pub(crate) const WIFI_RECONNECT_DELAY: u64 = 2;
 
 /// The `Wi-Fi` controller.
 pub struct Wifi {
@@ -93,7 +93,7 @@ async fn connect(mut wifi_controller: WifiController<'static>) {
             wifi_controller
                 .wait_for_event(WifiEvent::StaDisconnected)
                 .await;
-            embassy_time::Timer::after_secs(SECONDS_TO_WAIT_FOR_RECONNECTION).await;
+            embassy_time::Timer::after_secs(WIFI_RECONNECT_DELAY).await;
         }
 
         if !matches!(wifi_controller.is_started(), Ok(true)) {
@@ -109,7 +109,7 @@ async fn connect(mut wifi_controller: WifiController<'static>) {
         info!("Attempting to connect...");
         if let Err(e) = wifi_controller.connect_async().await {
             error!("Wi-Fi connect failed: {e:?}");
-            embassy_time::Timer::after_secs(SECONDS_TO_WAIT_FOR_RECONNECTION).await;
+            embassy_time::Timer::after_secs(WIFI_RECONNECT_DELAY).await;
         } else {
             info!("Wi-Fi connected!");
         }
