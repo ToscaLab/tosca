@@ -1,0 +1,5 @@
+[light-with-events]
+ssid = "your Wi-Fi SSID"
+password = "your Wi-Fi password"
+broker_address = "your broker address"
+broker_port = "your broker port"
