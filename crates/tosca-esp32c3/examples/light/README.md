@@ -2,25 +2,33 @@
 
 [![LICENSE][license badge]][license]
 
-An `Tosca` light firmware to turn the built-in LED on an `ESP32-C3`
-board on and off.
+A stateless `Tosca` firmware to control the built-in LED on an `ESP32-C3` board.
 
-It implements an `HTTP` server that manages the state of the board's
+The firmware hosts an `HTTP` server that manages the state of the board's
 built-in LED via `REST` requests:
 
-- `light/on` route turns the LED on
-- `light/off` route turns the LED off
-- `light/toggle` route toggles the LED
+- `light/on` route turns the LED on using a `PUT` request
+- `light/off` route turns the LED off using a `PUT` request. A parameter called
+  `test-value` is included in the request to test whether the route operates
+  correctly
+- `light/toggle/default/parameters` route toggles the LED on and off using a
+  `GET` request with some default parameters
+- `/toggle/with-parameters` route toggles the LED using a `GET` request with
+  parameters included. The parameters consists of `seconds`, which defines the
+  duration, in seconds, for the LED to stay on or off, and `test-value`,
+  a dummy boolean used to test whether the route operates correctly with
+  additional parameters
+- `/info` route provides information about the device using a `GET` request
 
 For each request, the server responds with the _final_ status of the operation
-invoked by that request.
+triggered by the request.
 
 The board can be discovered by another node on the same network via
 an `mDNS-SD` service using the default domain `tosca`.
 
 ## Build Process
 
-To build the firmware run:
+To build the firmware:
 
 ```console
 cargo build --release
@@ -49,8 +57,8 @@ connect the `USB` port used by the board to `WSL`.
 
 ## Usage Prerequisites
 
-- Rename `cfg.toml.example` to `cfg.toml` and populate it with your
-Wi-Fi credentials: `SSID` and `PASSWORD`
+- Rename `cfg.toml.example` to `cfg.toml` and update it with your
+Wi-Fi credentials (`SSID` and `PASSWORD`)
 - Connect the board to a laptop via a `USB-C` cable to view the logs
 - Pin the project to a specific `nightly` version for more stability, if needed
 

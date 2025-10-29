@@ -286,7 +286,7 @@ async fn main(spawner: Spawner) {
             turn_light_off,
         )
         .stateless_ok_route(
-            Route::get("Toggle", "/toggle").description("Toggle."),
+            Route::get("Toggle", "/toggle").description("Toggle the light on and off."),
             toggle,
         )
         .build();

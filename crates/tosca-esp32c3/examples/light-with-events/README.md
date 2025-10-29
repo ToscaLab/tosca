@@ -2,19 +2,20 @@
 
 [![LICENSE][license badge]][license]
 
-A `Tosca` light firmware for an `ESP32-C3` board that turns the built-in LED
-on and off, sending notifications to an external process in response to changes
-to internal sensors.
+A stateless `Tosca` firmware to control the built-in LED on an `ESP32-C3` board,
+sending events to a broker in response to changes in the LED state.
 
-An event represents a change that can occur at any moment or at predefined
-intervals.
+An event represents a change in the sensor state that can occur at any moment or
+at predefined time intervals.
 
 The firmware hosts an `HTTP` server that manages the state of the board's
 built-in LED via `REST` requests:
 
-- `light/on` route turns the LED on
-- `light/off` route turns the LED off
-- `light/toggle` route toggles the LED
+- `light/on` route turns the LED on using a `PUT` request
+- `light/off` route turns the LED off using a `PUT` request. A parameter called
+  `test-value` is included in the request to test whether the route operates
+  correctly
+- `light/toggle` route toggles the LED on an off using a `GET` request
 
 For each request, the server responds with the _final_ status of the operation
 triggered by the request.

@@ -313,7 +313,7 @@ async fn main(spawner: Spawner) {
         )
         .stateful_ok_route(
             Route::get("Toggle", "/toggle")
-                .description("Toggle.")
+                .description("Toggle the light on and off based on the given parameters.")
                 .with_parameters(
                     Parameters::new()
                         .rangeu64_with_default("seconds", (1, 5, 1), 1)
@@ -322,7 +322,7 @@ async fn main(spawner: Spawner) {
             stateful_toggle,
         )
         .stateless_info_route(
-            Route::get("Info", "/info").description("Info."),
+            Route::get("Info", "/info").description("Provide device information."),
             |_| async move { Ok(InfoResponse::new(DeviceInfo::empty())) },
         )
         .build();
