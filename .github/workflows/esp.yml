@@ -82,7 +82,7 @@ jobs:
 
 ################################## light-with-state ###########################
 
-      - name: Run rustfmt (light)
+      - name: Run rustfmt (light-with-state)
         working-directory: crates/tosca-esp32c3/examples/light-with-state
         run: cargo fmt --all -- --check --verbose
 
@@ -90,10 +90,10 @@ jobs:
         working-directory: crates/tosca-esp32c3/examples/light-with-state
         run: cp cfg.toml.example cfg.toml
 
-      - name: Run cargo clippy (light)
+      - name: Run cargo clippy (light-with-state)
         working-directory: crates/tosca-esp32c3/examples/light-with-state
         run: cargo clippy -- -Dclippy::all -Dclippy::pedantic
 
-      - name: Build (light)
+      - name: Build (light-with-state)
         working-directory: crates/tosca-esp32c3/examples/light-with-state
         run: cargo build --verbose
