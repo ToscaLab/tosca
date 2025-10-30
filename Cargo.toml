@@ -17,7 +17,7 @@ indexmap.default-features = false
 
 log.version = "0.4.27"
 
-mdns-sd.version = "0.15.1"
+mdns-sd.version = "0.16.0"
 mdns-sd.default-features = false
 
 serde.version = "1.0"
