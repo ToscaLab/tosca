@@ -1,6 +1,6 @@
 use alloc::borrow::Cow;
 
-use serde::{Serialize, de::DeserializeOwned};
+use serde::Serialize;
 
 use crate::device::DeviceInfo;
 
@@ -64,14 +64,11 @@ impl OkResponse {
 
 /// A response which transmits a JSON message over the network containing
 /// the data produced during a device operation.
-///
-/// Data must be serializable and deserializable.
 #[derive(Debug, PartialEq, Serialize)]
 #[cfg_attr(feature = "deserialize", derive(serde::Deserialize))]
-#[serde(bound = "T: Serialize + DeserializeOwned")]
-pub struct SerialResponse<T: DeserializeOwned>(T);
+pub struct SerialResponse<T: Serialize>(T);
 
-impl<T: Serialize + DeserializeOwned> SerialResponse<T> {
+impl<T: Serialize> SerialResponse<T> {
     /// Generates a [`SerialResponse`].
     #[must_use]
     pub const fn new(data: T) -> Self {
