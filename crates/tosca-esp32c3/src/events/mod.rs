@@ -8,6 +8,7 @@ pub mod interrupt;
 /// A set of notifiers designed to manage periodic events.
 pub mod periodic;
 
+use core::net::IpAddr;
 use core::time::Duration;
 
 use alloc::boxed::Box;
@@ -24,7 +25,9 @@ use esp_hal::gpio::AnyPin;
 use log::{error, info};
 
 use tosca::device::DeviceKind;
-use tosca::events::{Event, Events, EventsDescription, PeriodicEvent, Topic};
+use tosca::events::{
+    BrokerData as ToscaBrokerData, Event, Events, EventsDescription, PeriodicEvent, Topic,
+};
 
 use crate::device::Device;
 use crate::error::{Error, ErrorKind};
@@ -447,7 +450,11 @@ where
         Ok(self
             .config
             .device
-            .events_description(EventsDescription::new(self.config.topic, self.events)))
+            .events_description(EventsDescription::new(
+                ToscaBrokerData::new(IpAddr::from(remote_endpoint.0), remote_endpoint.1),
+                self.config.topic,
+                self.events,
+            )))
     }
 
     fn spawn<F, T>(mut self, name: &'static str, task: SpawnToken<T>, add_event: F) -> Self
