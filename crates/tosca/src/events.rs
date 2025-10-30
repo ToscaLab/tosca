@@ -1,9 +1,28 @@
 use alloc::string::String;
 use alloc::vec::Vec;
 
+use core::net::IpAddr;
 use core::time::Duration;
 
 use serde::Serialize;
+
+/// Broker data.
+#[derive(Debug, PartialEq, Serialize)]
+#[cfg_attr(feature = "deserialize", derive(serde::Deserialize))]
+pub struct BrokerData {
+    /// Broker address.
+    pub address: IpAddr,
+    /// Broker port number.
+    pub port: u16,
+}
+
+impl BrokerData {
+    /// Creates a [`BrokerData`] .
+    #[must_use]
+    pub const fn new(address: IpAddr, port: u16) -> Self {
+        Self { address, port }
+    }
+}
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
 #[cfg_attr(not(feature = "deserialize"), derive(Copy))]
@@ -319,26 +338,22 @@ impl Events {
 
 #[derive(Debug, PartialEq, Serialize)]
 #[cfg_attr(feature = "deserialize", derive(serde::Deserialize))]
-/// All events taken into account in a system with the relative topic
-/// on which they will be published over the network.
+/// All events to be published over the network, including their associated
+/// topic and broker data.
 pub struct EventsDescription {
+    broker_data: BrokerData,
     topic: Topic,
     events: Events,
 }
 
 impl EventsDescription {
-    /// Creates an empty [`EventsDescription`].
-    #[must_use]
-    pub const fn empty() -> Self {
-        Self {
-            topic: Topic(String::new()),
-            events: Events::empty(),
-        }
-    }
-
     /// Creates an [`EventsDescription`].
     #[must_use]
-    pub const fn new(topic: Topic, events: Events) -> Self {
-        Self { topic, events }
+    pub const fn new(broker_data: BrokerData, topic: Topic, events: Events) -> Self {
+        Self {
+            broker_data,
+            topic,
+            events,
+        }
     }
 }
