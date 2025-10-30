@@ -9,7 +9,6 @@ license = "MIT"
 [dependencies]
 tosca.path = "../tosca"
 tosca.version = "0.1.0"
-# Do not enable the stream and deserialize features.
 tosca.default-features = false
 
 # A critical section for a multithread context.
