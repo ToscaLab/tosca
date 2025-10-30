@@ -267,7 +267,7 @@ mod tests {
         }))
     }
 
-    #[derive(Serialize, Deserialize)]
+    #[derive(Serialize)]
     struct DeviceInfoResponse {
         parameter: f64,
         device_info: DeviceInfo,
