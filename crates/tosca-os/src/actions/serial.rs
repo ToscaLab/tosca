@@ -10,19 +10,19 @@ use axum::{
     response::{IntoResponse, Response},
 };
 
-use serde::{Deserialize, Serialize, de::DeserializeOwned};
+use serde::{de::DeserializeOwned, Serialize};
 
-use super::{DeviceAction, MandatoryAction, error::ErrorResponse};
+use super::{error::ErrorResponse, DeviceAction, MandatoryAction};
 
 /// A response which transmits a JSON message over the network containing
 /// the data produced during a device operation.
 ///
 /// Data must be serializable and deserializable.
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize)]
 #[serde(bound = "T: Serialize + DeserializeOwned")]
-pub struct SerialResponse<T: DeserializeOwned>(ToscaSerialResponse<T>);
+pub struct SerialResponse<T>(ToscaSerialResponse<T>);
 
-impl<T: Serialize + DeserializeOwned> SerialResponse<T> {
+impl<T: Serialize> SerialResponse<T> {
     /// Generates a [`SerialResponse`].
     #[must_use]
     pub const fn new(data: T) -> Self {
@@ -30,7 +30,7 @@ impl<T: Serialize + DeserializeOwned> SerialResponse<T> {
     }
 }
 
-impl<T: Serialize + DeserializeOwned> IntoResponse for SerialResponse<T> {
+impl<T: Serialize> IntoResponse for SerialResponse<T> {
     fn into_response(self) -> Response {
         (StatusCode::OK, Json(self.0)).into_response()
     }
@@ -55,7 +55,7 @@ macro_rules! impl_serial_type_name {
     ) => {
         impl<F, T, Fut, M, $($ty,)* $($last)?> private::SerialTypeName<(M, $($ty,)* $($last)?)> for F
         where
-            T: Serialize + DeserializeOwned,
+            T: Serialize,
             F: FnOnce($($ty,)* $($last)?) -> Fut,
             Fut: Future<Output = Result<SerialResponse<T>, ErrorResponse>> + Send,
             {
