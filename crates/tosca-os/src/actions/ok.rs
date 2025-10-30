@@ -10,13 +10,13 @@ use axum::{
     response::{IntoResponse, Response},
 };
 
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
 use super::{DeviceAction, MandatoryAction, error::ErrorResponse};
 
 /// A response which transmits a concise JSON message over the network to notify
 /// a controller that an operation completed successfully.
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize)]
 pub struct OkResponse(ToscaOkResponse);
 
 impl OkResponse {

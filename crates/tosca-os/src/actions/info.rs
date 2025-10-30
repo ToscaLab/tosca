@@ -11,13 +11,13 @@ use axum::{
     response::{IntoResponse, Response},
 };
 
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
 use super::{DeviceAction, error::ErrorResponse};
 
 /// A response which transmits a JSON message over the network containing
 /// a device's energy and economy information.
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize)]
 pub struct InfoResponse(ToscaInfoResponse);
 
 impl InfoResponse {
