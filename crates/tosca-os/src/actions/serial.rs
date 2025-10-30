@@ -10,17 +10,14 @@ use axum::{
     response::{IntoResponse, Response},
 };
 
-use serde::{de::DeserializeOwned, Serialize};
+use serde::Serialize;
 
-use super::{error::ErrorResponse, DeviceAction, MandatoryAction};
+use super::{DeviceAction, MandatoryAction, error::ErrorResponse};
 
 /// A response which transmits a JSON message over the network containing
 /// the data produced during a device operation.
-///
-/// Data must be serializable and deserializable.
 #[derive(Serialize)]
-#[serde(bound = "T: Serialize + DeserializeOwned")]
-pub struct SerialResponse<T>(ToscaSerialResponse<T>);
+pub struct SerialResponse<T: Serialize>(ToscaSerialResponse<T>);
 
 impl<T: Serialize> SerialResponse<T> {
     /// Generates a [`SerialResponse`].
@@ -43,7 +40,7 @@ mod private {
 
 impl<T, F, Fut> private::SerialTypeName<()> for F
 where
-    T: Serialize + DeserializeOwned,
+    T: Serialize,
     F: FnOnce() -> Fut,
     Fut: Future<Output = Result<SerialResponse<T>, ErrorResponse>> + Send,
 {
