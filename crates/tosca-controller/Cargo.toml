@@ -9,7 +9,6 @@ license = "MIT"
 [dependencies]
 tosca.path = "../tosca"
 tosca.version = "0.1.0"
-tosca.default-features = false
 
 hashbrown.workspace = true
 
