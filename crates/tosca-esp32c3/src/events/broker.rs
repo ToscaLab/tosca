@@ -1,11 +1,11 @@
 use embassy_net::IpAddress;
 
-/// A network packet broker data.
+/// Broker data.
 pub enum BrokerData {
-    /// URL and port.
+    /// Broker `URL` and `port`.
     Url(&'static str, u16),
 
-    /// [`IpAddress`] and port.
+    /// Broker [`IpAddress`] and `port`.
     Ip(IpAddress, u16),
 }
 
