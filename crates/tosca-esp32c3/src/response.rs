@@ -13,7 +13,7 @@ use edge_http::io::server::Connection;
 
 use embedded_io_async::{Read, Write};
 
-use serde::{Serialize, de::DeserializeOwned};
+use serde::Serialize;
 
 /// A response which transmits a concise JSON message over the network to notify
 /// a controller that an operation completed successfully.
@@ -37,8 +37,6 @@ impl OkResponse {
 
 /// A response which transmits a JSON message over the network containing
 /// the data produced during a device operation.
-///
-/// Data must be serializable and deserializable.
 pub struct SerialResponse(Response);
 
 impl SerialResponse {
@@ -46,7 +44,7 @@ impl SerialResponse {
     /// a [`tosca::response::SerialResponse`].
     #[must_use]
     #[inline]
-    pub fn new<T: Serialize + DeserializeOwned>(value: T) -> Self {
+    pub fn new<T: Serialize>(value: T) -> Self {
         Self(json_to_response(
             Headers::json(),
             ToscaSerialResponse::new(value),
