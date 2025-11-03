@@ -1,7 +1,7 @@
 use std::future::Future;
 use std::net::Ipv4Addr;
 
-use axum::{Router, response::Redirect};
+use axum::{response::Redirect, Router};
 
 use tracing::info;
 
@@ -179,7 +179,7 @@ where
             // Add server properties.
             let service_config = service_config
                 .property(("scheme", self.data.scheme))
-                .property(("path", well_known_uri.to_string()));
+                .property(("path", well_known_uri.clone()));
 
             // Run service.
             Service::run(service_config, self.data.http_address, self.data.port)?;
