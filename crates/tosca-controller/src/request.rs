@@ -289,7 +289,7 @@ impl Request {
             if self.kind == RestKind::Get && self.device_environment == DeviceEnvironment::Os {
                 axum_get()
             } else {
-                self.route.to_string()
+                self.route.clone()
             };
 
         let parameters = params();
@@ -308,7 +308,7 @@ impl Request {
     }
 
     fn axum_get_plain(&self) -> String {
-        let mut route = self.route.to_string();
+        let mut route = self.route.clone();
         for (_, parameter_kind) in &self.parameters_data {
             // TODO: Consider returning `Option<String>`
             if let Err(e) = write!(
@@ -327,7 +327,7 @@ impl Request {
         let mut params = HashMap::new();
         for (name, parameter_kind) in &self.parameters_data {
             params.insert(
-                name.to_string(),
+                name.clone(),
                 format!("{}", ParameterValue::from_parameter_kind(parameter_kind)),
             );
         }
@@ -365,7 +365,7 @@ impl Request {
                     format!("{}", ParameterValue::from_parameter_kind(parameter_kind)),
                 )
             };
-            params.insert(name.to_string(), value);
+            params.insert(name.clone(), value);
         }
         params
     }
