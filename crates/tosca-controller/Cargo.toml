@@ -28,6 +28,10 @@ tracing.workspace = true
 bytes.version = "1.10.0"
 bytes.default-features = false
 
+flume.version = "0.11"
+flume.default-features = false
+flume.features = ["async"]
+
 futures-util.version = "0.3.31"
 futures-util.default-features = false
 futures-util.optional = true
@@ -36,13 +40,13 @@ reqwest.version = "0.12.12"
 reqwest.default-features = false
 reqwest.features = ["blocking", "json", "stream"]
 
+tokio.workspace = true
+tokio.features = ["macros", "rt", "rt-multi-thread", "time"]
+
 [dev-dependencies]
 tosca-os.path = "../tosca-os"
 tosca-os.version = "0.1.0"
 tosca-os.default-features = false
-
-tokio.workspace = true
-tokio.features = ["rt", "rt-multi-thread", "macros"]
 
 serial_test.version = "3.2.0"
 serial_test.default-features = false

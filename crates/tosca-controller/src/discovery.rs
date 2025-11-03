@@ -3,7 +3,11 @@ use std::time::Duration;
 
 use tosca::device::DeviceData;
 
-use mdns_sd::{IfKind, ResolvedService, ServiceDaemon, ServiceEvent};
+use flume::RecvTimeoutError;
+
+use mdns_sd::{IfKind, Receiver, ResolvedService, ServiceDaemon, ServiceEvent};
+
+use tokio::time::sleep;
 
 use tracing::{info, warn};
 
@@ -123,12 +127,12 @@ impl Discovery {
 
     pub(crate) async fn discover(&self) -> Result<Devices, Error> {
         // Discover devices.
-        let discovery_info = self.discover_devices()?;
+        let discovery_info = self.discover_devices().await?;
 
         Self::obtain_devices_data(discovery_info).await
     }
 
-    fn discover_devices(&self) -> Result<Vec<ResolvedService>, Error> {
+    async fn discover_devices(&self) -> Result<Vec<ResolvedService>, Error> {
         // Create a mdns daemon
         let mdns = ServiceDaemon::new()?;
 
@@ -163,7 +167,7 @@ impl Discovery {
 
         // Run for n-seconds in search of devices and saves their information
         // in memory.
-        while let Ok(event) = receiver.recv_timeout(self.timeout) {
+        while let Ok(event) = self.with_timeout(&receiver).await {
             if let ServiceEvent::ServiceResolved(info) = event {
                 // Check whether there are device addresses.
                 //
@@ -194,6 +198,24 @@ impl Discovery {
         mdns.stop_browse(&service_type)?;
 
         Ok(discovery_service)
+    }
+
+    #[inline]
+    async fn with_timeout<T>(&self, receiver: &Receiver<T>) -> Result<T, RecvTimeoutError> {
+        let timeout_future = sleep(self.timeout);
+
+        tokio::select! {
+            () = timeout_future => {
+                // This is the same error returned by the `recv_timeout`
+                // function in case of a timeout.
+                Err(RecvTimeoutError::Timeout)
+            }
+            result = receiver.recv_async() => {
+                // The only variant of `RecvError` is mapped to the
+                // corresponding variant in `RecvTimeoutError`.
+                result.map_err(std::convert::Into::into)
+            }
+        }
     }
 
     async fn obtain_devices_data(
