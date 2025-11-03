@@ -11,8 +11,7 @@ use crate::policy::Policy;
 use crate::request::Request;
 use crate::response::Response;
 
-// TODO: As of now, we are using an id which is the position in the devices
-// list. We are going to replace that with a natural language String instead.
+// TODO: Use the MAC address as id.
 
 fn sender_error(error: impl Into<Cow<'static, str>>) -> Error {
     Error::new(ErrorKind::Sender, error)
@@ -248,7 +247,7 @@ mod tests {
     use tosca::parameters::ParametersValues;
     use tosca::response::{OkResponse, SerialResponse};
 
-    use serde::{Serialize, de::DeserializeOwned};
+    use serde::{de::DeserializeOwned, Serialize};
     use serde_json::json;
 
     use serial_test::serial;
@@ -260,9 +259,9 @@ mod tests {
 
     use crate::device::tests::{create_light, create_unknown};
     use crate::discovery::tests::configure_discovery;
-    use crate::tests::{Brightness, check_function_with_device};
+    use crate::tests::{check_function_with_device, Brightness};
 
-    use super::{Controller, DeviceSender, RequestSender, sender_error};
+    use super::{sender_error, Controller, DeviceSender, RequestSender};
 
     #[test]
     fn empty_controller() {
