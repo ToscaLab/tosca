@@ -2,11 +2,14 @@ use std::borrow::Cow;
 
 use tosca::parameters::ParametersValues;
 
-use tracing::warn;
+use tokio::sync::mpsc::{self, Receiver};
+
+use tracing::{error, warn};
 
 use crate::device::{Device, Devices};
 use crate::discovery::Discovery;
 use crate::error::{Error, ErrorKind};
+use crate::events::EventsData;
 use crate::policy::Policy;
 use crate::request::Request;
 use crate::response::Response;
@@ -20,7 +23,7 @@ fn sender_error(error: impl Into<Cow<'static, str>>) -> Error {
 /// A request sender.
 #[derive(Debug, PartialEq)]
 pub struct RequestSender<'controller> {
-    controller: &'controller Controller,
+    controller: &'controller Controller<'controller>,
     request: &'controller Request,
     skip: bool,
 }
@@ -67,7 +70,7 @@ impl RequestSender<'_> {
 /// A sender for the requests of a determined device.
 #[derive(Debug, PartialEq)]
 pub struct DeviceSender<'controller> {
-    controller: &'controller Controller,
+    controller: &'controller Controller<'controller>,
     device: &'controller Device,
     id: usize,
 }
@@ -140,17 +143,17 @@ impl DeviceSender<'_> {
 /// When the controller receives a response from a device, it forwards it
 /// directly to the caller.
 #[derive(Debug, PartialEq)]
-pub struct Controller {
-    discovery: Discovery,
+pub struct Controller<'controller> {
+    discovery: Discovery<'controller>,
     devices: Devices,
     privacy_policy: Policy,
 }
 
-impl Controller {
+impl<'controller> Controller<'controller> {
     /// Creates a [`Controller`] given a [`Discovery`] configuration.
     #[must_use]
     #[inline]
-    pub fn new(discovery: Discovery) -> Self {
+    pub fn new(discovery: Discovery<'controller>) -> Self {
         Self {
             discovery,
             devices: Devices::new(),
@@ -165,7 +168,7 @@ impl Controller {
     /// a database.
     #[must_use]
     #[inline]
-    pub fn from_devices(discovery: Discovery, devices: Devices) -> Self {
+    pub fn from_devices(discovery: Discovery<'controller>, devices: Devices) -> Self {
         Self {
             discovery,
             devices,
@@ -209,6 +212,45 @@ impl Controller {
         Ok(())
     }
 
+    /// Starts asynchronous event receiver tasks for all [`Device`]s that
+    /// support events.
+    ///
+    /// An event receiver task connects to the broker of its associated device
+    /// and subscribes to the topic of that device.
+    /// When a device sends an event to the broker, the task receives it
+    /// from the network, parses it, and forwards it to the [`Receiver`]
+    /// returned by this method.
+    ///
+    /// The `buffer_size` parameter specifies how many messages the buffer
+    /// can hold.
+    /// When the buffer is full, new send attempts will wait until
+    /// a message is consumed from the channel.
+    ///
+    /// When the [`Receiver`] is dropped, all tasks terminate automatically.
+    ///
+    /// When [`None`], either all event receiver tasks have already been
+    /// started, or an error occurred while subscribing to the topic.
+    pub async fn start_event_receivers(
+        &mut self,
+        buffer_size: usize,
+    ) -> Option<Receiver<EventsData>> {
+        let (tx, rx) = mpsc::channel(buffer_size);
+
+        let mut all_started = 0;
+        for (id, device) in self.devices.iter_mut().enumerate() {
+            if device.event_handle.is_some() {
+                all_started += 1;
+            }
+
+            let tx = tx.clone();
+            if device.run_event_receiver(id, tx).await.is_err() {
+                return None;
+            }
+        }
+
+        (all_started < self.devices.len()).then_some(rx)
+    }
+
     /// Returns controller [`Devices`].
     #[must_use]
     pub const fn devices(&self) -> &Devices {
@@ -234,6 +276,30 @@ impl Controller {
             device,
             id,
         })
+    }
+
+    /// Shuts down the [`Controller`], stopping all asynchronous tasks and
+    /// releasing all associated resources.
+    ///
+    /// # Note
+    ///
+    /// For a graceful shutdown, this method must be called before dropping
+    /// the [`Controller`].
+    pub async fn shutdown(self) {
+        // Stop all events tasks.
+        for device in self.devices {
+            if let Some(events) = device.events {
+                // Stop the infinite loop
+                events.cancellation_token.cancel();
+            }
+
+            if let Some(event_handle) = device.event_handle {
+                // Await the task.
+                if let Err(e) = event_handle.await {
+                    error!("Failed to await the event task: {e}");
+                }
+            }
+        }
     }
 }
 
@@ -391,7 +457,7 @@ mod tests {
         }
     }
 
-    async fn controller_checks(controller: Controller) {
+    async fn controller_checks(controller: Controller<'_>) {
         // Wrong device id.
         assert_eq!(
             controller.device(1),

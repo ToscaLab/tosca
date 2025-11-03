@@ -13,6 +13,7 @@ use tracing::{info, warn};
 
 use crate::device::{Description, Device, Devices, NetworkInformation, build_device_address};
 use crate::error::Error;
+use crate::events::Events;
 use crate::request::create_requests;
 
 // Service top-level domain.
@@ -50,20 +51,20 @@ impl TransportProtocol {
 ///
 /// It detects all `tosca`-compliant [`Device`]s in a network.
 #[derive(Debug, PartialEq)]
-pub struct Discovery {
-    domain: &'static str,
+pub struct Discovery<'a> {
+    domain: &'a str,
     transport_protocol: TransportProtocol,
-    top_level_domain: &'static str,
+    top_level_domain: &'a str,
     timeout: Duration,
     disable_ipv6: bool,
     disable_ip: Option<IpAddr>,
-    disable_network_interface: Option<&'static str>,
+    disable_network_interface: Option<&'a str>,
 }
 
-impl Discovery {
+impl<'a> Discovery<'a> {
     /// Creates a [`Discovery`].
     #[must_use]
-    pub const fn new(domain: &'static str) -> Self {
+    pub const fn new(domain: &'a str) -> Self {
         Self {
             domain,
             transport_protocol: TransportProtocol::TCP,
@@ -91,14 +92,14 @@ impl Discovery {
 
     /// Changes service domain.
     #[must_use]
-    pub const fn domain(mut self, domain: &'static str) -> Self {
+    pub const fn domain(mut self, domain: &'a str) -> Self {
         self.domain = domain;
         self
     }
 
     /// Sets the service top-level domain.
     #[must_use]
-    pub const fn top_level_domain(mut self, top_level_domain: &'static str) -> Self {
+    pub const fn top_level_domain(mut self, top_level_domain: &'a str) -> Self {
         self.top_level_domain = top_level_domain;
         self
     }
@@ -178,13 +179,6 @@ impl Discovery {
                     continue;
                 }
 
-                // A scheme is necessary to get in touch with a device,
-                // so if it is not present, skip that device.
-                if info.get_property("scheme").is_none() {
-                    warn!("No `scheme` property found.");
-                    continue;
-                }
-
                 // If two devices are equal, skip to the next one.
                 if Self::check_device_duplicates(&discovery_service, &info) {
                     continue;
@@ -233,6 +227,8 @@ impl Discovery {
                     service
                         .txt_properties
                         .get_property_val_str("scheme")
+                        // If the scheme is not specified as a property,
+                        // fall back to `http` as default.
                         .unwrap_or("http"),
                     &address.to_ip_addr(),
                     service.port,
@@ -276,7 +272,9 @@ impl Discovery {
                             complete_address,
                         );
 
-                        devices.add(Device::init(network_info, description, requests));
+                        let events = device_data.events_description.map(Events::new);
+
+                        devices.add(Device::init(network_info, description, requests, events));
 
                         // Only a single address is necessary.
                         break;
@@ -342,7 +340,7 @@ pub(crate) mod tests {
 
     use super::Discovery;
 
-    pub(crate) fn configure_discovery() -> Discovery {
+    pub(crate) fn configure_discovery() -> Discovery<'static> {
         Discovery::new(DOMAIN)
             .timeout(Duration::from_secs(1))
             .disable_ipv6()

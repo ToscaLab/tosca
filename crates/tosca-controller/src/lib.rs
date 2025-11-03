@@ -15,6 +15,8 @@
 #![forbid(unsafe_code)]
 #![deny(missing_docs)]
 
+mod events;
+
 /// A controller for interacting with `tosca` devices.
 pub mod controller;
 /// A device definition along with its operations.

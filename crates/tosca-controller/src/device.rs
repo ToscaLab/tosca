@@ -3,9 +3,17 @@ use std::net::IpAddr;
 
 use serde::Serialize;
 
+use tokio::sync::mpsc::{self, Receiver, Sender};
+use tokio::task::JoinHandle;
+
+use tracing::{error, warn};
+
 use tosca::device::{DeviceEnvironment, DeviceKind};
+use tosca::events::{BrokerData, EventsDescription};
 use tosca::route::RouteConfigs;
 
+use crate::error::Result;
+use crate::events::{Events, EventsData, EventsRunner};
 use crate::request::{Request, RequestInfo, create_requests};
 
 pub(crate) fn build_device_address(scheme: &str, address: &IpAddr, port: u16) -> String {
@@ -52,7 +60,7 @@ impl NetworkInformation {
 /// Device description.
 ///
 /// All properties which describe a device.
-#[derive(Debug, PartialEq, Clone, Serialize)]
+#[derive(Debug, PartialEq)]
 pub struct Description {
     /// Device kind.
     pub kind: DeviceKind,
@@ -75,7 +83,7 @@ impl Description {
 }
 
 /// A compliant device.
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Debug)]
 pub struct Device {
     // Information needed to contact a device in a network.
     network_info: NetworkInformation,
@@ -83,6 +91,20 @@ pub struct Device {
     description: Description,
     // All device requests.
     requests: HashMap<String, Request>,
+    // All device events.
+    //
+    // If [`None`], the device does not support events.
+    pub(crate) events: Option<Events>,
+    // The join handle for the event task.
+    pub(crate) event_handle: Option<JoinHandle<()>>,
+}
+
+impl PartialEq for Device {
+    fn eq(&self, other: &Self) -> bool {
+        self.network_info == other.network_info
+            && self.description == other.description
+            && self.requests == other.requests
+    }
 }
 
 impl Device {
@@ -112,6 +134,8 @@ impl Device {
             network_info,
             description,
             requests,
+            events: None,
+            event_handle: None,
         }
     }
 
@@ -125,6 +149,15 @@ impl Device {
     #[must_use]
     pub const fn description(&self) -> &Description {
         &self.description
+    }
+
+    /// Returns an immutable reference to [`EventsDescription`].
+    ///
+    /// If [`None`], the device does not support events.
+    #[must_use]
+    #[inline]
+    pub fn events_metadata(&self) -> Option<&EventsDescription> {
+        self.events.as_ref().map(|events| &events.description)
     }
 
     /// Returns requests information as a vector of [`RequestInfo`].
@@ -153,21 +186,89 @@ impl Device {
         self.requests.get(route)
     }
 
+    // FIXME: Adding id from outside is wrong. Fix this when id will be
+    // supported.
+    /// Starts the asynchronous event receiver if the [`Device`]
+    /// supports events.
+    ///
+    /// An event receiver task connects to the broker of its associated device
+    /// and subscribes to the topic of that device.
+    /// When a device sends an event to the broker, the task receives it
+    /// from the network, parses it, and forwards it to the [`Receiver`]
+    /// returned by this method.
+    ///
+    /// The `buffer_size` parameter specifies how many messages the buffer
+    /// can hold.
+    /// When the buffer is full, new send attempts will wait until
+    /// a message is consumed from the channel.
+    ///
+    /// When the [`Receiver`] is dropped, the event receiver task terminates
+    /// automatically.
+    ///
+    /// When [`None`], either the event receiver task has already been started,
+    /// or an error occurred while subscribing to the topic.
+    #[inline]
+    pub async fn start_event_receiver(
+        &mut self,
+        id: usize,
+        buffer_size: usize,
+    ) -> Option<Receiver<EventsData>> {
+        if self.event_handle.is_some() {
+            warn!("Event receiver already started for device with id `{id}`");
+            return None;
+        }
+
+        let (tx, rx) = mpsc::channel(buffer_size);
+        if self.run_event_receiver(id, tx).await.is_err() {
+            return None;
+        }
+        Some(rx)
+    }
+
+    pub(crate) async fn run_event_receiver(
+        &mut self,
+        id: usize,
+        sender: Sender<EventsData>,
+    ) -> Result<()> {
+        if let Some(events) = &self.events {
+            let BrokerData { address, port } = events.description.broker_data;
+            let topic = events.description.topic.as_str();
+
+            let events_runner =
+                EventsRunner::init(id.to_string(), address.to_string(), port, topic)
+                    .await
+                    .map_err(|e| {
+                        error!("Impossible to subscribe to topic {topic} for device {id}: {e}");
+                        e
+                    })?;
+
+            let cancellation_token = events.cancellation_token.clone();
+
+            let handle = events_runner.run(id, sender, cancellation_token);
+            self.event_handle = Some(handle);
+        }
+
+        Ok(())
+    }
+
     pub(crate) const fn init(
         network_info: NetworkInformation,
         description: Description,
         requests: HashMap<String, Request>,
+        events: Option<Events>,
     ) -> Self {
         Self {
             network_info,
             description,
             requests,
+            events,
+            event_handle: None,
         }
     }
 }
 
 /// A collection of [`Device`]s.
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Debug, PartialEq)]
 pub struct Devices(Vec<Device>);
 
 impl Default for Devices {
@@ -191,6 +292,14 @@ impl<'a> IntoIterator for &'a Devices {
 
     fn into_iter(self) -> Self::IntoIter {
         self.iter()
+    }
+}
+
+impl<'a> IntoIterator for &'a mut Devices {
+    type Item = &'a mut Device;
+    type IntoIter = std::slice::IterMut<'a, Device>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.iter_mut()
     }
 }
 
@@ -237,7 +346,12 @@ impl Devices {
     /// Returns an iterator over [`Device`]s.
     #[inline]
     pub fn iter(&self) -> std::slice::Iter<'_, Device> {
-        self.0.iter()
+        <&Self as IntoIterator>::into_iter(self)
+    }
+
+    #[inline]
+    pub(crate) fn iter_mut(&mut self) -> std::slice::IterMut<'_, Device> {
+        <&mut Self as IntoIterator>::into_iter(self)
     }
 }
 

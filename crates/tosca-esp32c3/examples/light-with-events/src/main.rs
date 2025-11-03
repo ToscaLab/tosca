@@ -13,11 +13,11 @@ use core::sync::atomic::{AtomicBool, Ordering};
 use tosca::parameters::Parameters;
 use tosca::route::{LightOffRoute, LightOnRoute, Route};
 
-use esp_hal::Config;
 use esp_hal::clock::CpuClock;
 use esp_hal::gpio::{AnyPin, Input, InputConfig, Level, Output, OutputConfig, Pin, Pull};
 use esp_hal::rng::Rng;
 use esp_hal::timer::{systimer::SystemTimer, timg::TimerGroup};
+use esp_hal::Config;
 
 use log::info;
 
@@ -28,7 +28,7 @@ use embassy_time::Timer;
 
 use tosca_esp32c3::{
     devices::light::Light,
-    events::{EventsConfig, EventsManager, broker::BrokerData, interrupt::Notifier},
+    events::{broker::BrokerData, interrupt::Notifier, EventsConfig, EventsManager},
     mdns::Mdns,
     net::NetworkStack,
     parameters::ParametersPayloads,
@@ -37,7 +37,7 @@ use tosca_esp32c3::{
     wifi::Wifi,
 };
 
-const MAX_HEAP_SIZE: usize = 64 * 1024;
+const MAX_HEAP_SIZE: usize = 128 * 1024;
 const MILLISECONDS_TO_WAIT: u64 = 100;
 
 // Socket buffer size.
