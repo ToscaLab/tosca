@@ -18,6 +18,14 @@ tosca-os.version = "0.1"
 clap.version = "4.5"
 clap.features = ["derive"]
 
+image.version = "0.25"
+image.default-features = false
+image.features = ["png"]
+
+nokhwa.version = "0.10"
+nokhwa.default-features = false
+nokhwa.features = ["input-native", "serialize", "output-threaded"]
+
 serde.version = "1.0"
 serde.default-features = false
 serde.features = ["derive"]
@@ -35,16 +43,6 @@ tracing.default-features = false
 tracing-subscriber.version = "0.3"
 tracing-subscriber.default-features = false
 tracing-subscriber.features = ["env-filter", "fmt", "std"]
-
-[dependencies.image]
-version = "0.25"
-default-features = false
-features = ["png"]
-
-[dependencies.nokhwa]
-version = "0.10"
-default-features = false
-features = ["input-native", "serialize", "output-threaded"]
 
 [profile.release]
 opt-level = 3
