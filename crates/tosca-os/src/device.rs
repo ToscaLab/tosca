@@ -150,11 +150,11 @@ mod tests {
     use tosca::energy::Energy;
     use tosca::route::Route;
 
-    use async_lock::Mutex;
-
     use axum::extract::{FromRef, Json, State};
 
     use serde::{Deserialize, Serialize};
+
+    use tokio::sync::Mutex;
 
     use crate::actions::error::ErrorResponse;
     use crate::actions::info::{InfoResponse, info_stateful};
