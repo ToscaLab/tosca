@@ -1,11 +1,13 @@
 [workspace]
+# https://doc.rust-lang.org/cargo/reference/resolver.html#feature-resolver-version-2
+resolver = "2"
+
 members = [
     "crates/tosca",
     "crates/tosca-os",
     "crates/tosca-controller",
 ]
 exclude = ["crates/tosca-esp32c3"]
-resolver = "2"
 
 [workspace.dependencies]
 hashbrown.version = "0.16"
@@ -14,8 +16,6 @@ hashbrown.features = ["default-hasher"]
 
 indexmap.version = "2.10"
 indexmap.default-features = false
-
-log.version = "0.4.27"
 
 mdns-sd.version = "0.16.0"
 mdns-sd.default-features = false
