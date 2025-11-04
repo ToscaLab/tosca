@@ -1,34 +1,34 @@
-//! A crate library to manage, orchestrate, and interact with all
-//! `tosca`-compliant devices present in a network.
+//! A library crate designed to manage, orchestrate, and interact with all
+//! `tosca` devices within a network.
 //!
-//! Among its tasks:
+//! Key functionalities include:
 //!
-//! - Discovering all `tosca-compliant` devices contained in a network
-//! - Building `REST` requests to send commands to the discovered devices
-//! - Setting security and privacy policies to allow or prevent a request
-//!   from being sent
+//! - Discovering all `tosca` devices on the network
+//! - Constructing and sending `REST` requests to issue commands to the
+//!   discovered devices
+//! - Enforcing security and privacy policies to permit or block requests
 //!
-//! Some APIs invoke threads to perform their operations. This choice has been
-//! taken to split up huge tasks into small independent ones and distribute the
-//! system resource load.
+//! Some APIs trigger tasks to perform their operations. This design breaks
+//! large operations into smaller and independent tasks, making it easier
+//! to manage system resources more efficiently.
 
 #![forbid(unsafe_code)]
 #![deny(missing_docs)]
 
-/// A controller to manage how requests are sent to a device.
+/// A controller for interacting with `tosca` devices.
 pub mod controller;
-/// A compliant device.
+/// A device definition along with its operations.
 pub mod device;
-/// A discovery mechanism to identify all compliant devices in a network.
+/// A mechanism for discovering all `tosca` devices in a network.
 pub mod discovery;
-/// Error handling.
+/// Error management.
 pub mod error;
-/// A privacy and security policy manager to allow or prevent a request
-/// from being sent.
+/// A privacy and security policy manager that determines whether `REST`
+/// requests can be sent or blocked.
 pub mod policy;
-/// All requests data and methods.
+/// Request data and its methods.
 pub mod request;
-/// All supported device responses methods and data.
+/// All supported methods and data for device responses.
 pub mod response;
 
 #[cfg(test)]
