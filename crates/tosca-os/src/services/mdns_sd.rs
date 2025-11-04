@@ -5,7 +5,8 @@ use mdns_sd::{IfKind, ServiceDaemon, ServiceInfo};
 use tracing::info;
 
 use crate::error::{Error, ErrorKind};
-use crate::service::ServiceConfig;
+
+use super::ServiceConfig;
 
 impl From<mdns_sd::Error> for Error {
     fn from(e: mdns_sd::Error) -> Self {

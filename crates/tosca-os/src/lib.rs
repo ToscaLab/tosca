@@ -51,7 +51,9 @@ pub mod error;
 pub mod server;
 /// Methods to define and run the discovery service necessary to detect a
 /// device in a network.
-pub mod service;
+pub mod service {
+    pub use super::services::{ServiceConfig, TransportProtocol};
+}
 
 /// Methods to parse requests and construct responses.
 pub mod extract {
@@ -59,6 +61,5 @@ pub mod extract {
     pub use axum::http::header;
 }
 
-mod services;
-
 mod mac;
+mod services;
