@@ -28,6 +28,7 @@ tracing.workspace = true
 
 # Stream feature dependencies
 futures-core.version = "0.3" # Just for the TryStream trait
+futures-core.default-features = false
 futures-core.optional = true
 
 tokio-util.version = "0.7"
