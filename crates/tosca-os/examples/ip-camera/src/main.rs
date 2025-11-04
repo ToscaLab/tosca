@@ -19,8 +19,6 @@ use tosca_os::error::Error;
 use tosca_os::server::Server;
 use tosca_os::service::{ServiceConfig, TransportProtocol};
 
-use async_lock::Mutex;
-
 use clap::Parser;
 use clap::builder::ValueParser;
 
@@ -28,6 +26,8 @@ use nokhwa::{
     NokhwaError, native_api_backend, query,
     utils::{CameraFormat, CameraIndex, FrameFormat, RequestedFormatType, Resolution},
 };
+
+use tokio::sync::Mutex;
 
 use tracing::{error, info};
 use tracing_subscriber::filter::LevelFilter;

@@ -17,9 +17,6 @@ tosca-os.path = "../../"
 tosca-os.version = "0.1"
 tosca-os.default-features = false
 
-async-lock.version = "3.3"
-async-lock.default-features = false
-
 clap.version = "4.5"
 clap.features = ["derive"]
 

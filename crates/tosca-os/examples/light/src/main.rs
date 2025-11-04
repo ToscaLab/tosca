@@ -19,12 +19,12 @@ use tosca_os::extract::{FromRef, Json, State};
 use tosca_os::server::Server;
 use tosca_os::service::{ServiceConfig, TransportProtocol};
 
-use async_lock::Mutex;
-
 use clap::Parser;
 use clap::builder::ValueParser;
 
 use serde::{Deserialize, Serialize};
+
+use tokio::sync::Mutex;
 
 use tracing_subscriber::filter::LevelFilter;
 
