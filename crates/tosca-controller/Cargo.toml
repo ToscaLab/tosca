@@ -30,16 +30,17 @@ flume.version = "0.11"
 flume.default-features = false
 flume.features = ["async"]
 
-futures-util.version = "0.3.31"
-futures-util.default-features = false
-futures-util.optional = true
-
 reqwest.version = "0.12.12"
 reqwest.default-features = false
 reqwest.features = ["blocking", "json", "stream"]
 
 tokio.workspace = true
 tokio.features = ["macros", "rt", "rt-multi-thread", "time"]
+
+# Stream feature dependencies
+futures-util.version = "0.3.31"
+futures-util.default-features = false
+futures-util.optional = true
 
 [dev-dependencies]
 tosca-os.path = "../tosca-os"
