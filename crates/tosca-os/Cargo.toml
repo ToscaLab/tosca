@@ -15,10 +15,6 @@ axum.version = "0.8.0"
 axum.default-features = false
 axum.features = ["tokio", "http1", "http2", "json"]
 
-# Just for the TryStream trait.
-futures-core.version = "0.3"
-futures-core.optional = true
-
 if-addrs.version = "0.14"
 if-addrs.default-features = false
 
@@ -31,12 +27,16 @@ serde_json.workspace = true
 
 tokio.workspace = true
 
+tracing.workspace = true
+
+# Stream feature dependencies
+futures-core.version = "0.3" # Just for the TryStream trait
+futures-core.optional = true
+
 tokio-util.version = "0.7"
 tokio-util.default-features = false
 tokio-util.features = ["io"]
 tokio-util.optional = true
-
-tracing.workspace = true
 
 [target.'cfg(windows)'.dependencies]
 windows-sys.version = "0.61.0"
