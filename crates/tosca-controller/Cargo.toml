@@ -1,10 +1,10 @@
 [package]
 name = "tosca-controller"
-version = "0.1.0"
-edition = "2024"
+version.workspace = true
+edition.workspace = true
 authors = ["Michele Valsesia <luni-4@hotmail.it>"]
 description = "A controller to orchestrate Tosca devices in a network."
-license = "MIT"
+license.workspace = true
 
 [dependencies]
 tosca.path = "../tosca"
