@@ -60,3 +60,5 @@ panic = "unwind"
 incremental = false
 overflow-checks = false
 strip = "debuginfo"
+
+[workspace]
