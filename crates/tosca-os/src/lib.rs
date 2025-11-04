@@ -47,7 +47,7 @@ pub mod actions;
 pub mod device;
 /// Error handling.
 pub mod error;
-/// Methods to define and run the server which represents the firwmare.
+/// Methods to define and run the server which represents the firmware.
 pub mod server;
 /// Methods to define and run the discovery service necessary to detect a
 /// device in a network.
