@@ -1,12 +1,12 @@
-/// Action and response to manage errors.
+/// Error response.
 pub mod error;
-/// Action and response to manage device information.
+/// Device information response.
 pub mod info;
-/// Action and response to confirm the correct execution of an action.
+/// Status response.
 pub mod ok;
-/// Action and response to manage data serialization.
+/// Serial data response.
 pub mod serial;
-/// Action and response to manage a stream of data expressed as a sequence
+/// Response to manage a stream of data expressed as a sequence
 /// of bytes.
 #[cfg(feature = "stream")]
 pub mod stream;
@@ -16,7 +16,7 @@ use tosca::parameters::ParametersData;
 use tosca::response::ResponseKind;
 use tosca::route::{RestKind, Route, RouteConfig};
 
-use axum::{Router, handler::Handler};
+use axum::{handler::Handler, Router};
 
 use tracing::{error, info};
 
@@ -61,10 +61,10 @@ fn build_get_route(route: &str, parameters: &ParametersData) -> String {
 }
 
 #[derive(Debug)]
-/// A generic [`crate::device::Device`] action.
+/// A generic [`crate::device::Device`] response.
 ///
 /// It has been conceived to perform checks on [`Hazard`]s.
-pub struct DeviceAction {
+pub struct DeviceResponse {
     // Router.
     pub(crate) router: Router,
     // Route
@@ -190,7 +190,7 @@ impl MandatoryAction<true> {
 mod tests {
     use tosca::parameters::Parameters;
 
-    use super::{Route, build_get_route};
+    use super::{build_get_route, Route};
 
     #[test]
     fn test_build_get_route() {
