@@ -22,8 +22,6 @@ futures-core.optional = true
 if-addrs.version = "0.14"
 if-addrs.default-features = false
 
-log.workspace = true
-
 mdns-sd.workspace = true
 
 serde.workspace = true
