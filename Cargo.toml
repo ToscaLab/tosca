@@ -9,6 +9,7 @@ members = [
 ]
 exclude = ["crates/tosca-esp32c3"]
 
+[workspace.lints.clippy]
 [workspace.dependencies]
 hashbrown.version = "0.16"
 hashbrown.default-features = false
