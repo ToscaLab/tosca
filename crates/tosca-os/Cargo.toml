@@ -30,7 +30,6 @@ serde.workspace = true
 serde.features = ["derive"]
 
 serde_json.workspace = true
-serde_json.features = ["preserve_order"]
 
 tokio.workspace = true
 
