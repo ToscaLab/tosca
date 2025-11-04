@@ -12,7 +12,7 @@ hashbrown.workspace = true
 indexmap.workspace = true
 indexmap.features = ["serde"]
 
-log.workspace = true
+log.version = "0.4.27"
 
 serde.workspace = true
 serde.features = ["derive", "alloc"]
