@@ -5,14 +5,8 @@
 //!
 //! - Discovering all `tosca-compliant` devices contained in a network
 //! - Building `REST` requests to send commands to the discovered devices
-//! - Defining scheduling programs to control requests sending
 //! - Setting security and privacy policies to allow or prevent a request
 //!   from being sent
-//!
-//! The possibility of defining scheduling programs allows to implement
-//! batch processing, hence all those requests which have determined properties
-//! can be grouped together and sent to different devices either immediately or
-//! at a later time.
 //!
 //! Some APIs invoke threads to perform their operations. This choice has been
 //! taken to split up huge tasks into small independent ones and distribute the
@@ -36,9 +30,6 @@ pub mod policy;
 pub mod request;
 /// All supported device responses methods and data.
 pub mod response;
-/// A scheduler to define tasks which perform requests sending at a specific
-/// time.
-pub mod scheduler;
 
 #[cfg(test)]
 mod tests;
