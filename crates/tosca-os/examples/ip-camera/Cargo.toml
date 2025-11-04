@@ -42,7 +42,7 @@ tracing.default-features = false
 
 tracing-subscriber.version = "0.3"
 tracing-subscriber.default-features = false
-tracing-subscriber.features = ["env-filter", "fmt", "std"]
+tracing-subscriber.features = ["ansi", "fmt"]
 
 [profile.release]
 opt-level = 3
