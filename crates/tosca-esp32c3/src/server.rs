@@ -352,15 +352,24 @@ where
 
             let route_path = &route.data.path[1..];
 
-            // If the entire route path does not include the specific segment
-            // that characterizes the route, proceed to the next route.
-            if !path.contains(route_path) {
+            // Create iterators for both the route and request paths
+            // to compare each segment.
+            let mut route_path_iter = route_path.split_terminator('/');
+            let mut path_iter = path.split_terminator('/');
+
+            // Skip the empty segment "" and the main route.
+            let _ = path_iter.next();
+            let _ = path_iter.next();
+
+            // Compare route segments with the corresponding path segments.
+            // If all segments match in order, this is the correct route.
+            if !route_path_iter.all(|seg| path_iter.next() == Some(seg)) {
                 continue;
             }
 
             info!("Route path: {route_path}");
 
-            for _ in 0..route_path.split_terminator('/').count() {
+            for _ in 0..route_path_iter.count() {
                 route_iter.nth(0).ok_or_else(Response::not_found)?;
             }
 
