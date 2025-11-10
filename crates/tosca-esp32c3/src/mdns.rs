@@ -22,7 +22,7 @@ use edge_nal_embassy::{Udp, UdpBuffers};
 
 use log::info;
 
-use crate::error::{Error, Result};
+use crate::error::Result;
 
 // Hostname
 const HOSTNAME: &str = "tosca";
@@ -103,28 +103,25 @@ impl Mdns {
         self
     }
 
-    pub(crate) fn run(self, stack: Stack<'static>, port: u16, spawner: Spawner) -> Result<()> {
+    pub(crate) fn run(
+        self,
+        stack: Stack<'static>,
+        address: Ipv4Addr,
+        port: u16,
+        spawner: Spawner,
+    ) -> Result<()> {
         RNG.lock(|c| _ = c.set(self.rng));
-
-        let ipv4 = stack
-            .config_v4()
-            .ok_or(Error::new(
-                crate::error::ErrorKind::MDns,
-                "Unable to retrieve IPv4 configuration.",
-            ))?
-            .address
-            .address();
 
         info!(
             "About to run an mDNS responder on IPV4 address `{}`. \
              It will be accessible via `{}.local`, \
              so try to run the command `ping {}.local`.",
-            ipv4, self.hostname, self.hostname
+            address, self.hostname, self.hostname
         );
 
         let host = Host {
             hostname: self.hostname,
-            ipv4,
+            ipv4: address,
             ipv6: Ipv6Addr::UNSPECIFIED,
             ttl: Ttl::from_secs(self.time_to_live),
         };

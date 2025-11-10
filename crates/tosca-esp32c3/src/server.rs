@@ -206,7 +206,7 @@ where
         // Run mdns.
         //
         // NOTE: Use the same server port for the mDNS-SD service
-        self.mdns.run(stack, self.port, spawner)?;
+        self.mdns.run(stack, address, self.port, spawner)?;
 
         info!(
             "Starting server on address `{}` and port `{}`",
