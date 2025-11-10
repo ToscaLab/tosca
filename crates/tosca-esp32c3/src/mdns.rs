@@ -15,7 +15,7 @@ use edge_mdns::HostAnswersMdnsHandler;
 use edge_mdns::buf::VecBufAccess;
 use edge_mdns::domain::base::Ttl;
 use edge_mdns::host::{Host, Service, ServiceAnswers};
-use edge_mdns::io::{self, DEFAULT_SOCKET};
+use edge_mdns::io::{self, IPV4_DEFAULT_SOCKET};
 
 use edge_nal::UdpSplit;
 use edge_nal_embassy::{Udp, UdpBuffers};
@@ -26,19 +26,30 @@ use crate::error::{Error, Result};
 
 // Hostname
 const HOSTNAME: &str = "tosca";
-// Domain name
-const DOMAIN_NAME: &str = "tosca";
-// mDNS stack size
-const MDNS_STACK_SIZE: usize = 2;
+// Service name
+const SERVICE: &str = "tosca";
+// Service type
+const SERVICE_TYPE: &str = "_tosca";
+// Transport protocol
+const TRANSPORT_PROTOCOL: &str = "_udp";
+// Time-to-live for answers in seconds
+const TIME_TO_LIVE: u32 = 60;
+
+// mDNS buffer pool size
+const MDNS_BUFFER_POOL_SIZE: usize = 2;
 // Buffer length
 const BUFFER_LENGTH: usize = 1500;
+// Packet metadata length
+const PACKET_METADATA_LENGTH: usize = 2;
 
 static RNG: CriticalSectionMutex<OnceCell<Rng>> = CriticalSectionMutex::new(OnceCell::new());
 
 /// The `mDNS-SD` service.
 pub struct Mdns {
     hostname: &'static str,
-    domain_name: &'static str,
+    service: &'static str,
+    service_type: &'static str,
+    time_to_live: u32,
     properties: &'static [(&'static str, &'static str)],
     rng: Rng,
 }
@@ -49,7 +60,9 @@ impl Mdns {
     pub const fn new(rng: Rng) -> Self {
         Self {
             hostname: HOSTNAME,
-            domain_name: DOMAIN_NAME,
+            service: SERVICE,
+            service_type: SERVICE_TYPE,
+            time_to_live: TIME_TO_LIVE,
             properties: &[],
             rng,
         }
@@ -62,10 +75,24 @@ impl Mdns {
         self
     }
 
-    /// Sets the `mDNS-SD` domain name.
+    /// Sets the `mDNS-SD` service.
     #[must_use]
-    pub const fn domain_name(mut self, domain_name: &'static str) -> Self {
-        self.domain_name = domain_name;
+    pub const fn service(mut self, service: &'static str) -> Self {
+        self.service = service;
+        self
+    }
+
+    /// Sets the `mDNS-SD` service type.
+    #[must_use]
+    pub const fn service_type(mut self, service_type: &'static str) -> Self {
+        self.service_type = service_type;
+        self
+    }
+
+    /// Seconds for the time-to-live for the `mDNS-SD` answers.
+    #[must_use]
+    pub const fn time_to_live(mut self, seconds: u32) -> Self {
+        self.time_to_live = if seconds == 0 { 1 } else { seconds };
         self
     }
 
@@ -89,31 +116,31 @@ impl Mdns {
             .address();
 
         info!(
-            "About to run an mDNS responder reachable from a PC. \
-                It will be addressable using {}.local, \
-                so try to `ping {}.local`.",
-            self.hostname, self.hostname
+            "About to run an mDNS responder on IPV4 address `{}`. \
+             It will be accessible via `{}.local`, \
+             so try to run the command `ping {}.local`.",
+            ipv4, self.hostname, self.hostname
         );
 
         let host = Host {
             hostname: self.hostname,
             ipv4,
             ipv6: Ipv6Addr::UNSPECIFIED,
-            ttl: Ttl::from_secs(60),
+            ttl: Ttl::from_secs(self.time_to_live),
         };
 
         info!(
-            "About to run an mDNS service with name `{}` of type `HTTP` \
-                on port `{port}`.",
-            self.domain_name
+            "About to run a mDNS service with name `{}` and type `{}` \
+             on port `{port}`.",
+            self.service, self.service_type
         );
 
         let service = Service {
-            name: self.domain_name,
+            name: self.service,
             priority: 1,
             weight: 5,
-            service: "_https",
-            protocol: "_tcp",
+            service: self.service_type,
+            protocol: TRANSPORT_PROTOCOL,
             port,
             service_subtypes: &[],
             txt_kvs: self.properties,
@@ -132,22 +159,27 @@ async fn run_mdns_task(stack: Stack<'static>, host: Host<'static>, service: Serv
         VecBufAccess::<NoopRawMutex, BUFFER_LENGTH>::new(),
     );
 
-    let buffers: UdpBuffers<MDNS_STACK_SIZE, BUFFER_LENGTH, BUFFER_LENGTH, 2> = UdpBuffers::new();
+    let buffers: UdpBuffers<
+        MDNS_BUFFER_POOL_SIZE,
+        BUFFER_LENGTH,
+        BUFFER_LENGTH,
+        PACKET_METADATA_LENGTH,
+    > = UdpBuffers::new();
     let udp = Udp::new(stack, &buffers);
 
-    let mut socket = io::bind(&udp, DEFAULT_SOCKET, Some(Ipv4Addr::UNSPECIFIED), None)
+    let mut socket = io::bind(&udp, IPV4_DEFAULT_SOCKET, Some(Ipv4Addr::UNSPECIFIED), None)
         .await
-        .expect("Impossible to create the socket");
+        .expect("Impossible to create the `UDP` socket");
 
     let (recv, send) = socket.split();
 
-    // A way to notify the mDNS responder that the data in `Host` had changed
-    // Not necessary for this example, because the data is hard-coded
+    // A way to notify the mDNS responder that the data in `Host` has changed.
+    // Not needed for this example, as the data is hard-coded.
     let signal = Signal::new();
 
     let mdns = io::Mdns::<NoopRawMutex, _, _, _, _>::new(
         Some(Ipv4Addr::UNSPECIFIED),
-        // No ipv6 up and running.
+        // No IPv6 network is up and running
         None,
         recv,
         send,
@@ -163,5 +195,5 @@ async fn run_mdns_task(stack: Stack<'static>, host: Host<'static>, service: Serv
         &host, &service,
     )))
     .await
-    .expect("mDNS task failed");
+    .expect("mDNS-SD task failed");
 }
