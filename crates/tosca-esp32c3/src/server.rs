@@ -1,5 +1,5 @@
 use core::fmt::{Debug, Display};
-use core::net::{Ipv4Addr, SocketAddr};
+use core::net::SocketAddr;
 use core::pin::Pin;
 
 use alloc::borrow::Cow;
@@ -31,15 +31,10 @@ use log::{error, info};
 use crate::device::{Device, InternalDevice};
 use crate::error::Error;
 use crate::mdns::Mdns;
+use crate::net::get_ip;
 use crate::parameters::ParametersPayloads;
 use crate::response::{ErrorResponse, InfoResponse, OkResponse, Response, SerialResponse};
 use crate::state::{State, ValueFromRef};
-
-// Default HTTP address.
-//
-// The entire local network is considered, so the Ipv4 unspecified address is
-// used.
-const DEFAULT_HTTP_ADDRESS: Ipv4Addr = Ipv4Addr::UNSPECIFIED;
 
 // Default port.
 const DEFAULT_SERVER_PORT: u16 = 80;
@@ -154,8 +149,6 @@ pub struct Server<
 > where
     S: ValueFromRef + Send + Sync + 'static,
 {
-    // HTTP address.
-    address: Ipv4Addr,
     // Server port.
     port: u16,
     // HTTP handler.
@@ -178,18 +171,10 @@ where
     #[inline]
     pub fn new(device: Device<S>, mdns: Mdns) -> Self {
         Self {
-            address: DEFAULT_HTTP_ADDRESS,
             port: DEFAULT_SERVER_PORT,
             handler: ServerHandler::new(device.into_internal()),
             mdns,
         }
-    }
-
-    /// Sets the `IPv4` address for the server.
-    #[must_use]
-    pub const fn address(mut self, address: Ipv4Addr) -> Self {
-        self.address = address;
-        self
     }
 
     /// Sets the port number for the server to listen on.
@@ -210,7 +195,9 @@ where
         let buffers = TcpBuffers::<SERVER_SOCKETS, TX_SIZE, RX_SIZE>::new();
         let tcp = Tcp::new(stack, &buffers);
 
-        let socket = SocketAddr::new(self.address.into(), self.port);
+        let address = get_ip(stack).await;
+
+        let socket = SocketAddr::new(address.into(), self.port);
 
         let acceptor = tcp.bind(socket).await?;
 
@@ -223,7 +210,7 @@ where
 
         info!(
             "Starting server on address `{}` and port `{}`",
-            self.address, self.port
+            address, self.port
         );
 
         // Run server.
