@@ -16,9 +16,9 @@ use crate::error::Result;
 
 const MILLISECONDS_TO_WAIT: u64 = 100;
 
-/// Retrieves the [`Ipv4Addr`] from the network stack.
+// Retrieves the IPV4 address from the network stack.
 #[inline]
-pub async fn get_ip(stack: Stack<'static>) -> Ipv4Addr {
+pub(crate) async fn get_ip(stack: Stack<'static>) -> Ipv4Addr {
     info!("Waiting till the link is up...");
     loop {
         if stack.is_link_up() {
@@ -30,7 +30,6 @@ pub async fn get_ip(stack: Stack<'static>) -> Ipv4Addr {
     info!("Waiting to get IP address...");
     loop {
         if let Some(config) = stack.config_v4() {
-            info!("Got IP: {}", config.address);
             return config.address.address();
         }
         Timer::after_millis(MILLISECONDS_TO_WAIT).await;
