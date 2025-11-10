@@ -35,7 +35,7 @@ reqwest.default-features = false
 reqwest.features = ["blocking", "json", "stream"]
 
 tokio.workspace = true
-tokio.features = ["macros", "rt", "rt-multi-thread", "time"]
+tokio.features = ["macros", "rt", "rt-multi-thread"]
 
 # Stream feature dependencies
 futures-util.version = "0.3.31"
