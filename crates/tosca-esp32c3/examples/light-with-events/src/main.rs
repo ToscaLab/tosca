@@ -30,7 +30,7 @@ use tosca_esp32c3::{
     devices::light::Light,
     events::{EventsConfig, EventsManager, broker::BrokerData, interrupt::Notifier},
     mdns::Mdns,
-    net::{NetworkStack, get_ip},
+    net::NetworkStack,
     parameters::ParametersPayloads,
     response::{ErrorResponse, OkResponse, SerialResponse},
     server::Server,
@@ -272,8 +272,6 @@ async fn main(spawner: Spawner) {
         .spawn(press_button(button))
         .expect("Impossible to spawn the task to press the button task");
 
-    let ip = get_ip(stack).await;
-
     let device = Light::new(&interfaces.ap)
         .turn_light_on_stateless_serial(
             LightOnRoute::put("On").description("Turn light on."),
@@ -316,7 +314,6 @@ async fn main(spawner: Spawner) {
         .expect("Failed to run the events manager");
 
     Server::<TX_SIZE, RX_SIZE, MAXIMUM_HEADERS_COUNT, TIMEOUT, _>::new(device, Mdns::new(rng))
-        .address(ip)
         .run(stack, spawner)
         .await
         .expect("Failed to run a server");

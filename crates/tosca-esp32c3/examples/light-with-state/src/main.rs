@@ -29,7 +29,7 @@ use embassy_time::Timer;
 use tosca_esp32c3::{
     devices::light::Light,
     mdns::Mdns,
-    net::{NetworkStack, get_ip},
+    net::NetworkStack,
     parameters::ParametersPayloads,
     response::{ErrorResponse, InfoResponse, OkResponse, SerialResponse},
     server::Server,
@@ -327,10 +327,7 @@ async fn main(spawner: Spawner) {
         )
         .build();
 
-    let ip = get_ip(stack).await;
-
     Server::<TX_SIZE, RX_SIZE, MAXIMUM_HEADERS_COUNT, TIMEOUT, _>::new(device, Mdns::new(rng))
-        .address(ip)
         .run(stack, spawner)
         .await
         .expect("Failed to run a server");
