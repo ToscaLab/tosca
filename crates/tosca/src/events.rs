@@ -357,3 +357,88 @@ impl EventsDescription {
         }
     }
 }
+
+#[cfg(test)]
+#[cfg(feature = "deserialize")]
+mod tests {
+    use core::net::Ipv4Addr;
+    use core::time::Duration;
+
+    use crate::{deserialize, serialize};
+
+    use super::{BrokerData, Event, Events, EventsDescription, PeriodicEvent, Topic};
+
+    const DEFAULT_DURATION: Duration = Duration::from_secs(1);
+
+    #[test]
+    fn test_all_event_kinds() {
+        let bool_event = Event::bool("bool_event").description("A bool event");
+        assert_eq!(
+            deserialize::<Event<bool>>(serialize(&bool_event)),
+            bool_event
+        );
+
+        let periodic_bool_event = PeriodicEvent::bool(bool_event, DEFAULT_DURATION);
+        assert_eq!(
+            deserialize::<PeriodicEvent<bool>>(serialize(&periodic_bool_event)),
+            periodic_bool_event
+        );
+
+        let u8_event = Event::u8("u8_event").description("An u8 event");
+        assert_eq!(deserialize::<Event<u8>>(serialize(&u8_event)), u8_event);
+
+        let periodic_u8_event = PeriodicEvent::u8(u8_event, DEFAULT_DURATION);
+        assert_eq!(
+            deserialize::<PeriodicEvent<u8>>(serialize(&periodic_u8_event)),
+            periodic_u8_event
+        );
+    }
+
+    #[test]
+    fn test_events_with_single_event_kind() {
+        let bool_event = Event::bool("bool_event").description("A bool event");
+
+        let mut events = Events::empty();
+        events.add_bool_event(bool_event);
+
+        assert_eq!(deserialize::<Events>(serialize(&events)), events);
+    }
+
+    #[test]
+    fn test_events_with_all_event_kinds() {
+        let bool_event = Event::bool("bool_event").description("A bool event");
+        let periodic_bool_event = PeriodicEvent::bool(bool_event.clone(), DEFAULT_DURATION);
+        let u8_event = Event::u8("u8_event").description("An u8 event");
+        let periodic_u8_event = PeriodicEvent::u8(u8_event.clone(), DEFAULT_DURATION);
+
+        let mut events = Events::empty();
+        events.add_bool_event(bool_event);
+        events.add_periodic_bool_event(periodic_bool_event);
+        events.add_u8_event(u8_event);
+        events.add_periodic_u8_event(periodic_u8_event);
+
+        assert_eq!(deserialize::<Events>(serialize(&events)), events);
+    }
+
+    #[test]
+    fn test_events_description() {
+        let broker_data = BrokerData::new(Ipv4Addr::LOCALHOST.into(), 80);
+        assert_eq!(
+            deserialize::<BrokerData>(serialize(&broker_data)),
+            broker_data
+        );
+
+        let topic = Topic::new("test".into());
+        assert_eq!(deserialize::<Topic>(serialize(&topic)), topic);
+
+        let bool_event = Event::bool("bool_event").description("A bool event");
+        let mut events = Events::empty();
+        events.add_bool_event(bool_event);
+
+        let events_description = EventsDescription::new(broker_data, topic, events);
+        assert_eq!(
+            deserialize::<EventsDescription>(serialize(&events_description)),
+            events_description
+        );
+    }
+}
