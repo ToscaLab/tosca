@@ -183,13 +183,13 @@ impl Topic {
 #[cfg_attr(feature = "deserialize", derive(serde::Deserialize))]
 /// All considered events of a system.
 pub struct Events {
-    #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(skip_serializing_if = "Vec::is_empty", default)]
     bool_events: Vec<Event<bool>>,
-    #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(skip_serializing_if = "Vec::is_empty", default)]
     u8_events: Vec<Event<u8>>,
-    #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(skip_serializing_if = "Vec::is_empty", default)]
     periodic_bool_events: Vec<PeriodicEvent<bool>>,
-    #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(skip_serializing_if = "Vec::is_empty", default)]
     periodic_u8_events: Vec<PeriodicEvent<u8>>,
 }
 
