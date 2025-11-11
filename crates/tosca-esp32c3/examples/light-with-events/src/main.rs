@@ -313,7 +313,8 @@ async fn main(spawner: Spawner) {
         .await
         .expect("Failed to run the events manager");
 
-    Server::<TX_SIZE, RX_SIZE, MAXIMUM_HEADERS_COUNT, TIMEOUT, _>::new(device, Mdns::new(rng))
+    Server::<TX_SIZE, RX_SIZE, MAXIMUM_HEADERS_COUNT, _>::new(device, Mdns::new(rng))
+        .keepalive_timeout(TIMEOUT)
         .run(stack, spawner)
         .await
         .expect("Failed to run a server");
