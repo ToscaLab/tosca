@@ -7,11 +7,11 @@ use tosca::parameters::{ParameterKind, Parameters, ParametersData};
 use tosca::response::ResponseKind;
 use tosca::route::{LightOffRoute, LightOnRoute, RestKind, Route};
 
-use tosca_os::actions::error::ErrorResponse;
-use tosca_os::actions::ok::{OkResponse, mandatory_ok_stateless};
-use tosca_os::actions::serial::{SerialResponse, serial_stateless};
 use tosca_os::devices::light::Light;
 use tosca_os::extract::Path;
+use tosca_os::responses::error::ErrorResponse;
+use tosca_os::responses::ok::{OkResponse, mandatory_ok_stateless};
+use tosca_os::responses::serial::{SerialResponse, serial_stateless};
 use tosca_os::server::Server;
 use tosca_os::service::ServiceConfig;
 
@@ -86,14 +86,14 @@ async fn light(
 
         device
             .main_route(FIRST_DEVICE_ROUTE)
-            .add_action(serial_stateless(toggle_route, toggle))
+            .add_response(serial_stateless(toggle_route, toggle))
             .unwrap()
     } else {
         device.main_route(SECOND_DEVICE_ROUTE)
     };
 
     info!(
-        "Inside the light device {} `toggle` action and port {port}",
+        "Inside the light device {} `toggle` response and port {port}",
         if with_toggle { "with" } else { "without" }
     );
 
