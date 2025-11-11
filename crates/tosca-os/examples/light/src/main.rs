@@ -9,13 +9,13 @@ use tosca::hazards::Hazard;
 use tosca::parameters::Parameters;
 use tosca::route::{LightOffRoute, LightOnRoute, Route};
 
-use tosca_os::actions::error::ErrorResponse;
-use tosca_os::actions::info::{InfoResponse, info_stateful};
-use tosca_os::actions::ok::{OkResponse, mandatory_ok_stateful, ok_stateful};
-use tosca_os::actions::serial::{SerialResponse, mandatory_serial_stateful, serial_stateful};
 use tosca_os::devices::light::Light;
 use tosca_os::error::Error;
 use tosca_os::extract::{FromRef, Json, State};
+use tosca_os::responses::error::ErrorResponse;
+use tosca_os::responses::info::{InfoResponse, info_stateful};
+use tosca_os::responses::ok::{OkResponse, mandatory_ok_stateful, ok_stateful};
+use tosca_os::responses::serial::{SerialResponse, mandatory_serial_stateful, serial_stateful};
 use tosca_os::server::Server;
 use tosca_os::service::{ServiceConfig, TransportProtocol};
 
@@ -266,10 +266,10 @@ async fn main() -> Result<(), Error> {
         .turn_light_on(light_on_route, mandatory_serial_stateful(turn_light_on))
         // This method is mandatory, if not called, a compiler error is raised.
         .turn_light_off(light_off_route, mandatory_ok_stateful(turn_light_off))
-        .add_action(serial_stateful(light_on_post_route, turn_light_on))?
-        .add_action(ok_stateful(toggle_route, toggle))?
-        .add_info_action(info_stateful(info_route, info))
-        .add_info_action(info_stateful(
+        .add_response(serial_stateful(light_on_post_route, turn_light_on))?
+        .add_response(ok_stateful(toggle_route, toggle))?
+        .add_info_response(info_stateful(info_route, info))
+        .add_info_response(info_stateful(
             update_energy_efficiency_route,
             update_energy_efficiency,
         ))

@@ -10,12 +10,12 @@ use tosca::hazards::Hazard;
 use tosca::parameters::Parameters;
 use tosca::route::Route;
 
-use tosca_os::actions::error::ErrorResponse;
-use tosca_os::actions::ok::ok_stateful;
-use tosca_os::actions::serial::{serial_stateful, serial_stateless};
-use tosca_os::actions::stream::stream_stateful;
 use tosca_os::device::Device;
 use tosca_os::error::Error;
+use tosca_os::responses::error::ErrorResponse;
+use tosca_os::responses::ok::ok_stateful;
+use tosca_os::responses::serial::{serial_stateful, serial_stateless};
+use tosca_os::responses::stream::stream_stateful;
 use tosca_os::server::Server;
 use tosca_os::service::{ServiceConfig, TransportProtocol};
 
@@ -190,26 +190,26 @@ fn change_format(device: Device<InternalState>) -> Device<InternalState> {
         );
 
     device
-        .add_action(serial_stateful(change_camera_route, change_camera))
-        .add_action(ok_stateful(change_format_random_route, format_random))
-        .add_action(ok_stateful(
+        .add_response(serial_stateful(change_camera_route, change_camera))
+        .add_response(ok_stateful(change_format_random_route, format_random))
+        .add_response(ok_stateful(
             change_format_absolute_highest_resolution_route,
             format_absolute_resolution,
         ))
-        .add_action(ok_stateful(
+        .add_response(ok_stateful(
             change_format_absolute_highest_framerate_route,
             format_absolute_framerate,
         ))
-        .add_action(ok_stateful(
+        .add_response(ok_stateful(
             change_format_highest_resolution_route,
             format_highest_resolution,
         ))
-        .add_action(ok_stateful(
+        .add_response(ok_stateful(
             change_format_highest_framerate_route,
             format_highest_framerate,
         ))
-        .add_action(ok_stateful(change_format_exact_route, format_exact))
-        .add_action(ok_stateful(change_format_closest_route, format_closest))
+        .add_response(ok_stateful(change_format_exact_route, format_exact))
+        .add_response(ok_stateful(change_format_closest_route, format_closest))
 }
 
 fn screenshot(device: Device<InternalState>) -> Device<InternalState> {
@@ -305,25 +305,25 @@ fn screenshot(device: Device<InternalState>) -> Device<InternalState> {
         );
 
     device
-        .add_action(stream_stateful(screenshot_random_route, screenshot_random))
-        .add_action(stream_stateful(
+        .add_response(stream_stateful(screenshot_random_route, screenshot_random))
+        .add_response(stream_stateful(
             screenshot_absolute_resolution_route,
             screenshot_absolute_resolution,
         ))
-        .add_action(stream_stateful(
+        .add_response(stream_stateful(
             screenshot_absolute_framerate_route,
             screenshot_absolute_framerate,
         ))
-        .add_action(stream_stateful(
+        .add_response(stream_stateful(
             screenshot_highest_resolution_route,
             screenshot_highest_resolution,
         ))
-        .add_action(stream_stateful(
+        .add_response(stream_stateful(
             screenshot_highest_framerate_route,
             screenshot_highest_framerate,
         ))
-        .add_action(stream_stateful(screenshot_exact_route, screenshot_exact))
-        .add_action(stream_stateful(
+        .add_response(stream_stateful(screenshot_exact_route, screenshot_exact))
+        .add_response(stream_stateful(
             screenshot_closest_route,
             screenshot_closest,
         ))
@@ -388,9 +388,9 @@ async fn main() -> Result<(), Error> {
     // A camera device which is going to be run on the server.
     let device = Device::with_state(InternalState::new(camera))
         .main_route("/camera")
-        .add_action(stream_stateful(camera_stream_route, show_camera_stream))
-        .add_action(serial_stateless(view_cameras_route, show_available_cameras))
-        .add_action(serial_stateful(camera_info_route, show_camera_info));
+        .add_response(stream_stateful(camera_stream_route, show_camera_stream))
+        .add_response(serial_stateless(view_cameras_route, show_available_cameras))
+        .add_response(serial_stateful(camera_info_route, show_camera_info));
 
     let device = change_format(device);
     let device = screenshot(device);

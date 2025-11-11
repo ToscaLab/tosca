@@ -1,7 +1,7 @@
 use std::io::Cursor;
 
-use tosca_os::actions::error::ErrorResponse;
-use tosca_os::actions::stream::StreamResponse;
+use tosca_os::responses::error::ErrorResponse;
+use tosca_os::responses::stream::StreamResponse;
 
 use tosca_os::extract::{State, header};
 

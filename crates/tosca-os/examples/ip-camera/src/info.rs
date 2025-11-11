@@ -1,6 +1,6 @@
-use tosca_os::actions::error::ErrorResponse;
-use tosca_os::actions::serial::SerialResponse;
 use tosca_os::extract::State;
+use tosca_os::responses::error::ErrorResponse;
+use tosca_os::responses::serial::SerialResponse;
 
 use nokhwa::{
     Camera,

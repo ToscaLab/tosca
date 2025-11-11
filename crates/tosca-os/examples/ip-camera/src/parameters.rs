@@ -1,7 +1,7 @@
-use tosca_os::actions::error::ErrorResponse;
-use tosca_os::actions::ok::OkResponse;
-use tosca_os::actions::serial::SerialResponse;
 use tosca_os::extract::{Json, Path, State};
+use tosca_os::responses::error::ErrorResponse;
+use tosca_os::responses::ok::OkResponse;
+use tosca_os::responses::serial::SerialResponse;
 
 use nokhwa::{
     query,
