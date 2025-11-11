@@ -18,7 +18,7 @@ use tosca::route::{RestKind, RouteConfig};
 use edge_http::io::Body;
 use edge_http::io::server::{Connection, Handler, Server as EdgeServer};
 use edge_http::{Headers, Method};
-use edge_nal::TcpBind;
+use edge_nal::{TcpBind, WithTimeout};
 use edge_nal_embassy::{Tcp, TcpBuffers};
 
 use embassy_executor::Spawner;
@@ -139,14 +139,52 @@ impl FuncIndex {
     }
 }
 
+fn with_timeout<T>(timeout_ms: u32, io: T) -> WithTimeout<T> {
+    WithTimeout::new(timeout_ms, io)
+}
+
 /// The `tosca` server.
-pub struct Server<
-    const TX_SIZE: usize,
-    const RX_SIZE: usize,
-    const MAXIMUM_HEADERS_COUNT: usize,
-    const TIMEOUT: u32,
-    S,
-> where
+///
+/// ## Parameters
+///
+/// - **`port`**
+///   The TCP port on which the server listens for incoming connections.
+///   Defaults to `80`.
+///   See [`Server::port()`] to configure this.
+///
+/// - **`keepalive_timeout_ms`**
+///   Optional timeout (in milliseconds) for detecting an idle persistent
+///   HTTP keep-alive connection, where multiple requests can be sent over
+///   the same TCP connection without reopening it.
+///   The default value is `None`, meaning that idle connections are never
+///   closed due to inactivity; if no other timeouts are set, they remain
+///   open indefinitely.
+///   See [`Server::keepalive_timeout()`] to configure this.
+///
+/// - **`io_timeout_ms`**
+///   Optional timeout (in milliseconds) for socket I/O operations.
+///   The default value is `None`, meaning that read and write operations
+///   never time out.
+///   See [`Server::io_timeout()`].
+///
+/// - **`handler_timeout_ms`**
+///   Optional timeout (in milliseconds) for handler execution.
+///   The default value is `None`, meaning that request handlers are not
+///   interrupted by timeouts.
+///   See [`Server::handler_timeout()`].
+///
+/// ## Known Issue
+///
+/// In `edge-net`
+/// ([issue #62](https://github.com/sysgrok/edge-net/issues/62)),
+/// connection reuse may cause some clients — notably `curl` —
+/// to fail when sending multiple requests over a single
+/// keep-alive session using `keepalive_timeout_ms`.
+/// To ensure correct sequential request handling with `curl`,
+/// include `Connection: close` in the request headers
+/// until the issue is resolved.
+pub struct Server<const TX_SIZE: usize, const RX_SIZE: usize, const MAXIMUM_HEADERS_COUNT: usize, S>
+where
     S: ValueFromRef + Send + Sync + 'static,
 {
     // Server port.
@@ -155,15 +193,16 @@ pub struct Server<
     handler: ServerHandler<S>,
     // mDNS
     mdns: Mdns,
+    // Keepalive timeout.
+    keepalive_timeout_ms: Option<u32>,
+    // Socket I/O operations timeout.
+    io_timeout_ms: Option<u32>,
+    // Handler timeout.
+    handler_timeout_ms: Option<u32>,
 }
 
-impl<
-    const TX_SIZE: usize,
-    const RX_SIZE: usize,
-    const MAXIMUM_HEADERS_COUNT: usize,
-    const TIMEOUT: u32,
-    S,
-> Server<TX_SIZE, RX_SIZE, MAXIMUM_HEADERS_COUNT, TIMEOUT, S>
+impl<const TX_SIZE: usize, const RX_SIZE: usize, const MAXIMUM_HEADERS_COUNT: usize, S>
+    Server<TX_SIZE, RX_SIZE, MAXIMUM_HEADERS_COUNT, S>
 where
     S: ValueFromRef + Send + Sync + 'static,
 {
@@ -174,6 +213,9 @@ where
             port: DEFAULT_SERVER_PORT,
             handler: ServerHandler::new(device.into_internal()),
             mdns,
+            keepalive_timeout_ms: None,
+            io_timeout_ms: None,
+            handler_timeout_ms: None,
         }
     }
 
@@ -181,6 +223,27 @@ where
     #[must_use]
     pub const fn port(mut self, port: u16) -> Self {
         self.port = port;
+        self
+    }
+
+    /// Sets the timeout (in milliseconds) for persistent HTTP keep-alive connections.
+    #[must_use]
+    pub const fn keepalive_timeout(mut self, timeout_ms: u32) -> Self {
+        self.keepalive_timeout_ms = Some(timeout_ms);
+        self
+    }
+
+    /// Sets the timeout (in milliseconds) for socket I/O operations.
+    #[must_use]
+    pub const fn io_timeout(mut self, timeout_ms: u32) -> Self {
+        self.io_timeout_ms = Some(timeout_ms);
+        self
+    }
+
+    /// Sets the timeout (in milliseconds) for handler execution.
+    #[must_use]
+    pub const fn handler_timeout(mut self, timeout_ms: u32) -> Self {
+        self.handler_timeout_ms = Some(timeout_ms);
         self
     }
 
@@ -192,30 +255,64 @@ where
     /// - Failure to spawn the `mDNS` task
     /// - Failure to run the server
     pub async fn run(self, stack: Stack<'static>, spawner: Spawner) -> Result<(), Error> {
+        let Server {
+            port,
+            handler,
+            mdns,
+            keepalive_timeout_ms,
+            io_timeout_ms,
+            handler_timeout_ms,
+        } = self;
+
         let buffers = TcpBuffers::<SERVER_SOCKETS, TX_SIZE, RX_SIZE>::new();
         let tcp = Tcp::new(stack, &buffers);
 
         let address = get_ip(stack).await;
-
-        let socket = SocketAddr::new(address.into(), self.port);
+        let socket = SocketAddr::new(address.into(), port);
 
         let acceptor = tcp.bind(socket).await?;
-
-        let mut server = EdgeServer::<SERVER_SOCKETS, RX_SIZE, MAXIMUM_HEADERS_COUNT>::new();
 
         // Run mdns.
         //
         // NOTE: Use the same server port for the mDNS-SD service
-        self.mdns.run(stack, address, self.port, spawner)?;
+        mdns.run(stack, address, port, spawner)?;
 
-        info!(
-            "Starting server on address `{}` and port `{}`",
-            address, self.port
-        );
+        info!("Starting server on address `{address}` and port `{port}`");
+
+        match (io_timeout_ms, handler_timeout_ms) {
+            (Some(ta), Some(th)) => {
+                Self::run_server(
+                    keepalive_timeout_ms,
+                    with_timeout(ta, acceptor),
+                    with_timeout(th, handler),
+                )
+                .await
+            }
+            (Some(ta), None) => {
+                Self::run_server(keepalive_timeout_ms, with_timeout(ta, acceptor), handler).await
+            }
+            (None, Some(th)) => {
+                Self::run_server(keepalive_timeout_ms, acceptor, with_timeout(th, handler)).await
+            }
+            (None, None) => Self::run_server(keepalive_timeout_ms, acceptor, handler).await,
+        }
+    }
+
+    async fn run_server<A, H>(
+        keepalive_timeout_ms: Option<u32>,
+        acceptor: A,
+        handler: H,
+    ) -> Result<(), Error>
+    where
+        A: edge_nal::TcpAccept,
+        H: Handler,
+        Error: From<A::Error>,
+    {
+        let mut server = EdgeServer::<SERVER_SOCKETS, RX_SIZE, MAXIMUM_HEADERS_COUNT>::new();
 
         // Run server.
         server
-            .run(Some(TIMEOUT), acceptor, self.handler)
+            .run(keepalive_timeout_ms, acceptor, handler)
             .await
             .map_err(core::convert::Into::into)
     }

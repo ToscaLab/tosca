@@ -205,8 +205,11 @@ impl From<rust_mqtt::packet::v5::reason_codes::ReasonCode> for Error {
     }
 }
 
-impl From<edge_http::io::Error<edge_nal_embassy::TcpError>> for Error {
-    fn from(e: edge_http::io::Error<edge_nal_embassy::TcpError>) -> Self {
+impl<E> From<edge_http::io::Error<E>> for Error
+where
+    E: Into<Error>,
+{
+    fn from(e: edge_http::io::Error<E>) -> Self {
         use edge_http::HeadersMismatchError;
         use edge_http::io::Error;
         use edge_http::ws::UpgradeError;
@@ -238,7 +241,7 @@ impl From<edge_http::io::Error<edge_nal_embassy::TcpError>> for Error {
                     Self::new(ErrorKind::Server, "Unsupported `Sec-WebSocket-Version`")
                 }
             },
-            Error::Io(e) => Self::from(e),
+            Error::Io(e) => e.into(),
         }
     }
 }
@@ -290,6 +293,16 @@ impl From<edge_nal_embassy::TcpError> for Error {
             },
             TcpError::NoBuffers => Self::new(ErrorKind::Tcp, "No buffers available"),
             TcpError::UnsupportedProto => Self::new(ErrorKind::Tcp, "Unsupported protocol"),
+        }
+    }
+}
+
+impl From<edge_nal::WithTimeoutError<edge_nal_embassy::TcpError>> for Error {
+    fn from(e: edge_nal::WithTimeoutError<edge_nal_embassy::TcpError>) -> Self {
+        use edge_nal::WithTimeoutError;
+        match e {
+            WithTimeoutError::Timeout => Self::new(ErrorKind::Timeout, "Operation timed out"),
+            WithTimeoutError::Error(e) => Self::from(e),
         }
     }
 }
