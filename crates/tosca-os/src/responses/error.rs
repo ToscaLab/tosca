@@ -9,7 +9,7 @@ use axum::{
 /// A response providing details about an error encountered during a
 /// device operation.
 ///
-/// Contains the [`tosca::response::ErrorKind`], a general error description,
+/// Contains an [`ErrorKind`], a general error description,
 /// and optional information about the encountered error.
 pub struct ErrorResponse(Response);
 
@@ -17,8 +17,7 @@ impl ErrorResponse {
     /// Generates an [`ErrorResponse`] containing an
     /// [`tosca::response::ErrorResponse`].
     ///
-    /// Requires specifying the [`ErrorKind`] kind and a general
-    /// description.
+    /// Requires specifying an [`ErrorKind`] and a general description.
     #[must_use]
     #[inline]
     pub fn with_description(error: ErrorKind, description: &str) -> Self {
@@ -29,7 +28,7 @@ impl ErrorResponse {
     /// Generates an [`ErrorResponse`] containing an
     /// [`tosca::response::ErrorResponse`].
     ///
-    /// Requires specifying the [`ErrorKind`] kind, a general error
+    /// Requires specifying an [`ErrorKind`], a general error
     /// description, and optional information about the encountered error.
     #[must_use]
     #[inline]
@@ -40,7 +39,6 @@ impl ErrorResponse {
 
     /// Generates an [`ErrorResponse`] for invalid data.
     ///
-    ///
     /// Requires specifying a general error description.
     #[must_use]
     #[inline]
@@ -49,7 +47,6 @@ impl ErrorResponse {
     }
 
     /// Generates an [`ErrorResponse`] for invalid data.
-    ///
     ///
     /// Requires specifying a general error description and optional
     /// information about the encountered error.

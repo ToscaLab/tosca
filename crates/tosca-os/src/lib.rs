@@ -14,23 +14,21 @@
 //!
 //! A description is defined as a sequence of fields, such as
 //! the device name, kind, and other information to set a secure
-//! communication channel. However, the sets of actions are the ones which
-//! better characterize a device.
+//! communication channel.
 //!
-//! An **action** represents a sequence of one or more operations executed
-//! on a device when an external device invokes a determined server route.
-//! Each action is **always** coupled with a route which can have zero or
-//! more hazards.
+//! When a controller makes a `REST` request to a server invoking a specific
+//! route, one or more associated operations are performed on the device.
 //!
-//! If an action has no hazards, that action might arise unknown dangers. It
-//! will be a controller responsibility to evaluate if the invoked action must
-//! be blocked or not.
+//! Each route may have zero or more associated hazards.
+//! If a route has no hazards, it could still pose unknown risks to the device.
+//! In such cases, it is the responsibility of the controller to evaluate
+//! whether the request should be blocked based on the potential hazards for the
+//! device.
 //!
-//! This crate cannot check at compile time all possible effects which
-//! might occur in a determined environment while an action is executed.
-//! Indeed, hazards represent only informative data usable by a controller,
-//! to block or allow the invocation of an action according to
-//! some privacy policies.
+//! This crate cannot determine the outcome of device operations at compile
+//! time, as they are dependant on the runtime environment. As such, hazards are
+//! informational only, aiding the controller in deciding about whether to allow
+//! or block a request based on privacy policies.
 //!
 //! An `std` environment is mandatory to make a full usage of the provided
 //! functionalities.
@@ -41,12 +39,12 @@
 /// All device kinds implementable in a firmware.
 pub mod devices;
 
-/// All action kinds with their payloads.
-pub mod actions;
-/// Methods to define a device and its actions.
+/// Methods for defining a device and its associated operations.
 pub mod device;
 /// Error handling.
 pub mod error;
+/// All responses kinds and their payloads.
+pub mod responses;
 /// Methods to define and run the server which represents the firmware.
 pub mod server;
 /// Methods to define and run the discovery service necessary to detect a

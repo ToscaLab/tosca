@@ -12,7 +12,7 @@ use axum::{
 
 use serde::Serialize;
 
-use super::{DeviceAction, MandatoryAction, error::ErrorResponse};
+use super::{BaseResponse, MandatoryResponse, error::ErrorResponse};
 
 /// A response which transmits a JSON message over the network containing
 /// the data produced during a device operation.
@@ -20,7 +20,7 @@ use super::{DeviceAction, MandatoryAction, error::ErrorResponse};
 pub struct SerialResponse<T: Serialize>(ToscaSerialResponse<T>);
 
 impl<T: Serialize> SerialResponse<T> {
-    /// Generates a [`SerialResponse`].
+    /// Creates a [`SerialResponse`].
     #[must_use]
     pub const fn new(data: T) -> Self {
         Self(ToscaSerialResponse::new(data))
@@ -62,18 +62,18 @@ macro_rules! impl_serial_type_name {
 
 super::all_the_tuples!(impl_serial_type_name);
 
-/// Creates a mandatory stateful [`DeviceAction`] with a [`SerialResponse`].
+/// Creates a stateful [`MandatoryResponse`] from a [`SerialResponse`].
 #[inline]
 pub fn mandatory_serial_stateful<H, T, S>(
     handler: H,
-) -> impl FnOnce(Route, S) -> MandatoryAction<false>
+) -> impl FnOnce(Route, S) -> MandatoryResponse<false>
 where
     H: Handler<T, S> + private::SerialTypeName<T>,
     T: 'static,
     S: Clone + Send + Sync + 'static,
 {
     move |route: Route, state: S| {
-        MandatoryAction::new(DeviceAction::stateful(
+        MandatoryResponse::new(BaseResponse::stateful(
             route,
             ResponseKind::Serial,
             handler,
@@ -82,29 +82,29 @@ where
     }
 }
 
-/// Creates a stateful [`DeviceAction`] with a [`SerialResponse`].
+/// Creates a stateful [`BaseResponse`] from a [`SerialResponse`].
 #[inline]
-pub fn serial_stateful<H, T, S>(route: Route, handler: H) -> impl FnOnce(S) -> DeviceAction
+pub fn serial_stateful<H, T, S>(route: Route, handler: H) -> impl FnOnce(S) -> BaseResponse
 where
     H: Handler<T, S> + private::SerialTypeName<T>,
     T: 'static,
     S: Clone + Send + Sync + 'static,
 {
-    move |state: S| DeviceAction::stateful(route, ResponseKind::Serial, handler, state)
+    move |state: S| BaseResponse::stateful(route, ResponseKind::Serial, handler, state)
 }
 
-/// Creates a mandatory stateless [`DeviceAction`] with a [`SerialResponse`].
+/// Creates a stateless [`MandatoryResponse`] from a [`SerialResponse`].
 #[inline]
 pub fn mandatory_serial_stateless<H, T, S>(
     handler: H,
-) -> impl FnOnce(Route, S) -> MandatoryAction<false>
+) -> impl FnOnce(Route, S) -> MandatoryResponse<false>
 where
     H: Handler<T, ()> + private::SerialTypeName<T>,
     T: 'static,
     S: Clone + Send + Sync + 'static,
 {
     move |route: Route, _state: S| {
-        MandatoryAction::new(DeviceAction::stateless(
+        MandatoryResponse::new(BaseResponse::stateless(
             route,
             ResponseKind::Serial,
             handler,
@@ -112,13 +112,13 @@ where
     }
 }
 
-/// Creates a stateless [`DeviceAction`] with a [`SerialResponse`].
+/// Creates a stateless [`BaseResponse`] from a [`SerialResponse`].
 #[inline]
-pub fn serial_stateless<H, T, S>(route: Route, handler: H) -> impl FnOnce(S) -> DeviceAction
+pub fn serial_stateless<H, T, S>(route: Route, handler: H) -> impl FnOnce(S) -> BaseResponse
 where
     H: Handler<T, ()> + private::SerialTypeName<T>,
     T: 'static,
     S: Clone + Send + Sync + 'static,
 {
-    move |_state: S| DeviceAction::stateless(route, ResponseKind::Serial, handler)
+    move |_state: S| BaseResponse::stateless(route, ResponseKind::Serial, handler)
 }

@@ -16,14 +16,14 @@ use futures_core::TryStream;
 use tokio::io::AsyncRead;
 use tokio_util::io::ReaderStream;
 
-use super::{DeviceAction, MandatoryAction, error::ErrorResponse};
+use super::{BaseResponse, MandatoryResponse, error::ErrorResponse};
 
-/// A response which transmits a stream of data, represented as a
-/// sequence of bytes, over the network.
+/// A response that transmits a stream of data as a sequence of bytes
+/// over the network.
 pub struct StreamResponse(Response);
 
 impl StreamResponse {
-    /// Generates a [`StreamResponse`] from headers and stream.
+    /// Creates a [`StreamResponse`] from headers and byte stream.
     #[inline]
     pub fn from_headers_stream<const N: usize, S>(
         headers: [(HeaderName, &str); N],
@@ -37,7 +37,7 @@ impl StreamResponse {
         Self((headers, Body::from_stream(stream)).into_response())
     }
 
-    /// Generates a [`StreamResponse`] from a stream.
+    /// Creates a [`StreamResponse`] from a byte stream.
     #[inline]
     pub fn from_stream<S>(stream: S) -> Self
     where
@@ -48,7 +48,8 @@ impl StreamResponse {
         Self(Body::from_stream(stream).into_response())
     }
 
-    /// Generates a [`StreamResponse`] from headers and reader.
+    /// Creates a [`StreamResponse`] from headers and
+    /// an asynchronous byte reader.
     #[inline]
     pub fn from_headers_reader<const N: usize, R>(
         headers: [(HeaderName, &str); N],
@@ -61,7 +62,7 @@ impl StreamResponse {
         Self((headers, Body::from_stream(stream)).into_response())
     }
 
-    /// Generates a [`StreamResponse`] from a reader.
+    /// Creates a [`StreamResponse`] from an asynchronous byte reader.
     #[inline]
     pub fn from_reader<R>(reader: R) -> Self
     where
@@ -104,18 +105,18 @@ macro_rules! impl_empty_type_name {
 }
 super::all_the_tuples!(impl_empty_type_name);
 
-/// Creates a mandatory stateful [`DeviceAction`] with a [`StreamResponse`].
+/// Creates a stateful [`MandatoryResponse`] from a [`StreamResponse`].
 #[inline]
 pub fn mandatory_stream_stateful<H, T, S>(
     handler: H,
-) -> impl FnOnce(Route, S) -> MandatoryAction<false>
+) -> impl FnOnce(Route, S) -> MandatoryResponse<false>
 where
     H: Handler<T, S> + private::StreamTypeName<T>,
     T: 'static,
     S: Clone + Send + Sync + 'static,
 {
     move |route: Route, state: S| {
-        MandatoryAction::new(DeviceAction::stateful(
+        MandatoryResponse::new(BaseResponse::stateful(
             route,
             ResponseKind::Stream,
             handler,
@@ -124,29 +125,29 @@ where
     }
 }
 
-/// Creates a stateful [`DeviceAction`] with a [`StreamResponse`].
+/// Creates a stateful [`BaseResponse`] from a [`StreamResponse`].
 #[inline]
-pub fn stream_stateful<H, T, S>(route: Route, handler: H) -> impl FnOnce(S) -> DeviceAction
+pub fn stream_stateful<H, T, S>(route: Route, handler: H) -> impl FnOnce(S) -> BaseResponse
 where
     H: Handler<T, S> + private::StreamTypeName<T>,
     T: 'static,
     S: Clone + Send + Sync + 'static,
 {
-    move |state: S| DeviceAction::stateful(route, ResponseKind::Stream, handler, state)
+    move |state: S| BaseResponse::stateful(route, ResponseKind::Stream, handler, state)
 }
 
-/// Creates a mandatory stateless [`DeviceAction`] with a [`StreamResponse`].
+/// Creates a stateless [`MandatoryResponse`] from a [`StreamResponse`].
 #[inline]
 pub fn mandatory_stream_stateless<H, T, S>(
     handler: H,
-) -> impl FnOnce(Route, S) -> MandatoryAction<false>
+) -> impl FnOnce(Route, S) -> MandatoryResponse<false>
 where
     H: Handler<T, ()> + private::StreamTypeName<T>,
     T: 'static,
     S: Clone + Send + Sync + 'static,
 {
     move |route: Route, _state: S| {
-        MandatoryAction::new(DeviceAction::stateless(
+        MandatoryResponse::new(BaseResponse::stateless(
             route,
             ResponseKind::Stream,
             handler,
@@ -154,13 +155,13 @@ where
     }
 }
 
-/// Creates a stateless [`DeviceAction`] with a [`StreamResponse`].
+/// Creates a stateless [`BaseResponse`] from a [`StreamResponse`].
 #[inline]
-pub fn stream_stateless<H, T, S>(route: Route, handler: H) -> impl FnOnce(S) -> DeviceAction
+pub fn stream_stateless<H, T, S>(route: Route, handler: H) -> impl FnOnce(S) -> BaseResponse
 where
     H: Handler<T, ()> + private::StreamTypeName<T>,
     T: 'static,
     S: Clone + Send + Sync + 'static,
 {
-    move |_state: S| DeviceAction::stateless(route, ResponseKind::Stream, handler)
+    move |_state: S| BaseResponse::stateless(route, ResponseKind::Stream, handler)
 }

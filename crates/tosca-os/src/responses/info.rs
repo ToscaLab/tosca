@@ -13,15 +13,15 @@ use axum::{
 
 use serde::Serialize;
 
-use super::{DeviceAction, error::ErrorResponse};
+use super::{BaseResponse, error::ErrorResponse};
 
 /// A response which transmits a JSON message over the network containing
-/// a device's energy and economy information.
+/// energy and economy data for a device.
 #[derive(Serialize)]
 pub struct InfoResponse(ToscaInfoResponse);
 
 impl InfoResponse {
-    /// Generates an [`InfoResponse`].
+    /// Creates an [`InfoResponse`].
     #[must_use]
     pub const fn new(info: DeviceInfo) -> Self {
         Self(ToscaInfoResponse::new(info))
@@ -60,24 +60,24 @@ macro_rules! impl_info_type_name {
 }
 super::all_the_tuples!(impl_info_type_name);
 
-/// Creates a stateful [`DeviceAction`] with an [`InfoResponse`].
-pub fn info_stateful<H, T, S, I>(route: Route, handler: H) -> impl FnOnce(S, I) -> DeviceAction
+/// Creates a stateful [`BaseResponse`] from an [`InfoResponse`].
+pub fn info_stateful<H, T, S, I>(route: Route, handler: H) -> impl FnOnce(S, I) -> BaseResponse
 where
     H: Handler<T, S> + private::InfoTypeName<T>,
     T: 'static,
     S: Clone + Send + Sync + 'static,
     I: 'static,
 {
-    move |state: S, _: I| DeviceAction::stateful(route, ResponseKind::Info, handler, state)
+    move |state: S, _: I| BaseResponse::stateful(route, ResponseKind::Info, handler, state)
 }
 
-/// Creates a stateless [`DeviceAction`] with an [`InfoResponse`].
-pub fn info_stateless<H, T, S, I>(route: Route, handler: H) -> impl FnOnce(S, I) -> DeviceAction
+/// Creates a stateless [`BaseResponse`] from an [`InfoResponse`].
+pub fn info_stateless<H, T, S, I>(route: Route, handler: H) -> impl FnOnce(S, I) -> BaseResponse
 where
     H: Handler<T, ()> + private::InfoTypeName<T>,
     T: 'static,
     S: Clone + Send + Sync + 'static,
     I: 'static,
 {
-    move |_state: S, _: I| DeviceAction::stateless(route, ResponseKind::Info, handler)
+    move |_state: S, _: I| BaseResponse::stateless(route, ResponseKind::Info, handler)
 }

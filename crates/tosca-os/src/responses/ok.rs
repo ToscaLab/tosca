@@ -12,7 +12,7 @@ use axum::{
 
 use serde::Serialize;
 
-use super::{DeviceAction, MandatoryAction, error::ErrorResponse};
+use super::{BaseResponse, MandatoryResponse, error::ErrorResponse};
 
 /// A response which transmits a concise JSON message over the network to notify
 /// a controller that an operation completed successfully.
@@ -20,7 +20,7 @@ use super::{DeviceAction, MandatoryAction, error::ErrorResponse};
 pub struct OkResponse(ToscaOkResponse);
 
 impl OkResponse {
-    /// Generates an [`OkResponse`].
+    /// Creates an [`OkResponse`].
     #[must_use]
     #[inline]
     pub fn ok() -> Self {
@@ -60,16 +60,18 @@ macro_rules! impl_ok_type_name {
 }
 super::all_the_tuples!(impl_ok_type_name);
 
-/// Creates a mandatory stateful [`DeviceAction`] with an [`OkResponse`].
+/// Creates a stateful [`MandatoryResponse`] from an [`OkResponse`].
 #[inline]
-pub fn mandatory_ok_stateful<H, T, S>(handler: H) -> impl FnOnce(Route, S) -> MandatoryAction<false>
+pub fn mandatory_ok_stateful<H, T, S>(
+    handler: H,
+) -> impl FnOnce(Route, S) -> MandatoryResponse<false>
 where
     H: Handler<T, S> + private::OkTypeName<T>,
     T: 'static,
     S: Clone + Send + Sync + 'static,
 {
     move |route: Route, state: S| {
-        MandatoryAction::new(DeviceAction::stateful(
+        MandatoryResponse::new(BaseResponse::stateful(
             route,
             ResponseKind::Ok,
             handler,
@@ -78,39 +80,39 @@ where
     }
 }
 
-/// Creates a stateful [`DeviceAction`] with an [`OkResponse`].
+/// Creates a stateful [`BaseResponse`] from an [`OkResponse`].
 #[inline]
-pub fn ok_stateful<H, T, S>(route: Route, handler: H) -> impl FnOnce(S) -> DeviceAction
+pub fn ok_stateful<H, T, S>(route: Route, handler: H) -> impl FnOnce(S) -> BaseResponse
 where
     H: Handler<T, S> + private::OkTypeName<T>,
     T: 'static,
     S: Clone + Send + Sync + 'static,
 {
-    move |state: S| DeviceAction::stateful(route, ResponseKind::Ok, handler, state)
+    move |state: S| BaseResponse::stateful(route, ResponseKind::Ok, handler, state)
 }
 
-/// Creates a mandatory stateless [`DeviceAction`] with an [`OkResponse`].
+/// Creates a stateless [`MandatoryResponse`] from an [`OkResponse`].
 #[inline]
 pub fn mandatory_ok_stateless<H, T, S>(
     handler: H,
-) -> impl FnOnce(Route, S) -> MandatoryAction<false>
+) -> impl FnOnce(Route, S) -> MandatoryResponse<false>
 where
     H: Handler<T, ()> + private::OkTypeName<T>,
     T: 'static,
     S: Clone + Send + Sync + 'static,
 {
     move |route: Route, _state: S| {
-        MandatoryAction::new(DeviceAction::stateless(route, ResponseKind::Ok, handler))
+        MandatoryResponse::new(BaseResponse::stateless(route, ResponseKind::Ok, handler))
     }
 }
 
-/// Creates a stateless [`DeviceAction`] with an [`OkResponse`].
+/// Creates a stateless [`BaseResponse`] from an [`OkResponse`].
 #[inline]
-pub fn ok_stateless<H, T, S>(route: Route, handler: H) -> impl FnOnce(S) -> DeviceAction
+pub fn ok_stateless<H, T, S>(route: Route, handler: H) -> impl FnOnce(S) -> BaseResponse
 where
     H: Handler<T, ()> + private::OkTypeName<T>,
     T: 'static,
     S: Clone + Send + Sync + 'static,
 {
-    move |_state: S| DeviceAction::stateless(route, ResponseKind::Ok, handler)
+    move |_state: S| BaseResponse::stateless(route, ResponseKind::Ok, handler)
 }

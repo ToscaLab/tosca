@@ -5,8 +5,8 @@ use axum::Router;
 
 use tracing::{info, warn};
 
-use crate::actions::DeviceAction;
 use crate::mac::get_mac_addresses;
+use crate::responses::BaseResponse;
 
 // Default main route for a device.
 const DEFAULT_MAIN_ROUTE: &str = "/device";
@@ -64,19 +64,22 @@ where
         self
     }
 
-    /// Adds an action to the [`Device`].
+    /// Adds a [`BaseResponse`] to the [`Device`].
     #[must_use]
     #[inline]
-    pub fn add_action(self, device_action: impl FnOnce(S) -> DeviceAction) -> Self {
-        let device_action = device_action(self.state.clone());
-        self.add_device_action(device_action)
+    pub fn add_response(self, base_response: impl FnOnce(S) -> BaseResponse) -> Self {
+        let base_response = base_response(self.state.clone());
+        self.add_base_response(base_response)
     }
 
-    /// Adds an informative action to the [`Device`].
+    /// Adds an informational response to the [`Device`].
     #[must_use]
-    pub fn add_info_action(self, device_info_action: impl FnOnce(S, ()) -> DeviceAction) -> Self {
-        let device_info_action = device_info_action(self.state.clone(), ());
-        self.add_device_action(device_info_action)
+    pub fn add_info_response(
+        self,
+        device_info_response: impl FnOnce(S, ()) -> BaseResponse,
+    ) -> Self {
+        let base_response = device_info_response(self.state.clone(), ());
+        self.add_base_response(base_response)
     }
 
     pub(crate) fn init(kind: DeviceKind, state: S) -> Self {
@@ -90,21 +93,21 @@ where
         }
     }
 
-    pub(crate) fn add_device_action(mut self, device_action: DeviceAction) -> Self {
-        self.router = self.router.merge(device_action.router);
-        self.route_configs.add(device_action.route_config);
+    pub(crate) fn add_base_response(mut self, base_response: BaseResponse) -> Self {
+        self.router = self.router.merge(base_response.router);
+        self.route_configs.add(base_response.route_config);
         self
     }
 
-    pub(crate) fn add_mandatory_actions<I>(mut self, actions: I) -> Self
+    pub(crate) fn add_mandatory_responses<I>(mut self, responses: I) -> Self
     where
-        I: IntoIterator<Item = DeviceAction>,
+        I: IntoIterator<Item = BaseResponse>,
     {
         let mut mandatory_routes = RouteConfigs::new();
-        for action in actions {
-            self.router = self.router.merge(action.router);
+        for response in responses {
+            self.router = self.router.merge(response.router);
             self.num_mandatory_routes += 1;
-            mandatory_routes.add(action.route_config);
+            mandatory_routes.add(response.route_config);
         }
 
         self.route_configs = mandatory_routes.merge(self.route_configs);
@@ -156,9 +159,9 @@ mod tests {
 
     use tokio::sync::Mutex;
 
-    use crate::actions::error::ErrorResponse;
-    use crate::actions::info::{InfoResponse, info_stateful};
-    use crate::actions::serial::{SerialResponse, serial_stateful, serial_stateless};
+    use crate::responses::error::ErrorResponse;
+    use crate::responses::info::{InfoResponse, info_stateful};
+    use crate::responses::serial::{SerialResponse, serial_stateful, serial_stateless};
 
     use super::Device;
 
@@ -249,7 +252,7 @@ mod tests {
         parameter: f64,
     }
 
-    async fn serial_action_with_state(
+    async fn serial_response_with_state(
         State(_state): State<DeviceState<()>>,
         Json(inputs): Json<Inputs>,
     ) -> Result<SerialResponse<DeviceResponse>, ErrorResponse> {
@@ -258,7 +261,7 @@ mod tests {
         }))
     }
 
-    async fn serial_action_with_substate1(
+    async fn serial_response_with_substate1(
         State(_state): State<SubState>,
         Json(inputs): Json<Inputs>,
     ) -> Result<SerialResponse<DeviceResponse>, ErrorResponse> {
@@ -276,7 +279,7 @@ mod tests {
     // This method is just a demonstration of this library flexibility,
     // but we do not recommend it because a DeviceInfo inside a SerialResponse
     // could be ignored as response by a receiver.
-    async fn serial_action_with_substate2(
+    async fn serial_response_with_substate2(
         State(state): State<DeviceInfoState>,
         Json(inputs): Json<Inputs>,
     ) -> Result<SerialResponse<DeviceInfoResponse>, ErrorResponse> {
@@ -292,7 +295,7 @@ mod tests {
         }))
     }
 
-    async fn info_action_with_substate3(
+    async fn info_response_with_substate3(
         State(state): State<DeviceInfoState>,
     ) -> Result<InfoResponse, ErrorResponse> {
         // Retrieve internal state.
@@ -304,7 +307,7 @@ mod tests {
         Ok(InfoResponse::new(device_info.clone()))
     }
 
-    async fn serial_action_without_state(
+    async fn serial_response_without_state(
         Json(inputs): Json<Inputs>,
     ) -> Result<SerialResponse<DeviceResponse>, ErrorResponse> {
         Ok(SerialResponse::new(DeviceResponse {
@@ -320,11 +323,11 @@ mod tests {
     #[inline]
     fn create_routes() -> AllRoutes {
         AllRoutes {
-            with_state_route: Route::put("State action", "/state-action")
-                .description("Run action with state."),
+            with_state_route: Route::put("State response", "/state-response")
+                .description("Run response with state."),
 
             without_state_route: Route::post("No state route", "/no-state-route")
-                .description("Run action without state."),
+                .description("Run response without state."),
         }
     }
 
@@ -335,13 +338,13 @@ mod tests {
         let state = DeviceState::empty().add_device_info(DeviceInfo::empty());
 
         let _ = Device::with_state(state)
-            .add_action(serial_stateful(
+            .add_response(serial_stateful(
                 routes.with_state_route,
-                serial_action_with_state,
+                serial_response_with_state,
             ))
-            .add_action(serial_stateless(
+            .add_response(serial_stateless(
                 routes.without_state_route,
-                serial_action_without_state,
+                serial_response_without_state,
             ));
     }
 
@@ -352,23 +355,23 @@ mod tests {
         let state = DeviceState::new(SubState {}).add_device_info(DeviceInfo::empty());
 
         let _ = Device::with_state(state)
-            .add_action(serial_stateful(
+            .add_response(serial_stateful(
                 routes.with_state_route,
-                serial_action_with_substate1,
+                serial_response_with_substate1,
             ))
-            .add_action(serial_stateful(
-                Route::put("Substate action", "/substate-action")
-                    .description("Run a serial action with a substate."),
-                serial_action_with_substate2,
+            .add_response(serial_stateful(
+                Route::put("Substate response", "/substate-response")
+                    .description("Run a serial response with a substate."),
+                serial_response_with_substate2,
             ))
-            .add_info_action(info_stateful(
+            .add_info_response(info_stateful(
                 Route::put("Substate info", "/substate-info")
-                    .description("Run an informative action with a substate."),
-                info_action_with_substate3,
+                    .description("Run an informative response with a substate."),
+                info_response_with_substate3,
             ))
-            .add_action(serial_stateless(
+            .add_response(serial_stateless(
                 routes.without_state_route,
-                serial_action_without_state,
+                serial_response_without_state,
             ));
     }
 
@@ -376,9 +379,9 @@ mod tests {
     fn without_state() {
         let routes = create_routes();
 
-        let _ = Device::new().add_action(serial_stateless(
+        let _ = Device::new().add_response(serial_stateless(
             routes.without_state_route,
-            serial_action_without_state,
+            serial_response_without_state,
         ));
     }
 }

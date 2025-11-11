@@ -2,9 +2,9 @@ use tosca::device::DeviceKind;
 use tosca::hazards::Hazard;
 use tosca::route::{LightOffRoute, LightOnRoute, Route};
 
-use crate::actions::{DeviceAction, MandatoryAction};
 use crate::device::Device;
 use crate::error::{Error, Result};
+use crate::responses::{BaseResponse, MandatoryResponse};
 
 // The default main route for a light.
 const LIGHT_MAIN_ROUTE: &str = "/light";
@@ -24,10 +24,10 @@ where
 {
     // Internal device.
     device: Device<S>,
-    // Turn light on action.
-    turn_light_on: MandatoryAction<M1>,
-    // Turn light off action.
-    turn_light_off: MandatoryAction<M2>,
+    // Turn light on response.
+    turn_light_on: MandatoryResponse<M1>,
+    // Turn light off response.
+    turn_light_off: MandatoryResponse<M2>,
     // Allowed light hazards.
     allowed_hazards: &'static [Hazard],
 }
@@ -59,26 +59,25 @@ where
 
         Self {
             device,
-            turn_light_on: MandatoryAction::empty(),
-            turn_light_off: MandatoryAction::empty(),
+            turn_light_on: MandatoryResponse::empty(),
+            turn_light_off: MandatoryResponse::empty(),
             allowed_hazards: ALLOWED_HAZARDS,
         }
     }
 
-    /// Adds a turn light on action for a [`Light`].
+    /// Turns on a light using a mandatory handler.
     ///
-    /// **This method is mandatory, if not called, a compilation
-    /// error is raised.**.
+    /// **If not called, this method results in a compilation error.**
     pub fn turn_light_on(
         self,
         route: LightOnRoute,
-        turn_light_on: impl FnOnce(Route, S) -> MandatoryAction<false>,
+        turn_light_on: impl FnOnce(Route, S) -> MandatoryResponse<false>,
     ) -> Light<true, false, S> {
         let turn_light_on = turn_light_on(route.into_route(), self.device.state.clone());
 
         Light {
             device: self.device,
-            turn_light_on: MandatoryAction::init(turn_light_on.device_action),
+            turn_light_on: MandatoryResponse::init(turn_light_on.base_response),
             turn_light_off: self.turn_light_off,
             allowed_hazards: ALLOWED_HAZARDS,
         }
@@ -89,22 +88,20 @@ impl<S> Light<true, false, S>
 where
     S: Clone + Send + Sync + 'static,
 {
-    /// Adds a turn light off action for a [`Light`].
+    /// Turns off a light using a mandatory handler.
     ///
-    ///
-    /// **This method is mandatory, if not called, a compilation
-    /// error is raised.**.
+    /// **If not called, this method results in a compilation error.**.
     pub fn turn_light_off(
         self,
         route: LightOffRoute,
-        turn_light_off: impl FnOnce(Route, S) -> MandatoryAction<false>,
+        turn_light_off: impl FnOnce(Route, S) -> MandatoryResponse<false>,
     ) -> Light<true, true, S> {
         let turn_light_off = turn_light_off(route.into_route(), self.device.state.clone());
 
         Light {
             device: self.device,
             turn_light_on: self.turn_light_on,
-            turn_light_off: MandatoryAction::init(turn_light_off.device_action),
+            turn_light_off: MandatoryResponse::init(turn_light_off.base_response),
             allowed_hazards: ALLOWED_HAZARDS,
         }
     }
@@ -122,17 +119,18 @@ where
         self
     }
 
-    /// Adds an additional action for a [`Light`].
+    /// Adds an additional [`BaseResponse`] to the [`Light`].
     ///
     /// # Errors
     ///
-    /// It returns an error whether one or more hazards are not allowed for
+    /// Returns an error if one or more hazards are not allowed for
     /// the [`Light`] device.
-    pub fn add_action(mut self, light_action: impl FnOnce(S) -> DeviceAction) -> Result<Self> {
-        let light_action = light_action(self.device.state.clone());
+    pub fn add_response(mut self, light_response: impl FnOnce(S) -> BaseResponse) -> Result<Self> {
+        let base_response = light_response(self.device.state.clone());
 
-        // Return an error if action hazards are not a subset of allowed hazards.
-        for hazard in light_action.hazards() {
+        // Throws an error if any base response hazards are not part of
+        // the allowed hazards for the Light.
+        for hazard in base_response.hazards() {
             if !self.allowed_hazards.contains(hazard) {
                 return Err(Error::device(
                     DeviceKind::Light,
@@ -141,29 +139,29 @@ where
             }
         }
 
-        self.device = self.device.add_device_action(light_action);
+        self.device = self.device.add_base_response(base_response);
 
         Ok(self)
     }
 
-    /// Adds an informative action for [`Light`].
+    /// Adds an informational response to the [`Light`].
     #[must_use]
-    pub fn add_info_action(
+    pub fn add_info_response(
         mut self,
-        light_info_action: impl FnOnce(S, ()) -> DeviceAction,
+        light_info_response: impl FnOnce(S, ()) -> BaseResponse,
     ) -> Self {
-        let light_info_action = light_info_action(self.device.state.clone(), ());
+        let base_response = light_info_response(self.device.state.clone(), ());
 
-        self.device = self.device.add_device_action(light_info_action);
+        self.device = self.device.add_base_response(base_response);
 
         self
     }
 
     /// Converts a [`Light`] into a [`Device`].
     pub fn into_device(self) -> Device<S> {
-        self.device.add_mandatory_actions([
-            self.turn_light_on.device_action,
-            self.turn_light_off.device_action,
+        self.device.add_mandatory_responses([
+            self.turn_light_on.base_response,
+            self.turn_light_off.base_response,
         ])
     }
 }
@@ -179,15 +177,15 @@ mod tests {
 
     use serde::{Deserialize, Serialize};
 
-    use crate::actions::error::ErrorResponse;
-    use crate::actions::ok::{
+    use crate::devices::light::{LightOffRoute, LightOnRoute};
+    use crate::responses::error::ErrorResponse;
+    use crate::responses::ok::{
         OkResponse, mandatory_ok_stateful, mandatory_ok_stateless, ok_stateful, ok_stateless,
     };
-    use crate::actions::serial::{
+    use crate::responses::serial::{
         SerialResponse, mandatory_serial_stateful, mandatory_serial_stateless, serial_stateful,
         serial_stateless,
     };
-    use crate::devices::light::{LightOffRoute, LightOnRoute};
 
     use super::Light;
 
@@ -286,15 +284,15 @@ mod tests {
         Light::with_state(LightState {})
             .turn_light_on(routes.light_on, mandatory_serial_stateful(turn_light_on))
             .turn_light_off(routes.light_off, mandatory_ok_stateful(turn_light_off))
-            .add_action(serial_stateful(routes.light_on_post, turn_light_on))
+            .add_response(serial_stateful(routes.light_on_post, turn_light_on))
             .unwrap()
-            .add_action(ok_stateful(routes.toggle, toggle))
+            .add_response(ok_stateful(routes.toggle, toggle))
             .unwrap()
             .into_device();
     }
 
     #[test]
-    fn without_action_with_state() {
+    fn without_response_with_state() {
         let routes = create_routes();
 
         Light::with_state(LightState {})
@@ -304,15 +302,15 @@ mod tests {
     }
 
     #[test]
-    fn stateless_action_with_state() {
+    fn stateless_response_with_state() {
         let routes = create_routes();
 
         Light::with_state(LightState {})
             .turn_light_on(routes.light_on, mandatory_serial_stateful(turn_light_on))
             .turn_light_off(routes.light_off, mandatory_ok_stateful(turn_light_off))
-            .add_action(serial_stateful(routes.light_on_post, turn_light_on))
+            .add_response(serial_stateful(routes.light_on_post, turn_light_on))
             .unwrap()
-            .add_action(ok_stateless(routes.toggle, toggle_stateless))
+            .add_response(ok_stateless(routes.toggle, toggle_stateless))
             .unwrap()
             .into_device();
     }
@@ -330,18 +328,18 @@ mod tests {
                 routes.light_off,
                 mandatory_ok_stateless(turn_light_off_stateless),
             )
-            .add_action(serial_stateless(
+            .add_response(serial_stateless(
                 routes.light_on_post,
                 turn_light_on_stateless,
             ))
             .unwrap()
-            .add_action(ok_stateless(routes.toggle, toggle_stateless))
+            .add_response(ok_stateless(routes.toggle, toggle_stateless))
             .unwrap()
             .into_device();
     }
 
     #[test]
-    fn without_action_and_state() {
+    fn without_response_and_state() {
         let routes = create_routes();
 
         Light::new()

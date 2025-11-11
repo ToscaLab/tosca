@@ -1,13 +1,14 @@
-/// Action and response to manage errors.
+/// A response providing details about an error encountered during a
+/// device operation.
 pub mod error;
-/// Action and response to manage device information.
+/// A response containing energy and economy data for a device.
 pub mod info;
-/// Action and response to confirm the correct execution of an action.
+/// A response notifying the controller that
+/// an operation completed successfully.
 pub mod ok;
-/// Action and response to manage data serialization.
+/// A response containing the data produced during a device operation.
 pub mod serial;
-/// Action and response to manage a stream of data expressed as a sequence
-/// of bytes.
+/// Response to handle a stream of data as a sequence of bytes.
 #[cfg(feature = "stream")]
 pub mod stream;
 
@@ -61,25 +62,27 @@ fn build_get_route(route: &str, parameters: &ParametersData) -> String {
 }
 
 #[derive(Debug)]
-/// A generic [`crate::device::Device`] action.
+/// A base response for a [`crate::device::Device`].
 ///
-/// It has been conceived to perform checks on [`Hazard`]s.
-pub struct DeviceAction {
+/// Any other response can be converted into a base response.
+///
+/// Designed to provide methods for checking the correctness of [`Hazard`]s.
+pub struct BaseResponse {
     // Router.
     pub(crate) router: Router,
-    // Route
+    // Route configuration.
     pub(crate) route_config: RouteConfig,
 }
 
-impl DeviceAction {
-    /// Checks whether an action does not define the given [`Hazard`].
+impl BaseResponse {
+    /// Checks if the response does not contain the given [`Hazard`].
     #[must_use]
     #[inline]
     pub fn miss_hazard(&self, hazard: Hazard) -> bool {
         !self.route_config.data.hazards.contains(&hazard)
     }
 
-    /// Checks whether an action does not define the given [`Hazard`]s.
+    /// Checks if the response does not contain the given [`Hazard`]s.
     #[must_use]
     #[inline]
     pub fn miss_hazards(&self, hazards: &'static [Hazard]) -> bool {
@@ -88,7 +91,7 @@ impl DeviceAction {
             .all(|hazard| self.route_config.data.hazards.contains(hazard))
     }
 
-    /// Returns the [`Hazards`] collection associated with an action.
+    /// Returns the [`Hazards`] associated with this response.
     #[must_use]
     #[inline]
     pub fn hazards(&self) -> &Hazards {
@@ -154,35 +157,38 @@ impl DeviceAction {
     }
 }
 
-/// A mandatory [`DeviceAction`].
-pub struct MandatoryAction<const SET: bool> {
-    pub(crate) device_action: DeviceAction,
+/// A mandatory [`BaseResponse`].
+///
+/// Marks a [`BaseResponse`] as mandatory for a device, meaning it must be
+/// included.
+pub struct MandatoryResponse<const SET: bool> {
+    pub(crate) base_response: BaseResponse,
 }
 
-impl MandatoryAction<false> {
+impl MandatoryResponse<false> {
     pub(crate) fn empty() -> Self {
         Self {
-            device_action: DeviceAction {
+            base_response: BaseResponse {
                 router: Router::new(),
                 route_config: Route::get("", "").serialize_data(),
             },
         }
     }
 
-    pub(super) const fn new(device_action: DeviceAction) -> Self {
-        Self { device_action }
+    pub(super) const fn new(base_response: BaseResponse) -> Self {
+        Self { base_response }
     }
 }
 
-impl MandatoryAction<true> {
-    /// Returns a [`DeviceAction`] reference.
+impl MandatoryResponse<true> {
+    /// Returns a reference to [`BaseResponse`].
     #[must_use]
-    pub const fn action_as_ref(&self) -> &DeviceAction {
-        &self.device_action
+    pub const fn base_response_as_ref(&self) -> &BaseResponse {
+        &self.base_response
     }
 
-    pub(crate) const fn init(device_action: DeviceAction) -> Self {
-        Self { device_action }
+    pub(crate) const fn init(base_response: BaseResponse) -> Self {
+        Self { base_response }
     }
 }
 
