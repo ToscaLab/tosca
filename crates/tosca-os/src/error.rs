@@ -51,8 +51,7 @@ impl std::fmt::Debug for Error {
 }
 
 impl Error {
-    /// Creates an [`Error`] from an [`ErrorKind`] and a description.
-    pub fn new(kind: ErrorKind, description: impl Into<Cow<'static, str>>) -> Self {
+    pub(crate) fn new(kind: ErrorKind, description: impl Into<Cow<'static, str>>) -> Self {
         Self {
             kind,
             description: description.into(),
