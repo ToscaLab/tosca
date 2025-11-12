@@ -98,7 +98,7 @@ async fn light(
     );
 
     // Run a discovery service and the device on the server.
-    Server::new(device.into_device())
+    Server::new(light.build())
         .address(Ipv4Addr::UNSPECIFIED)
         .port(port)
         .well_known_service(id)
