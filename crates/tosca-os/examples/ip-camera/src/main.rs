@@ -190,26 +190,26 @@ fn change_format(device: Device<InternalState>) -> Device<InternalState> {
         );
 
     device
-        .add_response(serial_stateful(change_camera_route, change_camera))
-        .add_response(ok_stateful(change_format_random_route, format_random))
-        .add_response(ok_stateful(
+        .route(serial_stateful(change_camera_route, change_camera))
+        .route(ok_stateful(change_format_random_route, format_random))
+        .route(ok_stateful(
             change_format_absolute_highest_resolution_route,
             format_absolute_resolution,
         ))
-        .add_response(ok_stateful(
+        .route(ok_stateful(
             change_format_absolute_highest_framerate_route,
             format_absolute_framerate,
         ))
-        .add_response(ok_stateful(
+        .route(ok_stateful(
             change_format_highest_resolution_route,
             format_highest_resolution,
         ))
-        .add_response(ok_stateful(
+        .route(ok_stateful(
             change_format_highest_framerate_route,
             format_highest_framerate,
         ))
-        .add_response(ok_stateful(change_format_exact_route, format_exact))
-        .add_response(ok_stateful(change_format_closest_route, format_closest))
+        .route(ok_stateful(change_format_exact_route, format_exact))
+        .route(ok_stateful(change_format_closest_route, format_closest))
 }
 
 fn screenshot(device: Device<InternalState>) -> Device<InternalState> {
@@ -305,25 +305,25 @@ fn screenshot(device: Device<InternalState>) -> Device<InternalState> {
         );
 
     device
-        .add_response(stream_stateful(screenshot_random_route, screenshot_random))
-        .add_response(stream_stateful(
+        .route(stream_stateful(screenshot_random_route, screenshot_random))
+        .route(stream_stateful(
             screenshot_absolute_resolution_route,
             screenshot_absolute_resolution,
         ))
-        .add_response(stream_stateful(
+        .route(stream_stateful(
             screenshot_absolute_framerate_route,
             screenshot_absolute_framerate,
         ))
-        .add_response(stream_stateful(
+        .route(stream_stateful(
             screenshot_highest_resolution_route,
             screenshot_highest_resolution,
         ))
-        .add_response(stream_stateful(
+        .route(stream_stateful(
             screenshot_highest_framerate_route,
             screenshot_highest_framerate,
         ))
-        .add_response(stream_stateful(screenshot_exact_route, screenshot_exact))
-        .add_response(stream_stateful(
+        .route(stream_stateful(screenshot_exact_route, screenshot_exact))
+        .route(stream_stateful(
             screenshot_closest_route,
             screenshot_closest,
         ))
@@ -388,9 +388,9 @@ async fn main() -> Result<(), Error> {
     // A camera device which is going to be run on the server.
     let device = Device::with_state(InternalState::new(camera))
         .main_route("/camera")
-        .add_response(stream_stateful(camera_stream_route, show_camera_stream))
-        .add_response(serial_stateless(view_cameras_route, show_available_cameras))
-        .add_response(serial_stateful(camera_info_route, show_camera_info));
+        .route(stream_stateful(camera_stream_route, show_camera_stream))
+        .route(serial_stateless(view_cameras_route, show_available_cameras))
+        .route(serial_stateful(camera_info_route, show_camera_info));
 
     let device = change_format(device);
     let device = screenshot(device);

@@ -266,10 +266,10 @@ async fn main() -> Result<(), Error> {
         .turn_light_on(light_on_route, mandatory_serial_stateful(turn_light_on))
         // This method is mandatory, if not called, a compiler error is raised.
         .turn_light_off(light_off_route, mandatory_ok_stateful(turn_light_off))
-        .add_response(serial_stateful(light_on_post_route, turn_light_on))?
-        .add_response(ok_stateful(toggle_route, toggle))?
-        .add_info_response(info_stateful(info_route, info))
-        .add_info_response(info_stateful(
+        .route(serial_stateful(light_on_post_route, turn_light_on))?
+        .route(ok_stateful(toggle_route, toggle))?
+        .info_route(info_stateful(info_route, info))
+        .info_route(info_stateful(
             update_energy_efficiency_route,
             update_energy_efficiency,
         ))
