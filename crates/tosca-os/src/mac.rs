@@ -31,20 +31,25 @@ mod os_mac {
     }
 
     fn is_virtual_interface(iface_path: &Path, mac: [u8; 6]) -> bool {
-        // If the interface does not have a "device" entry, it is considered virtual.
+        // If the interface does not have a "device" entry,
+        // it is considered virtual.
         if !iface_path.join("device").exists() {
             return true;
         }
 
-        // Checks if the MAC address is locally administered (bit 1 of the first byte is set).
-        // A locally administered address is one assigned by software rather than by the hardware manufacturer,
-        // and is typically used in virtual machines, containers, or custom network configurations.
+        // Checks if the MAC address is locally administered
+        // (bit 1 of the first byte is set).
+        // A locally administered address is one assigned by software rather
+        // than by the hardware manufacturer, and is typically used in
+        // virtual machines, containers, or custom network configurations.
         if is_locally_administered_mac(mac) {
             return true;
         }
 
-        // Checks if the MAC address is from a known virtual machine vendor based on MAC OUI prefix.
-        // Returns true if the MAC prefix matches known virtual adapters (VMware, Hyper-V, VirtualBox, etc.).
+        // Checks if the MAC address is from a known virtual machine vendor
+        // based on MAC OUI prefix.
+        // Returns true if the MAC prefix matches known virtual adapters:
+        // VMware, Hyper-V, VirtualBox, etc.
         if is_virtual_mac_vendor(mac) {
             return true;
         }
@@ -63,10 +68,13 @@ mod os_mac {
                 return true;
             }
 
-            // Other hypervisors or virtualization platforms can be added here if needed.
-            // This check looks for specific path fragments that identify virtual interfaces.
-            // If a new platform uses a different path structure, its identifying strings can be added here
-            // to ensure those interfaces are correctly recognized as virtual.
+            // Other hypervisors or virtualization platforms can be added here
+            // if needed.
+            // This check looks for specific path fragments that identify
+            // virtual interfaces.
+            // If a new platform uses a different path structure,
+            // its identifying strings can be added here to ensure
+            // those interfaces are correctly recognized as virtual.
         }
 
         if let Some(name) = iface_path.file_name().and_then(|n| n.to_str()) {
@@ -86,7 +94,8 @@ mod os_mac {
     }
 
     fn read_mac(iface_path: &Path) -> Option<[u8; 6]> {
-        // The MAC address is stored in the "address" file of the network interface.
+        // The MAC address is stored in the "address" file of
+        // the network interface.
         let mac_str = std::fs::read_to_string(iface_path.join("address")).ok()?;
         let mac_str = mac_str.trim();
 
@@ -180,7 +189,9 @@ mod os_mac {
             for prefix in VM_MAC_PREFIXES {
                 let mac = [prefix[0], prefix[1], prefix[2], 0, 0, 0];
 
-                // Ensures all known VM prefixes are detected. Failure means a known prefix was not matched
+                // Ensures all known VM prefixes are detected.
+                //
+                // Failure means a known prefix was not matched
                 assert!(
                     is_virtual_mac_vendor(mac),
                     "Failed for prefix {prefix:02X?}"
@@ -214,8 +225,10 @@ mod os_mac {
     };
     use windows_sys::Win32::Networking::WinSock::AF_UNSPEC;
 
-    // Returns the MAC address only if the interface is active ("up") and has a valid 6-byte address.
-    // An "up" status means the interface is enabled and ready for network communication.
+    // Returns the MAC address only if the interface is active ("up") and
+    // has a valid 6-byte address.
+    // An "up" status means the interface is enabled and ready
+    // for network communication.
     fn extract_mac_from_row(row: &MIB_IF_ROW2) -> Option<[u8; 6]> {
         if row.OperStatus == IfOperStatusUp && row.PhysicalAddressLength == 6 {
             let mut mac = [0u8; 6];
@@ -226,7 +239,8 @@ mod os_mac {
         }
     }
 
-    // Traverses the adapter linked list and extracts the first matching Wi-Fi and Ethernet MAC addresses.
+    // Traverses the adapter linked list and extracts the first matching Wi-Fi
+    // and Ethernet MAC addresses.
     fn process_adapter(
         adapter: *mut IP_ADAPTER_ADDRESSES_LH,
     ) -> (Option<[u8; 6]>, Option<[u8; 6]>) {
@@ -235,12 +249,13 @@ mod os_mac {
 
         let mut current = adapter;
         while !current.is_null() {
-            // SAFETY: `current` is a valid pointer to an IP_ADAPTER_ADDRESSES_LH structure.
+            // SAFETY: `current` is a valid pointer to an
+            // IP_ADAPTER_ADDRESSES_LH structure.
             // The list is well-formed and terminated with a null pointer.
             let addr = unsafe { &*current };
 
-            // SAFETY: `row` is zero-initialized and safe to pass to GetIfEntry2,
-            // which will write valid data into this structure.
+            // SAFETY: `row` is zero-initialized and safe to pass to
+            // GetIfEntry2, which will write valid data into this structure.
             let mut row: MIB_IF_ROW2 = unsafe { mem::zeroed() };
             row.InterfaceLuid = addr.Luid;
 
@@ -252,8 +267,9 @@ mod os_mac {
                 if let Some(mac) = extract_mac_from_row(&row) {
                     // Verify interface type and physical medium.
                     match (row.Type, row.PhysicalMediumType) {
-                        // We intentionally store only the last valid Wi-Fi and Ethernet MAC address found,
-                        // as we're only interested in retrieving at least one valid MAC address.
+                        // We intentionally store only the last valid Wi-Fi and
+                        // Ethernet MAC address found, as we're only interested
+                        // in retrieving at least one valid MAC address.
                         (IF_TYPE_IEEE80211, NDIS_PHYSICAL_MEDIUM_NATIVE802_11) => wifi = Some(mac),
                         (IF_TYPE_ETHERNET_CSMACD, NDIS_PHYSICAL_MEDIUM802_3) => {
                             ethernet = Some(mac)
@@ -273,7 +289,8 @@ mod os_mac {
     pub(crate) fn get_mac_addresses() -> (Option<[u8; 6]>, Option<[u8; 6]>) {
         let mut size = 0;
 
-        // SAFETY: First call only fills `size` to determine required buffer size.
+        // SAFETY: First call only fills `size` to determine required
+        // buffer size.
         unsafe {
             GetAdaptersAddresses(
                 AF_UNSPEC as u32,
@@ -292,7 +309,8 @@ mod os_mac {
         let mut buffer = vec![0u8; size as usize];
         let adapter = buffer.as_mut_ptr() as *mut IP_ADAPTER_ADDRESSES_LH;
 
-        // SAFETY: `adapter` points to valid buffer of correct size for storing adapter data.
+        // SAFETY: `adapter` points to valid buffer of correct size
+        // for storing adapter data.
         if unsafe { GetAdaptersAddresses(AF_UNSPEC as u32, 0, ptr::null_mut(), adapter, &mut size) }
             == ERROR_SUCCESS
         {
@@ -320,8 +338,9 @@ pub(crate) fn get_mac_addresses() -> (Option<[u8; 6]>, Option<[u8; 6]>) {
 mod tests {
     use super::get_mac_addresses;
 
-    /// This test only runs on systems that have physical MAC addresses.
-    /// Systems with virtual MAC interfaces, such as CI environments, are skipped.
+    // This test only runs on systems that have physical MAC addresses.
+    // Systems with virtual MAC interfaces, such as CI environments,
+    // are skipped.
     #[test]
     fn test_mac_addresses_local() {
         if option_env!("CI").is_none() {
