@@ -13,10 +13,6 @@ pub enum ErrorKind {
     Serialization,
     /// A device error.
     Device,
-    /// External error.
-    ///
-    /// An error caused by an external dependency.
-    External,
 }
 
 impl ErrorKind {
@@ -26,7 +22,6 @@ impl ErrorKind {
             Self::NotFoundAddress => "Not Found Address",
             Self::Serialization => "Serialization",
             Self::Device => "Device",
-            Self::External => "External",
         }
     }
 }
@@ -62,12 +57,6 @@ impl Error {
             kind,
             description: description.into(),
         }
-    }
-
-    /// Creates an [`Error`] for [`ErrorKind::External`] with a specific
-    /// description.
-    pub fn external(description: impl Into<Cow<'static, str>>) -> Self {
-        Self::new(ErrorKind::External, description)
     }
 
     pub(crate) fn device(
