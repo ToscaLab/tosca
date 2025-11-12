@@ -119,14 +119,14 @@ where
         self
     }
 
-    /// Adds an additional [`BaseResponse`] to the [`Light`].
+    /// Adds a route to the [`Light`].
     ///
     /// # Errors
     ///
     /// Returns an error if one or more hazards are not allowed for
     /// the [`Light`] device.
-    pub fn add_response(mut self, light_response: impl FnOnce(S) -> BaseResponse) -> Result<Self> {
-        let base_response = light_response(self.device.state.clone());
+    pub fn route(mut self, light_route: impl FnOnce(S) -> BaseResponse) -> Result<Self> {
+        let base_response = light_route(self.device.state.clone());
 
         // Throws an error if any base response hazards are not part of
         // the allowed hazards for the Light.
@@ -144,13 +144,10 @@ where
         Ok(self)
     }
 
-    /// Adds an informational response to the [`Light`].
+    /// Adds an informational route to the [`Light`].
     #[must_use]
-    pub fn add_info_response(
-        mut self,
-        light_info_response: impl FnOnce(S, ()) -> BaseResponse,
-    ) -> Self {
-        let base_response = light_info_response(self.device.state.clone(), ());
+    pub fn info_route(mut self, light_info_route: impl FnOnce(S, ()) -> BaseResponse) -> Self {
+        let base_response = light_info_route(self.device.state.clone(), ());
 
         self.device = self.device.add_base_response(base_response);
 
@@ -284,9 +281,9 @@ mod tests {
         Light::with_state(LightState {})
             .turn_light_on(routes.light_on, mandatory_serial_stateful(turn_light_on))
             .turn_light_off(routes.light_off, mandatory_ok_stateful(turn_light_off))
-            .add_response(serial_stateful(routes.light_on_post, turn_light_on))
+            .route(serial_stateful(routes.light_on_post, turn_light_on))
             .unwrap()
-            .add_response(ok_stateful(routes.toggle, toggle))
+            .route(ok_stateful(routes.toggle, toggle))
             .unwrap()
             .into_device();
     }
@@ -308,9 +305,9 @@ mod tests {
         Light::with_state(LightState {})
             .turn_light_on(routes.light_on, mandatory_serial_stateful(turn_light_on))
             .turn_light_off(routes.light_off, mandatory_ok_stateful(turn_light_off))
-            .add_response(serial_stateful(routes.light_on_post, turn_light_on))
+            .route(serial_stateful(routes.light_on_post, turn_light_on))
             .unwrap()
-            .add_response(ok_stateless(routes.toggle, toggle_stateless))
+            .route(ok_stateless(routes.toggle, toggle_stateless))
             .unwrap()
             .into_device();
     }
@@ -328,12 +325,12 @@ mod tests {
                 routes.light_off,
                 mandatory_ok_stateless(turn_light_off_stateless),
             )
-            .add_response(serial_stateless(
+            .route(serial_stateless(
                 routes.light_on_post,
                 turn_light_on_stateless,
             ))
             .unwrap()
-            .add_response(ok_stateless(routes.toggle, toggle_stateless))
+            .route(ok_stateless(routes.toggle, toggle_stateless))
             .unwrap()
             .into_device();
     }

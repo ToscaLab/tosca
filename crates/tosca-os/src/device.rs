@@ -64,21 +64,18 @@ where
         self
     }
 
-    /// Adds a [`BaseResponse`] to the [`Device`].
+    /// Adds a route to the [`Device`].
     #[must_use]
     #[inline]
-    pub fn add_response(self, base_response: impl FnOnce(S) -> BaseResponse) -> Self {
-        let base_response = base_response(self.state.clone());
+    pub fn route(self, route: impl FnOnce(S) -> BaseResponse) -> Self {
+        let base_response = route(self.state.clone());
         self.add_base_response(base_response)
     }
 
-    /// Adds an informational response to the [`Device`].
+    /// Adds an informational route to the [`Device`].
     #[must_use]
-    pub fn add_info_response(
-        self,
-        device_info_response: impl FnOnce(S, ()) -> BaseResponse,
-    ) -> Self {
-        let base_response = device_info_response(self.state.clone(), ());
+    pub fn info_route(self, device_info_route: impl FnOnce(S, ()) -> BaseResponse) -> Self {
+        let base_response = device_info_route(self.state.clone(), ());
         self.add_base_response(base_response)
     }
 
@@ -338,11 +335,11 @@ mod tests {
         let state = DeviceState::empty().add_device_info(DeviceInfo::empty());
 
         let _ = Device::with_state(state)
-            .add_response(serial_stateful(
+            .route(serial_stateful(
                 routes.with_state_route,
                 serial_response_with_state,
             ))
-            .add_response(serial_stateless(
+            .route(serial_stateless(
                 routes.without_state_route,
                 serial_response_without_state,
             ));
@@ -355,21 +352,21 @@ mod tests {
         let state = DeviceState::new(SubState {}).add_device_info(DeviceInfo::empty());
 
         let _ = Device::with_state(state)
-            .add_response(serial_stateful(
+            .route(serial_stateful(
                 routes.with_state_route,
                 serial_response_with_substate1,
             ))
-            .add_response(serial_stateful(
+            .route(serial_stateful(
                 Route::put("Substate response", "/substate-response")
                     .description("Run a serial response with a substate."),
                 serial_response_with_substate2,
             ))
-            .add_info_response(info_stateful(
+            .info_route(info_stateful(
                 Route::put("Substate info", "/substate-info")
                     .description("Run an informative response with a substate."),
                 info_response_with_substate3,
             ))
-            .add_response(serial_stateless(
+            .route(serial_stateless(
                 routes.without_state_route,
                 serial_response_without_state,
             ));
@@ -379,7 +376,7 @@ mod tests {
     fn without_state() {
         let routes = create_routes();
 
-        let _ = Device::new().add_response(serial_stateless(
+        let _ = Device::new().route(serial_stateless(
             routes.without_state_route,
             serial_response_without_state,
         ));
