@@ -86,14 +86,14 @@ async fn light(
 
         device
             .main_route(FIRST_DEVICE_ROUTE)
-            .add_response(serial_stateless(toggle_route, toggle))
+            .route(serial_stateless(toggle_route, toggle))
             .unwrap()
     } else {
         device.main_route(SECOND_DEVICE_ROUTE)
     };
 
     info!(
-        "Inside the light device {} `toggle` response and port {port}",
+        "Inside the light device {} `toggle` route and port {port}",
         if with_toggle { "with" } else { "without" }
     );
 
