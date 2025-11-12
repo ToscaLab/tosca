@@ -6,29 +6,26 @@ use crate::device::Device;
 use crate::error::{Error, Result};
 use crate::responses::{BaseResponse, MandatoryResponse};
 
-// The default main route for a light.
-const LIGHT_MAIN_ROUTE: &str = "/light";
+// Default main route.
+const MAIN_ROUTE: &str = "/light";
 
 // Allowed hazards.
 const ALLOWED_HAZARDS: &[Hazard] = &[Hazard::FireHazard, Hazard::ElectricEnergyConsumption];
 
-/// A smart home light.
+/// A `light` device.
 ///
-/// The default server main route for a light is `light`.
-///
-/// If a smart home needs more lights, each light **MUST** provide a
-/// **different** main route in order to be registered.
+/// The default main route for a `light` device is **/light**.
 pub struct Light<const M1: bool, const M2: bool, S = ()>
 where
     S: Clone + Send + Sync + 'static,
 {
     // Internal device.
     device: Device<S>,
-    // Turn light on response.
+    // Turn light on.
     turn_light_on: MandatoryResponse<M1>,
-    // Turn light off response.
+    // Turn light off.
     turn_light_off: MandatoryResponse<M2>,
-    // Allowed light hazards.
+    // Allowed hazards.
     allowed_hazards: &'static [Hazard],
 }
 
@@ -39,7 +36,7 @@ impl Default for Light<false, false, ()> {
 }
 
 impl Light<false, false, ()> {
-    /// Creates a [`Light`] instance without a state.
+    /// Creates a [`Light`] without a state.
     #[must_use]
     #[inline]
     pub fn new() -> Self {
@@ -51,11 +48,10 @@ impl<S> Light<false, false, S>
 where
     S: Clone + Send + Sync + 'static,
 {
-    /// Creates a [`Light`] instance with a state.
+    /// Creates a [`Light`] with a state.
     #[inline]
     pub fn with_state(state: S) -> Self {
-        // Create a new device.
-        let device = Device::init(DeviceKind::Light, state).main_route(LIGHT_MAIN_ROUTE);
+        let device = Device::init(DeviceKind::Light, state).main_route(MAIN_ROUTE);
 
         Self {
             device,
@@ -65,9 +61,9 @@ where
         }
     }
 
-    /// Turns on a light using a mandatory handler.
+    /// Turns on a light.
     ///
-    /// **If not called, this method results in a compilation error.**
+    /// **This method must be called, or a compilation error will occur.**
     pub fn turn_light_on(
         self,
         route: LightOnRoute,
@@ -88,9 +84,9 @@ impl<S> Light<true, false, S>
 where
     S: Clone + Send + Sync + 'static,
 {
-    /// Turns off a light using a mandatory handler.
+    /// Turns off a light.
     ///
-    /// **If not called, this method results in a compilation error.**.
+    /// **This method must be called, or a compilation error will occur.**
     pub fn turn_light_off(
         self,
         route: LightOffRoute,
@@ -111,7 +107,7 @@ impl<S> Light<true, true, S>
 where
     S: Clone + Send + Sync + 'static,
 {
-    /// Sets a new main route.
+    /// Changes the main route.
     #[must_use]
     #[inline]
     pub fn main_route(mut self, main_route: &'static str) -> Self {
@@ -119,22 +115,22 @@ where
         self
     }
 
-    /// Adds a route to the [`Light`].
+    /// Adds a route to [`Light`].
     ///
     /// # Errors
     ///
-    /// Returns an error if one or more hazards are not allowed for
-    /// the [`Light`] device.
+    /// Returns an error if any route hazards are not allowed
+    /// for the [`Light`] device.
     pub fn route(mut self, light_route: impl FnOnce(S) -> BaseResponse) -> Result<Self> {
         let base_response = light_route(self.device.state.clone());
 
-        // Throws an error if any base response hazards are not part of
-        // the allowed hazards for the Light.
+        // Throws an error if any route hazards are not contained in the
+        // allowed hazards array.
         for hazard in base_response.hazards() {
             if !self.allowed_hazards.contains(hazard) {
                 return Err(Error::device(
                     DeviceKind::Light,
-                    format!("{hazard} hazard is not allowed for light"),
+                    format!("The hazard {hazard} is not allowed for a light"),
                 ));
             }
         }
@@ -144,7 +140,7 @@ where
         Ok(self)
     }
 
-    /// Adds an informational route to the [`Light`].
+    /// Adds an informative route to [`Light`].
     #[must_use]
     pub fn info_route(mut self, light_info_route: impl FnOnce(S, ()) -> BaseResponse) -> Self {
         let base_response = light_info_route(self.device.state.clone(), ());
@@ -154,8 +150,8 @@ where
         self
     }
 
-    /// Converts a [`Light`] into a [`Device`].
-    pub fn into_device(self) -> Device<S> {
+    /// Builds a [`Device`].
+    pub fn build(self) -> Device<S> {
         self.device.add_mandatory_responses([
             self.turn_light_on.base_response,
             self.turn_light_off.base_response,
@@ -165,7 +161,6 @@ where
 
 #[cfg(test)]
 mod tests {
-
     use tosca::hazards::Hazard;
     use tosca::parameters::Parameters;
     use tosca::route::Route;
@@ -285,7 +280,7 @@ mod tests {
             .unwrap()
             .route(ok_stateful(routes.toggle, toggle))
             .unwrap()
-            .into_device();
+            .build();
     }
 
     #[test]
@@ -295,7 +290,7 @@ mod tests {
         Light::with_state(LightState {})
             .turn_light_on(routes.light_on, mandatory_serial_stateful(turn_light_on))
             .turn_light_off(routes.light_off, mandatory_ok_stateful(turn_light_off))
-            .into_device();
+            .build();
     }
 
     #[test]
@@ -309,7 +304,7 @@ mod tests {
             .unwrap()
             .route(ok_stateless(routes.toggle, toggle_stateless))
             .unwrap()
-            .into_device();
+            .build();
     }
 
     #[test]
@@ -332,7 +327,7 @@ mod tests {
             .unwrap()
             .route(ok_stateless(routes.toggle, toggle_stateless))
             .unwrap()
-            .into_device();
+            .build();
     }
 
     #[test]
@@ -348,6 +343,6 @@ mod tests {
                 routes.light_off,
                 mandatory_ok_stateless(turn_light_off_stateless),
             )
-            .into_device();
+            .build();
     }
 }
