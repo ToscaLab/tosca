@@ -1,5 +1,5 @@
 use tosca::device::{DeviceData, DeviceEnvironment, DeviceKind};
-use tosca::route::RouteConfigs;
+use tosca::route::{RouteConfig, RouteConfigs};
 
 use axum::Router;
 
@@ -69,14 +69,14 @@ where
     #[inline]
     pub fn route(self, route: impl FnOnce(S) -> BaseResponse) -> Self {
         let base_response = route(self.state.clone());
-        self.add_base_response(base_response)
+        self.response_data(base_response.finalize())
     }
 
     /// Adds an informative route to [`Device`].
     #[must_use]
     pub fn info_route(self, device_info_route: impl FnOnce(S, ()) -> BaseResponse) -> Self {
         let base_response = device_info_route(self.state.clone(), ());
-        self.add_base_response(base_response)
+        self.response_data(base_response.finalize())
     }
 
     pub(crate) fn init(kind: DeviceKind, state: S) -> Self {
@@ -90,21 +90,21 @@ where
         }
     }
 
-    pub(crate) fn add_base_response(mut self, base_response: BaseResponse) -> Self {
-        self.router = self.router.merge(base_response.router);
-        self.route_configs.add(base_response.route_config);
+    pub(crate) fn response_data(mut self, data: (RouteConfig, Router)) -> Self {
+        self.router = self.router.merge(data.1);
+        self.route_configs.add(data.0);
         self
     }
 
-    pub(crate) fn add_mandatory_responses<I>(mut self, responses: I) -> Self
+    pub(crate) fn mandatory_response_data<I>(mut self, responses: I) -> Self
     where
-        I: IntoIterator<Item = BaseResponse>,
+        I: IntoIterator<Item = (RouteConfig, Router)>,
     {
         let mut mandatory_routes = RouteConfigs::new();
         for response in responses {
-            self.router = self.router.merge(response.router);
+            self.router = self.router.merge(response.1);
             self.num_mandatory_routes += 1;
-            mandatory_routes.add(response.route_config);
+            mandatory_routes.add(response.0);
         }
 
         self.route_configs = mandatory_routes.merge(self.route_configs);

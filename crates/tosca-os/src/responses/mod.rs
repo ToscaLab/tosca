@@ -12,16 +12,14 @@ pub mod serial;
 #[cfg(feature = "stream")]
 pub mod stream;
 
-use tosca::hazards::{Hazard, Hazards};
-use tosca::parameters::ParametersData;
+use tosca::hazards::Hazard;
+use tosca::parameters::Parameters;
 use tosca::response::ResponseKind;
 use tosca::route::{RestKind, Route, RouteConfig};
 
 use axum::{Router, handler::Handler};
 
-use tracing::{error, info};
-
-use std::fmt::Write;
+use tracing::info;
 
 #[rustfmt::skip]
 macro_rules! all_the_tuples {
@@ -48,21 +46,18 @@ macro_rules! all_the_tuples {
 
 pub(super) use all_the_tuples;
 
-fn build_get_route(route: &str, parameters: &ParametersData) -> String {
+fn build_get_route(route: &str, parameters: &Parameters) -> String {
     let mut route = String::from(route);
-    for (name, _) in parameters {
-        // TODO: Consider returning `Option<String>`
-        if let Err(e) = write!(route, "/{{{name}}}") {
-            error!("Error in adding a path to a route : {e}");
-            break;
-        }
+    for name in parameters.names() {
+        let append_str = format!("/{{{name}}}");
+        route.push_str(&append_str);
     }
     info!("Build GET route: {}", route);
     route
 }
 
 #[derive(Debug)]
-/// A base response for a [`crate::device::Device`].
+/// A base response for a [`Device`].
 ///
 /// Any other response can be converted into a base response.
 ///
@@ -71,11 +66,13 @@ pub struct BaseResponse {
     // Router.
     pub(crate) router: Router,
     // Route configuration.
-    pub(crate) route_config: RouteConfig,
+    pub(crate) route: Route,
+    // Response kind.
+    response_kind: ResponseKind,
 }
 
 impl BaseResponse {
-    /// Checks if the response does not contain the given [`Hazard`].
+    /*/// Checks if the response does not contain the given [`Hazard`].
     #[must_use]
     #[inline]
     pub fn miss_hazard(&self, hazard: Hazard) -> bool {
@@ -96,7 +93,7 @@ impl BaseResponse {
     #[inline]
     pub fn hazards(&self) -> &Hazards {
         &self.route_config.data.hazards
-    }
+    }*/
 
     pub(crate) fn stateless<H, T>(route: Route, response_kind: ResponseKind, handler: H) -> Self
     where
@@ -126,22 +123,20 @@ impl BaseResponse {
         T: 'static,
         S: Clone + Send + Sync + 'static,
     {
-        let mut route_config = route.serialize_data();
-        route_config.response_kind = response_kind;
+        //let mut route_config = route.serialize_data();
+        //route_config.response_kind = response_kind;
 
         // Create the GET route for the axum architecture.
-        let route = if matches!(route_config.rest_kind, RestKind::Get)
-            && !route_config.data.parameters.is_empty()
-        {
-            &build_get_route(&route_config.data.path, &route_config.data.parameters)
+        let route_str = if matches!(route.kind(), RestKind::Get) && !route.parameters().is_empty() {
+            &build_get_route(route.route(), route.parameters())
         } else {
-            route_config.data.path.as_ref()
+            route.route()
         };
 
         let router = Router::new()
             .route(
-                route,
-                match route_config.rest_kind {
+                route_str,
+                match route.kind() {
                     RestKind::Get => axum::routing::get(handler),
                     RestKind::Put => axum::routing::put(handler),
                     RestKind::Post => axum::routing::post(handler),
@@ -152,8 +147,28 @@ impl BaseResponse {
 
         Self {
             router,
-            route_config,
+            route,
+            response_kind,
         }
+    }
+
+    pub(crate) fn finalize_with_hazards(self, allowed_hazards: &[Hazard]) -> (RouteConfig, Router) {
+        (
+            self.route
+                .remove_prohibited_hazards(allowed_hazards)
+                .serialize_data()
+                .change_response_kind(self.response_kind),
+            self.router,
+        )
+    }
+
+    pub(crate) fn finalize(self) -> (RouteConfig, Router) {
+        (
+            self.route
+                .serialize_data()
+                .change_response_kind(self.response_kind),
+            self.router,
+        )
     }
 }
 
@@ -170,7 +185,8 @@ impl MandatoryResponse<false> {
         Self {
             base_response: BaseResponse {
                 router: Router::new(),
-                route_config: Route::get("", "").serialize_data(),
+                route: Route::get("", ""),
+                response_kind: ResponseKind::Ok,
             },
         }
     }
@@ -206,11 +222,10 @@ mod tests {
                 Parameters::new()
                     .rangeu64_with_default("rangeu64", (0, 20, 1), 5)
                     .rangef64("rangef64", (0., 20., 0.1)),
-            )
-            .serialize_data();
+            );
 
         assert_eq!(
-            &build_get_route(&route.data.path, &route.data.parameters),
+            &build_get_route(route.route(), route.parameters()),
             "/route/{rangeu64}/{rangef64}"
         );
     }
