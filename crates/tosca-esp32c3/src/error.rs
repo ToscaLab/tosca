@@ -52,7 +52,7 @@ impl core::fmt::Display for ErrorKind {
     }
 }
 
-/// A firmware error.
+/// A library error.
 pub struct Error {
     kind: ErrorKind,
     info: &'static str,
