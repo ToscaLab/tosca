@@ -7,7 +7,7 @@ use tosca::device::DeviceKind;
 pub enum ErrorKind {
     /// Service error.
     Service,
-    /// Not found address.
+    /// Not found address error.
     NotFoundAddress,
     /// Serialize/Deserialize error.
     Serialization,
@@ -32,7 +32,7 @@ impl std::fmt::Display for ErrorKind {
     }
 }
 
-/// A firmware error.
+/// A library error.
 pub struct Error {
     kind: ErrorKind,
     description: Cow<'static, str>,
