@@ -67,13 +67,13 @@ async fn light(
         .with_hazard(Hazard::LogEnergyConsumption);
 
     // A light device which is going to be run on the server.
-    let device = Light::new()
+    let light = Light::new()
         // This method is mandatory, if not called, a compiler error is raised.
         .turn_light_on(light_on_route, mandatory_ok_stateless(turn_light_on))
         // This method is mandatory, if not called, a compiler error is raised.
         .turn_light_off(light_off_route, mandatory_ok_stateless(turn_light_off));
 
-    let device = if with_toggle {
+    let light = if with_toggle {
         // Toggle `PUT` route.
         let toggle_route = Route::get("Toggle", "/toggle")
             .description("Toggle a light.")
@@ -84,12 +84,12 @@ async fn light(
             )
             .with_parameters(Parameters::new().rangeu64("brightness", (0, 20, 1)));
 
-        device
+        light
             .main_route(FIRST_DEVICE_ROUTE)
             .route(serial_stateless(toggle_route, toggle))
             .unwrap()
     } else {
-        device.main_route(SECOND_DEVICE_ROUTE)
+        light.main_route(SECOND_DEVICE_ROUTE)
     };
 
     info!(
