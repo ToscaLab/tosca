@@ -8,26 +8,26 @@ use tracing::{info, warn};
 use crate::mac::get_mac_addresses;
 use crate::responses::BaseResponse;
 
-// Default main route for a device.
-const DEFAULT_MAIN_ROUTE: &str = "/device";
+// Default main route.
+const MAIN_ROUTE: &str = "/device";
 
-/// A general device.
+/// A general `device`.
 #[derive(Debug)]
 pub struct Device<S = ()>
 where
     S: Clone + Send + Sync + 'static,
 {
-    // Main device route.
+    // Device main route.
     main_route: &'static str,
-    // Router.
+    // Device router.
     router: Router,
-    // State.
+    // Device state.
     pub(crate) state: S,
-    // Kind.
+    // Device kind.
     kind: DeviceKind,
-    // All device routes and their hazards.
+    // All device routes along with their associated hazards.
     route_configs: RouteConfigs,
-    /// Number of mandatory routes.
+    // Number of mandatory routes.
     num_mandatory_routes: u8,
 }
 
@@ -38,7 +38,7 @@ impl Default for Device<()> {
 }
 
 impl Device<()> {
-    /// Creates an unknown [`Device`] without a state.
+    /// Creates a [`Device`] without a state.
     #[must_use]
     #[inline]
     pub fn new() -> Self {
@@ -50,21 +50,21 @@ impl<S> Device<S>
 where
     S: Clone + Send + Sync + 'static,
 {
-    /// Creates an unknown [`Device`] with state.
+    /// Creates a [`Device`] with a state.
     #[must_use]
     #[inline]
     pub fn with_state(state: S) -> Self {
         Self::init(DeviceKind::Unknown, state)
     }
 
-    /// Sets a new main route.
+    /// Changes the main route.
     #[must_use]
     pub const fn main_route(mut self, main_route: &'static str) -> Self {
         self.main_route = main_route;
         self
     }
 
-    /// Adds a route to the [`Device`].
+    /// Adds a route to [`Device`].
     #[must_use]
     #[inline]
     pub fn route(self, route: impl FnOnce(S) -> BaseResponse) -> Self {
@@ -72,7 +72,7 @@ where
         self.add_base_response(base_response)
     }
 
-    /// Adds an informational route to the [`Device`].
+    /// Adds an informative route to [`Device`].
     #[must_use]
     pub fn info_route(self, device_info_route: impl FnOnce(S, ()) -> BaseResponse) -> Self {
         let base_response = device_info_route(self.state.clone(), ());
@@ -81,7 +81,7 @@ where
 
     pub(crate) fn init(kind: DeviceKind, state: S) -> Self {
         Self {
-            main_route: DEFAULT_MAIN_ROUTE,
+            main_route: MAIN_ROUTE,
             router: Router::new(),
             kind,
             route_configs: RouteConfigs::new(),
@@ -273,17 +273,18 @@ mod tests {
         device_info: DeviceInfo,
     }
 
-    // This method is just a demonstration of this library flexibility,
-    // but we do not recommend it because a DeviceInfo inside a SerialResponse
-    // could be ignored as response by a receiver.
+    // This method demonstrates the library flexibility, but its use is
+    // not recommended.
+    // A controller may ignore a DeviceInfo structure if it is contained
+    // within a SerialResponse.
     async fn serial_response_with_substate2(
         State(state): State<DeviceInfoState>,
         Json(inputs): Json<Inputs>,
     ) -> Result<SerialResponse<DeviceInfoResponse>, ErrorResponse> {
-        // Retrieve internal state.
+        // Retrieve the internal state.
         let mut device_info = state.lock().await;
 
-        // Change state.
+        // Change the state.
         device_info.energy = Energy::empty();
 
         Ok(SerialResponse::new(DeviceInfoResponse {
@@ -295,10 +296,10 @@ mod tests {
     async fn info_response_with_substate3(
         State(state): State<DeviceInfoState>,
     ) -> Result<InfoResponse, ErrorResponse> {
-        // Retrieve internal state.
+        // Retrieve the internal state.
         let mut device_info = state.lock().await;
 
-        // Change state.
+        // Change the state.
         device_info.energy = Energy::empty();
 
         Ok(InfoResponse::new(device_info.clone()))
