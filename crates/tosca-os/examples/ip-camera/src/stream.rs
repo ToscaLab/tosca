@@ -113,10 +113,10 @@ pub(crate) async fn show_camera_stream(
 
             // If we do not add this check, we could send data to a
             // non-existent channel.
-            if !tx.is_closed() {
-                if let Err(e) = tx.send(Ok(response)) {
-                    error!("Error sending image {e}");
-                }
+            if !tx.is_closed()
+                && let Err(e) = tx.send(Ok(response))
+            {
+                error!("Error sending image {e}");
             }
         }
     });

@@ -75,10 +75,9 @@ fn parse_transport_protocol(protocol: &str) -> Result<TransportProtocol, std::io
     match protocol {
         "tcp" | "TCP" => Ok(TransportProtocol::TCP),
         "udp" | "UDP" => Ok(TransportProtocol::UDP),
-        _ => Err(std::io::Error::new(
-            std::io::ErrorKind::Other,
-            format!("{protocol:?} is not a supported protocol."),
-        )),
+        _ => Err(std::io::Error::other(format!(
+            "{protocol:?} is not a supported protocol."
+        ))),
     }
 }
 
