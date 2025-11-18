@@ -12,7 +12,11 @@ use crate::responses::{BaseResponse, MandatoryResponse};
 const MAIN_ROUTE: &str = "/light";
 
 // Allowed hazards.
-const ALLOWED_HAZARDS: &[Hazard] = &[Hazard::FireHazard, Hazard::ElectricEnergyConsumption];
+const ALLOWED_HAZARDS: &[Hazard] = &[
+    Hazard::FireHazard,
+    Hazard::ElectricEnergyConsumption,
+    Hazard::LogEnergyConsumption,
+];
 
 /// A `light` device.
 ///
