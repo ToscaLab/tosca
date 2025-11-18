@@ -1,7 +1,5 @@
 use std::borrow::Cow;
 
-use tosca::device::DeviceKind;
-
 /// All possible error kinds.
 #[derive(Debug, Copy, Clone)]
 pub enum ErrorKind {
@@ -11,8 +9,6 @@ pub enum ErrorKind {
     NotFoundAddress,
     /// Serialize/Deserialize error.
     Serialization,
-    /// A device error.
-    Device,
 }
 
 impl ErrorKind {
@@ -21,7 +17,6 @@ impl ErrorKind {
             Self::Service => "Service",
             Self::NotFoundAddress => "Not Found Address",
             Self::Serialization => "Serialization",
-            Self::Device => "Device",
         }
     }
 }
@@ -58,17 +53,6 @@ impl Error {
         }
     }
 
-    pub(crate) fn device(
-        device_type: DeviceKind,
-        description: impl Into<Cow<'static, str>>,
-    ) -> Self {
-        let description = description.into();
-        Self::new(
-            ErrorKind::Device,
-            format!("{description} [{device_type} Device]"),
-        )
-    }
-
     fn format(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(f, "{}", self.kind)?;
         write!(f, "Cause: {}", self.description)
@@ -83,20 +67,3 @@ impl From<serde_json::Error> for Error {
 
 /// A specialized [`Result`] type for [`Error`].
 pub type Result<T> = std::result::Result<T, Error>;
-
-#[cfg(test)]
-mod tests {
-    use tosca::device::DeviceKind;
-
-    use super::Error;
-
-    #[test]
-    fn device_error() {
-        let error = Error::device(DeviceKind::Light, "This hazard is not correct");
-        assert_eq!(
-            error.to_string(),
-            r"Device
-Cause: This hazard is not correct [Light Device]"
-        );
-    }
-}
