@@ -273,7 +273,7 @@ async fn main() -> Result<(), Error> {
             update_energy_efficiency_route,
             update_energy_efficiency,
         ))
-        .into_device();
+        .build();
 
     // Run a discovery service and the device on the server.
     Server::new(device)
