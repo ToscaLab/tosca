@@ -11,7 +11,6 @@ use tosca::parameters::Parameters;
 use tosca::route::Route;
 
 use tosca_os::device::Device;
-use tosca_os::error::Error;
 use tosca_os::responses::error::ErrorResponse;
 use tosca_os::responses::ok::ok_stateful;
 use tosca_os::responses::serial::{serial_stateful, serial_stateless};
@@ -43,19 +42,6 @@ use crate::screenshot::{
     screenshot_random,
 };
 use crate::stream::show_camera_stream;
-
-fn startup_error(error: &str) -> Error {
-    Error::external(format!("{error} at server startup"))
-}
-
-fn startup_with_error(description: &str, error: impl std::error::Error) -> Error {
-    Error::external(format!(
-        r"
-            {description} at server startup
-            Info: {error}
-        "
-    ))
-}
 
 fn camera_error(description: &'static str, error: impl std::error::Error) -> ErrorResponse {
     ErrorResponse::internal_with_error(description, &error.to_string())
@@ -329,6 +315,18 @@ fn screenshot(device: Device<InternalState>) -> Device<InternalState> {
         ))
 }
 
+#[derive(Debug, thiserror::Error)]
+enum Error {
+    #[error("failed to run a `tosca-os` method")]
+    Tosca(tosca_os::error::Error),
+    #[error("no camera backend found")]
+    NoCameraBackend,
+    #[error("failed to find any camera in the system")]
+    NoCameraFound(#[source] NokhwaError),
+    #[error("failed to retrieve the first camera available")]
+    MissingFirstCamera,
+}
+
 #[tokio::main]
 async fn main() -> Result<(), Error> {
     // Initialize tracing subscriber.
@@ -351,16 +349,13 @@ async fn main() -> Result<(), Error> {
     });
 
     // Retrieve native API camera backend
-    let camera_backend = native_api_backend().ok_or(startup_error("No camera backend found"))?;
+    let camera_backend = native_api_backend().ok_or(Error::NoCameraBackend)?;
 
     // Retrieve all cameras present on a system
-    let cameras = query(camera_backend)
-        .map_err(|e| startup_with_error("The backend cannot find any camera", e))?;
+    let cameras = query(camera_backend).map_err(Error::NoCameraFound)?;
 
     // Retrieve first camera present in the system
-    let first_camera = cameras
-        .first()
-        .ok_or(startup_error("No cameras found in the system"))?;
+    let first_camera = cameras.first().ok_or(Error::MissingFirstCamera)?;
 
     // Camera configuration.
     let camera = CameraConfig {
@@ -406,4 +401,5 @@ async fn main() -> Result<(), Error> {
         )
         .run()
         .await
+        .map_err(Error::Tosca)
 }

@@ -29,6 +29,8 @@ serde.version = "1.0"
 serde.default-features = false
 serde.features = ["derive"]
 
+thiserror.version = "2.0.17"
+
 tokio.version = "1.0"
 tokio.default-features = false
 tokio.features = ["rt", "rt-multi-thread"]
