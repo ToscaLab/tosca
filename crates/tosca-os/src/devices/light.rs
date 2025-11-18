@@ -1,9 +1,11 @@
+use axum::Router;
+
 use tosca::device::DeviceKind;
 use tosca::hazards::Hazard;
-use tosca::route::{LightOffRoute, LightOnRoute, Route};
+use tosca::route::{LightOffRoute, LightOnRoute, Route, RouteConfig};
 
 use crate::device::Device;
-use crate::error::{Error, Result};
+use crate::error::Result;
 use crate::responses::{BaseResponse, MandatoryResponse};
 
 // Default main route.
@@ -25,8 +27,6 @@ where
     turn_light_on: MandatoryResponse<M1>,
     // Turn light off.
     turn_light_off: MandatoryResponse<M2>,
-    // Allowed hazards.
-    allowed_hazards: &'static [Hazard],
 }
 
 impl Default for Light<false, false, ()> {
@@ -57,7 +57,6 @@ where
             device,
             turn_light_on: MandatoryResponse::empty(),
             turn_light_off: MandatoryResponse::empty(),
-            allowed_hazards: ALLOWED_HAZARDS,
         }
     }
 
@@ -75,7 +74,6 @@ where
             device: self.device,
             turn_light_on: MandatoryResponse::init(turn_light_on.base_response),
             turn_light_off: self.turn_light_off,
-            allowed_hazards: ALLOWED_HAZARDS,
         }
     }
 }
@@ -98,7 +96,6 @@ where
             device: self.device,
             turn_light_on: self.turn_light_on,
             turn_light_off: MandatoryResponse::init(turn_light_off.base_response),
-            allowed_hazards: ALLOWED_HAZARDS,
         }
     }
 }
@@ -124,18 +121,9 @@ where
     pub fn route(mut self, light_route: impl FnOnce(S) -> BaseResponse) -> Result<Self> {
         let base_response = light_route(self.device.state.clone());
 
-        // Throws an error if any route hazards are not contained in the
-        // allowed hazards array.
-        for hazard in base_response.hazards() {
-            if !self.allowed_hazards.contains(hazard) {
-                return Err(Error::device(
-                    DeviceKind::Light,
-                    format!("The hazard {hazard} is not allowed for a light"),
-                ));
-            }
-        }
-
-        self.device = self.device.add_base_response(base_response);
+        self.device = self
+            .device
+            .response_data(Self::check_allowed_hazards(base_response));
 
         Ok(self)
     }
@@ -145,17 +133,23 @@ where
     pub fn info_route(mut self, light_info_route: impl FnOnce(S, ()) -> BaseResponse) -> Self {
         let base_response = light_info_route(self.device.state.clone(), ());
 
-        self.device = self.device.add_base_response(base_response);
+        self.device = self
+            .device
+            .response_data(Self::check_allowed_hazards(base_response));
 
         self
     }
 
     /// Builds a [`Device`].
     pub fn build(self) -> Device<S> {
-        self.device.add_mandatory_responses([
-            self.turn_light_on.base_response,
-            self.turn_light_off.base_response,
+        self.device.mandatory_response_data([
+            Self::check_allowed_hazards(self.turn_light_on.base_response),
+            Self::check_allowed_hazards(self.turn_light_off.base_response),
         ])
+    }
+
+    fn check_allowed_hazards(base_response: BaseResponse) -> (RouteConfig, Router) {
+        base_response.finalize_with_hazards(ALLOWED_HAZARDS)
     }
 }
 
