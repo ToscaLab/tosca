@@ -6,7 +6,7 @@ use alloc::string::String;
 
 use hashbrown::DefaultHashBuilder;
 
-use indexmap::map::{IndexMap, IntoIter, Iter};
+use indexmap::map::{IndexMap, IntoIter, Iter, Keys};
 
 use serde::{Deserialize, Serialize};
 
@@ -590,6 +590,13 @@ impl Parameters {
     #[inline]
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
+    }
+
+    /// Iterates over all [`Parameters`] names.
+    #[must_use]
+    #[inline]
+    pub fn names(&self) -> Keys<'_, &str, ParameterKind> {
+        self.0.keys()
     }
 
     fn create_parameter(mut self, name: &'static str, parameter_kind: ParameterKind) -> Self {
