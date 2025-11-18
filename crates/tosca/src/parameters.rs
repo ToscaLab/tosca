@@ -585,6 +585,13 @@ impl Parameters {
         data
     }
 
+    /// Checks whether [`Parameters`] is empty.
+    #[must_use]
+    #[inline]
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
     fn create_parameter(mut self, name: &'static str, parameter_kind: ParameterKind) -> Self {
         self.0.insert(name, parameter_kind);
         self
