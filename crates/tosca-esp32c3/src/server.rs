@@ -15,8 +15,8 @@ use tosca::parameters::{
 };
 use tosca::route::{RestKind, RouteConfig};
 
-use edge_http::io::Body;
 use edge_http::io::server::{Connection, Handler, Server as EdgeServer};
+use edge_http::io::Body;
 use edge_http::{Headers, Method};
 use edge_nal::{TcpBind, WithTimeout};
 use edge_nal_embassy::{Tcp, TcpBuffers};
@@ -199,6 +199,8 @@ where
     io_timeout_ms: Option<u32>,
     // Handler timeout.
     handler_timeout_ms: Option<u32>,
+    // Https scheme.
+    is_https: bool,
 }
 
 impl<const TX_SIZE: usize, const RX_SIZE: usize, const MAXIMUM_HEADERS_COUNT: usize, S>
@@ -216,6 +218,7 @@ where
             keepalive_timeout_ms: None,
             io_timeout_ms: None,
             handler_timeout_ms: None,
+            is_https: false,
         }
     }
 
@@ -247,6 +250,13 @@ where
         self
     }
 
+    /// Sets the scheme to `HTTPS`.
+    #[must_use]
+    pub const fn https(mut self) -> Self {
+        self.is_https = true;
+        self
+    }
+
     /// Runs the [`Server`] and the [`Mdns`] task.
     ///
     /// # Errors
@@ -262,6 +272,7 @@ where
             keepalive_timeout_ms,
             io_timeout_ms,
             handler_timeout_ms,
+            is_https,
         } = self;
 
         let buffers = TcpBuffers::<SERVER_SOCKETS, TX_SIZE, RX_SIZE>::new();
@@ -271,6 +282,12 @@ where
         let socket = SocketAddr::new(address.into(), port);
 
         let acceptor = tcp.bind(socket).await?;
+
+        let mdns = if is_https {
+            mdns.properties(&[("scheme", "https")])
+        } else {
+            mdns
+        };
 
         // Run mdns.
         //
