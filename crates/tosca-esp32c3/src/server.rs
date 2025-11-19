@@ -15,8 +15,8 @@ use tosca::parameters::{
 };
 use tosca::route::{RestKind, RouteConfig};
 
-use edge_http::io::server::{Connection, Handler, Server as EdgeServer};
 use edge_http::io::Body;
+use edge_http::io::server::{Connection, Handler, Server as EdgeServer};
 use edge_http::{Headers, Method};
 use edge_nal::{TcpBind, WithTimeout};
 use edge_nal_embassy::{Tcp, TcpBuffers};
