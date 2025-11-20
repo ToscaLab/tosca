@@ -17,4 +17,4 @@ updates:
       - "crates/tosca-esp32c3/examples/light-with-state"
       - "crates/tosca-esp32c3/examples/light-with-events"
     schedule:
-      interval: "weekly"
+      interval: "daily"
