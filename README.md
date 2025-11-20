@@ -27,6 +27,11 @@ board.
 In the [tosca-esp32c3/examples](./crates/tosca-esp32c3/examples) directory,
 various device firmware have been implemented.
 
+The `tosca-drivers` library provides architecture-agnostic drivers
+for various sensors and devices.
+All drivers are built on top of [`embedded-hal`] and [`embedded-hal-async`],
+making them compatible with any supported platform.
+
 ## Building
 
 To build the entire workspace with the `debug` profile, run the following
