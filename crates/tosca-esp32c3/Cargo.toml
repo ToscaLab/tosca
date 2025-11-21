@@ -15,23 +15,23 @@ tosca.default-features = false
 critical-section.version = "1.2.0"
 
 # HTTP server
-edge-http.version = "0.6.0"
+edge-http.version = "0.6.1"
 
 # mDNS service
-edge-mdns.version = "0.6.0"
+edge-mdns.version = "0.6.1"
 
 # Networking traits
 edge-nal.version = "0.5.0"
 edge-nal-embassy.version = "0.6.0"
 
 # Embassy framework
-embassy-executor.version = "0.7.0"
-embassy-executor.features = ["log", "task-arena-size-65536"]
+embassy-executor.version = "0.9.1"
+embassy-executor.features = ["log"]
 
-embassy-net.version = "0.7.0"
+embassy-net.version = "0.7.1"
 embassy-net.features = ["dhcpv4", "log", "medium-ethernet", "tcp", "udp"]
 
-embassy-sync.version = "0.7.0"
+embassy-sync.version = "0.7.2"
 
 embassy-time.version = "0.5.0"
 embassy-time.features = ["log"]
@@ -40,22 +40,23 @@ embassy-time.features = ["log"]
 embedded-io-async.version = "0.6.1"
 
 # Esp dependencies
-esp-alloc.version = "0.8.0"
+esp-alloc.version = "0.9.0"
 
-esp-hal.version = "=1.0.0-rc.0"
+# The "unstable" feature is required in order to use Embassy
+esp-hal.version = "1.0.0"
 esp-hal.features = ["esp32c3", "log-04", "unstable"]
 
-esp-hal-embassy.version = "0.9.0"
-esp-hal-embassy.features = ["esp32c3", "log-04"]
+esp-rtos.version = "0.2.0"
+esp-rtos.features = ["embassy", "esp-alloc", "esp-radio", "esp32c3", "log-04"]
 
-esp-println.version = "0.15.0"
+esp-println.version = "0.16.1"
 esp-println.features = ["esp32c3", "log-04"]
 
-esp-wifi.version = "0.15.0"
-esp-wifi.features = ["builtin-scheduler", "esp-alloc", "esp32c3", "log-04", "smoltcp", "wifi"]
+esp-radio.version = "0.17.0"
+esp-radio.features = ["esp-alloc", "esp32c3", "log-04", "wifi"]
 
 # Logging utilities
-log.version = "0.4.27"
+log.version = "0.4.28"
 
 # Mqtt protocol
 rust-mqtt.version = "0.3.0"
