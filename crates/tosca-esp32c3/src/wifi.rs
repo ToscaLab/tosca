@@ -17,7 +17,7 @@ pub(crate) const WIFI_RECONNECT_DELAY: u64 = 2;
 
 /// The `Wi-Fi` controller.
 pub struct Wifi {
-    _esp_wifi_controller: &'static Controller<'static>,
+    _esp_radio_controller: &'static Controller<'static>,
     controller: WifiController<'static>,
     interfaces: Interfaces<'static>,
     spawner: Spawner,
@@ -31,12 +31,12 @@ impl Wifi {
     /// Unable to initialize the `Wi-Fi` controller and retrieve the
     /// corresponding network interfaces.
     pub fn configure(peripherals_wifi: WIFI<'static>, spawner: Spawner) -> Result<Self> {
-        let esp_wifi_controller = &*mk_static!(Controller<'static>, esp_radio::init()?);
+        let esp_radio_controller = &*mk_static!(Controller<'static>, esp_radio::init()?);
         let (controller, interfaces) =
-            esp_radio::wifi::new(esp_wifi_controller, peripherals_wifi, Config::default())?;
+            esp_radio::wifi::new(esp_radio_controller, peripherals_wifi, Config::default())?;
 
         Ok(Self {
-            _esp_wifi_controller: esp_wifi_controller,
+            _esp_radio_controller: esp_radio_controller,
             controller,
             interfaces,
             spawner,
