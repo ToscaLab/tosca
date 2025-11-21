@@ -307,9 +307,9 @@ impl From<edge_nal::WithTimeoutError<edge_nal_embassy::TcpError>> for Error {
     }
 }
 
-impl From<esp_wifi::InitializationError> for Error {
-    fn from(e: esp_wifi::InitializationError) -> Self {
-        use esp_wifi::InitializationError;
+impl From<esp_radio::InitializationError> for Error {
+    fn from(e: esp_radio::InitializationError) -> Self {
+        use esp_radio::InitializationError;
         match e {
             InitializationError::General(_) => Self::new(ErrorKind::WiFi, "General error"),
             InitializationError::WifiError(e) => Self::from(e),
@@ -326,49 +326,44 @@ impl From<esp_wifi::InitializationError> for Error {
     }
 }
 
-impl From<esp_wifi::wifi::WifiError> for Error {
-    fn from(e: esp_wifi::wifi::WifiError) -> Self {
-        use esp_wifi::wifi::InternalWifiError;
-        use esp_wifi::wifi::WifiError;
+impl From<esp_radio::wifi::WifiError> for Error {
+    fn from(e: esp_radio::wifi::WifiError) -> Self {
+        use esp_radio::wifi::InternalWifiError;
+        use esp_radio::wifi::WifiError;
         let err = match e {
             WifiError::NotInitialized => "Not initialized module",
             WifiError::InternalError(internal_wifi_error) => match internal_wifi_error {
-                InternalWifiError::EspErrNoMem => "Internal: Out of memory",
-                InternalWifiError::EspErrInvalidArg => "Internal: Invalid argument",
-                InternalWifiError::EspErrWifiNotInit => "Internal: Wi-Fi driver was not installed",
-                InternalWifiError::EspErrWifiNotStarted => "Internal: Wi-Fi driver was not started",
-                InternalWifiError::EspErrWifiNotStopped => "Internal: Wi-Fi driver was not stopped",
-                InternalWifiError::EspErrWifiIf => "Internal: Wi-Fi interface error",
-                InternalWifiError::EspErrWifiMode => "Internal: Wi-Fi mode error",
-                InternalWifiError::EspErrWifiState => "Internal: Wi-Fi internal state error",
-                InternalWifiError::EspErrWifiConn => {
+                InternalWifiError::NoMem => "Internal: Out of memory",
+                InternalWifiError::InvalidArg => "Internal: Invalid argument",
+                InternalWifiError::NotInit => "Internal: Wi-Fi driver was not installed",
+                InternalWifiError::NotStarted => "Internal: Wi-Fi driver was not started",
+                InternalWifiError::NotStopped => "Internal: Wi-Fi driver was not stopped",
+                InternalWifiError::Interface => "Internal: Wi-Fi interface error",
+                InternalWifiError::Mode => "Internal: Wi-Fi mode error",
+                InternalWifiError::State => "Internal: Wi-Fi internal state error",
+                InternalWifiError::Conn => {
                     "Internal: Wi-Fi internal control block of station or soft-AP error"
                 }
-                InternalWifiError::EspErrWifiNvs => "Internal: Wi-Fi internal NVS module error",
-                InternalWifiError::EspErrWifiMac => "Internal: MAC address is invalid",
-                InternalWifiError::EspErrWifiSsid => "Internal: SSID is invalid",
-                InternalWifiError::EspErrWifiPassword => "Internal: Password is invalid",
-                InternalWifiError::EspErrWifiTimeout => "Internal: Timeout error",
-                InternalWifiError::EspErrWifiWakeFail => {
+                InternalWifiError::Nvs => "Internal: Wi-Fi internal NVS module error",
+                InternalWifiError::InvalidMac => "Internal: MAC address is invalid",
+                InternalWifiError::InvalidSsid => "Internal: SSID is invalid",
+                InternalWifiError::InvalidPassword => "Internal: Password is invalid",
+                InternalWifiError::Timeout => "Internal: Timeout error",
+                InternalWifiError::WakeFail => {
                     "Internal: WiFi is in sleep state(RF closed) and wakeup fail"
                 }
-                InternalWifiError::EspErrWifiWouldBlock => "Internal: The caller would block",
-                InternalWifiError::EspErrWifiNotConnect => {
-                    "Internal: Station still in disconnect status"
-                }
-                InternalWifiError::EspErrWifiPost => {
-                    "Internal: Failed to post the event to WiFi task"
-                }
-                InternalWifiError::EspErrWifiInitState => {
+                InternalWifiError::WouldBlock => "Internal: The caller would block",
+                InternalWifiError::NotConnected => "Internal: Station still in disconnect status",
+                InternalWifiError::PostFail => "Internal: Failed to post the event to WiFi task",
+                InternalWifiError::InvalidInitState => {
                     "Internal: Invalid WiFi state when init/deinit is called"
                 }
-                InternalWifiError::EspErrWifiStopState => {
-                    "Internal: Returned when WiFi is stopping"
-                }
-                InternalWifiError::EspErrWifiNotAssoc => {
+                InternalWifiError::StopState => "Internal: Returned when WiFi is stopping",
+                InternalWifiError::NotAssociated => {
                     "Internal: The WiFi connection is not associated"
                 }
-                InternalWifiError::EspErrWifiTxDisallow => "Internal: The WiFi TX is disallowed",
+                InternalWifiError::TxDisallowed => "Internal: The WiFi TX is disallowed",
+                _ => "Internal: Unknown or still non-existent error",
             },
             WifiError::Disconnected => {
                 "Device disconnected from the network or failed to connect to it"

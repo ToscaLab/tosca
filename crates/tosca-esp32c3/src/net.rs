@@ -4,7 +4,7 @@ use alloc::boxed::Box;
 
 use esp_hal::rng::Rng;
 
-use esp_wifi::wifi::WifiDevice;
+use esp_radio::wifi::WifiDevice;
 
 use embassy_executor::Spawner;
 use embassy_net::{Config, DhcpConfig, Runner, Stack, StackResources};
@@ -51,7 +51,7 @@ impl NetworkStack {
     ///
     /// Failure to spawn the network stack task.
     pub fn build<const SOCKET_STACK_SIZE: usize>(
-        mut rng: Rng,
+        rng: Rng,
         wifi_interface: WifiDevice<'static>,
         spawner: Spawner,
     ) -> Result<Stack<'static>> {

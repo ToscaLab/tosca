@@ -1,15 +1,11 @@
 use embassy_executor::Spawner;
 
 use esp_hal::peripherals::WIFI;
-use esp_hal::rng::Rng;
-use esp_hal::timer::timg::Timer;
 
-use esp_wifi::{
-    wifi::{
-        ClientConfiguration, Configuration, Interfaces, WifiController, WifiEvent, WifiState,
-        wifi_state,
-    },
-    {EspWifiController, wifi},
+use esp_radio::Controller;
+use esp_radio::wifi::{
+    ClientConfig, Config, Interfaces, ModeConfig, WifiController, WifiEvent, WifiStaState,
+    sta_state,
 };
 
 use log::{error, info};
@@ -21,7 +17,7 @@ pub(crate) const WIFI_RECONNECT_DELAY: u64 = 2;
 
 /// The `Wi-Fi` controller.
 pub struct Wifi {
-    _esp_wifi_controller: &'static EspWifiController<'static>,
+    _esp_wifi_controller: &'static Controller<'static>,
     controller: WifiController<'static>,
     interfaces: Interfaces<'static>,
     spawner: Spawner,
@@ -34,16 +30,10 @@ impl Wifi {
     ///
     /// Unable to initialize the `Wi-Fi` controller and retrieve the
     /// corresponding network interfaces.
-    pub fn configure(
-        timer: Timer<'static>,
-        rng: Rng,
-        peripherals_wifi: WIFI<'static>,
-        spawner: Spawner,
-    ) -> Result<Self> {
-        let esp_wifi_controller =
-            &*mk_static!(EspWifiController<'static>, esp_wifi::init(timer, rng)?);
-
-        let (controller, interfaces) = wifi::new(esp_wifi_controller, peripherals_wifi)?;
+    pub fn configure(peripherals_wifi: WIFI<'static>, spawner: Spawner) -> Result<Self> {
+        let esp_wifi_controller = &*mk_static!(Controller<'static>, esp_radio::init()?);
+        let (controller, interfaces) =
+            esp_radio::wifi::new(esp_wifi_controller, peripherals_wifi, Config::default())?;
 
         Ok(Self {
             _esp_wifi_controller: esp_wifi_controller,
@@ -62,7 +52,7 @@ impl Wifi {
     /// - Failure to set up the `Wi-Fi` configuration
     /// - Failure to spawn the task to connect the device to the access point
     ///   via `Wi-Fi`.
-    pub fn connect(mut self, ssid: &str, password: &str) -> Result<Interfaces<'static>> {
+    pub async fn connect(mut self, ssid: &str, password: &str) -> Result<Interfaces<'static>> {
         if ssid.is_empty() {
             return Err(Error::new(ErrorKind::WiFi, "Missing Wi-Fi SSID"));
         }
@@ -71,15 +61,20 @@ impl Wifi {
             return Err(Error::new(ErrorKind::WiFi, "Missing Wi-Fi password"));
         }
 
-        let client_config = Configuration::Client(ClientConfiguration {
-            ssid: ssid.into(),
-            password: password.into(),
-            ..Default::default()
-        });
+        let client_config = ModeConfig::Client(
+            ClientConfig::default()
+                .with_ssid(ssid.into())
+                .with_password(password.into()),
+        );
 
-        self.controller.set_configuration(&client_config)?;
+        self.controller.set_config(&client_config)?;
 
         self.spawner.spawn(connect(self.controller))?;
+
+        // Wait until Wi-Fi is connected.
+        while sta_state() != WifiStaState::Connected {
+            embassy_time::Timer::after_millis(100).await;
+        }
 
         Ok(self.interfaces)
     }
@@ -89,7 +84,7 @@ impl Wifi {
 async fn connect(mut wifi_controller: WifiController<'static>) {
     info!("Wi-Fi connection task started");
     loop {
-        if wifi_state() == WifiState::StaConnected {
+        if sta_state() == WifiStaState::Connected {
             wifi_controller
                 .wait_for_event(WifiEvent::StaDisconnected)
                 .await;

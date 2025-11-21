@@ -17,8 +17,9 @@ use tosca::route::{LightOffRoute, LightOnRoute, Route};
 use esp_hal::Config;
 use esp_hal::clock::CpuClock;
 use esp_hal::gpio::{Input, InputConfig, Level, Output, OutputConfig, Pull};
+use esp_hal::interrupt::software::SoftwareInterruptControl;
 use esp_hal::rng::Rng;
-use esp_hal::timer::{systimer::SystemTimer, timg::TimerGroup};
+use esp_hal::timer::timg::TimerGroup;
 
 use log::info;
 
@@ -238,7 +239,7 @@ async fn stateful_toggle(
     Ok(OkResponse::new())
 }
 
-#[esp_hal_embassy::main]
+#[esp_rtos::main]
 async fn main(spawner: Spawner) {
     esp_println::logger::init_logger_from_env();
 
@@ -247,20 +248,21 @@ async fn main(spawner: Spawner) {
 
     esp_alloc::heap_allocator!(size: MAX_HEAP_SIZE);
 
-    let timer0 = SystemTimer::new(peripherals.SYSTIMER);
-    esp_hal_embassy::init(timer0.alarm0);
+    let timg0 = TimerGroup::new(peripherals.TIMG0);
+    let sw_int = SoftwareInterruptControl::new(peripherals.SW_INTERRUPT);
+    esp_rtos::start(timg0.timer0, sw_int.software_interrupt0);
 
-    info!("Embassy initialized!");
+    info!("ESP RTOS started!");
 
-    let rng = Rng::new(peripherals.RNG);
-    let timer1 = TimerGroup::new(peripherals.TIMG0);
+    let rng = Rng::new();
 
-    // Retrieve device configuration
+    // Retrieve device configuration.
     let device_config = DEVICE_CONFIG;
 
-    let interfaces = Wifi::configure(timer1.timer0, rng, peripherals.WIFI, spawner)
+    let interfaces = Wifi::configure(peripherals.WIFI, spawner)
         .expect("Failed to configure Wi-Fi")
         .connect(device_config.ssid, device_config.password)
+        .await
         .expect("Failed to connect to Wi-Fi");
 
     // The number of tasks in the stack must be increased depending on the
@@ -277,7 +279,7 @@ async fn main(spawner: Spawner) {
     let stack = NetworkStack::build::<6>(rng, interfaces.sta, spawner)
         .expect("Failed to create the network stack.");
 
-    // Input button
+    // Input button.
     let button = Input::new(
         peripherals.GPIO9,
         InputConfig::default().with_pull(Pull::Up),

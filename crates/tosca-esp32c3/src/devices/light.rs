@@ -7,7 +7,7 @@ use tosca::hazards::Hazard;
 use tosca::response::ResponseKind;
 use tosca::route::{Route, RouteConfigs};
 
-use esp_wifi::wifi::WifiDevice;
+use esp_radio::wifi::WifiDevice;
 
 use log::error;
 
