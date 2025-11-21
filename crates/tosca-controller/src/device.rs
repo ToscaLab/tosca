@@ -3,10 +3,17 @@ use std::net::IpAddr;
 
 use serde::Serialize;
 
+use tokio::sync::broadcast::{self, Receiver};
+use tokio::task::JoinHandle;
+
+use tracing::warn;
+
 use tosca::device::{DeviceEnvironment, DeviceKind};
+use tosca::events::{Events as ToscaEvents, EventsDescription};
 use tosca::route::RouteConfigs;
 
-use crate::request::{Request, RequestInfo, create_requests};
+use crate::events::{Events, EventsRunner};
+use crate::request::{create_requests, Request, RequestInfo};
 
 pub(crate) fn build_device_address(scheme: &str, address: &IpAddr, port: u16) -> String {
     format!("{scheme}://{address}:{port}")
@@ -52,7 +59,7 @@ impl NetworkInformation {
 /// Device description.
 ///
 /// All properties which describe a device.
-#[derive(Debug, PartialEq, Clone, Serialize)]
+#[derive(Debug, PartialEq)]
 pub struct Description {
     /// Device kind.
     pub kind: DeviceKind,
@@ -75,7 +82,7 @@ impl Description {
 }
 
 /// A compliant device.
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Debug)]
 pub struct Device {
     // Information needed to contact a device in a network.
     network_info: NetworkInformation,
@@ -83,6 +90,22 @@ pub struct Device {
     description: Description,
     // All device requests.
     requests: HashMap<String, Request>,
+    // All device events.
+    //
+    // If [`None`], the device does not support events.
+    pub(crate) events: Option<Events>,
+    // The join handle for the event task.
+    pub(crate) event_handle: Option<JoinHandle<()>>,
+    // The broadcast receiver.
+    pub(crate) event_receiver: Option<Receiver<ToscaEvents>>,
+}
+
+impl PartialEq for Device {
+    fn eq(&self, other: &Self) -> bool {
+        self.network_info == other.network_info
+            && self.description == other.description
+            && self.requests == other.requests
+    }
 }
 
 impl Device {
@@ -112,6 +135,9 @@ impl Device {
             network_info,
             description,
             requests,
+            events: None,
+            event_handle: None,
+            event_receiver: None,
         }
     }
 
@@ -125,6 +151,15 @@ impl Device {
     #[must_use]
     pub const fn description(&self) -> &Description {
         &self.description
+    }
+
+    /// Returns an immutable reference to [`EventsDescription`].
+    ///
+    /// If [`None`], the device does not support events.
+    #[must_use]
+    #[inline]
+    pub fn events_metadata(&self) -> Option<&EventsDescription> {
+        self.events.as_ref().map(|events| &events.description)
     }
 
     /// Returns requests information as a vector of [`RequestInfo`].
@@ -153,22 +188,93 @@ impl Device {
         self.requests.get(route)
     }
 
+    /// Checks if a [`Device`] supports events.
+    #[must_use]
+    pub const fn has_events(&self) -> bool {
+        self.events.is_some()
+    }
+
+    /// Checks if an event receiver for a [`Device`] is running.
+    #[must_use]
+    pub const fn is_event_receiver_running(&self) -> bool {
+        self.event_handle.is_some()
+    }
+
+    /// Resubscribes to the event receiver of the [`Device`].
+    ///
+    /// If [`None`], the device does not support events or
+    /// [`Device::start_event_receiver()`] has never been called.
+    #[must_use]
+    #[inline]
+    pub fn resuscribe_to_receiver(&self) -> Option<Receiver<ToscaEvents>> {
+        self.event_receiver
+            .as_ref()
+            .map(broadcast::Receiver::resubscribe)
+    }
+
+    /// Starts the asynchronous event receiver if the [`Device`] supports
+    /// events.
+    ///
+    /// An event receiver task connects to the broker of its associated device
+    /// and subscribes to the topic of that device.
+    /// When a device sends an event to the broker, the task receives it
+    /// from the network, parses it, and forwards it to the internal
+    /// [`Receiver`].
+    ///
+    /// The `buffer_size` parameter specifies how many messages the buffer
+    /// can hold.
+    /// When the buffer is full, new send attempts will wait until
+    /// a message is consumed from the channel.
+    ///
+    /// When the internal [`Receiver`] is dropped, the event receiver task
+    /// terminates automatically.
+    ///
+    /// When [`None`], the reasons can be numerous:
+    /// - The device does not support events
+    /// - The event receiver task has already been started
+    /// - An error occurred while subscribing to the broker topic.
+    #[inline]
+    pub async fn start_event_receiver(&mut self, id: usize, buffer_size: usize) -> Option<()> {
+        if self.event_handle.is_some() {
+            warn!("Event receiver already started for device with id `{id}`");
+            return None;
+        }
+
+        let Some(ref events) = self.events else {
+            warn!("The device with `{id}` does not support events");
+            return None;
+        };
+
+        let (tx, _) = broadcast::channel(buffer_size);
+        // FIXME: Return an error
+        self.event_handle = EventsRunner::run_device_subscriber(events, id, tx.clone())
+            .await
+            .ok();
+        self.event_receiver = Some(tx.subscribe());
+
+        Some(())
+    }
+
     pub(crate) const fn init(
         network_info: NetworkInformation,
         description: Description,
         requests: HashMap<String, Request>,
+        events: Option<Events>,
     ) -> Self {
         Self {
             network_info,
             description,
             requests,
+            events,
+            event_handle: None,
+            event_receiver: None,
         }
     }
 }
 
 /// A collection of [`Device`]s.
-#[derive(Debug, PartialEq, Serialize)]
-pub struct Devices(Vec<Device>);
+#[derive(Debug, PartialEq)]
+pub struct Devices(pub(crate) Vec<Device>);
 
 impl Default for Devices {
     fn default() -> Self {
@@ -191,6 +297,14 @@ impl<'a> IntoIterator for &'a Devices {
 
     fn into_iter(self) -> Self::IntoIter {
         self.iter()
+    }
+}
+
+impl<'a> IntoIterator for &'a mut Devices {
+    type Item = &'a mut Device;
+    type IntoIter = std::slice::IterMut<'a, Device>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.iter_mut()
     }
 }
 
@@ -239,6 +353,12 @@ impl Devices {
     pub fn iter(&self) -> std::slice::Iter<'_, Device> {
         self.0.iter()
     }
+
+    /// Returns a mutable iterator over [`Device`]s.
+    #[inline]
+    pub fn iter_mut(&mut self) -> std::slice::IterMut<'_, Device> {
+        self.0.iter_mut()
+    }
 }
 
 #[cfg(test)]
@@ -250,7 +370,7 @@ pub(crate) mod tests {
     use tosca::parameters::Parameters;
     use tosca::route::{Route, RouteConfigs};
 
-    use super::{Description, Device, Devices, NetworkInformation, build_device_address};
+    use super::{build_device_address, Description, Device, Devices, NetworkInformation};
 
     fn create_network_info(address: &str, port: u16) -> NetworkInformation {
         let ip_address = address.parse().unwrap();

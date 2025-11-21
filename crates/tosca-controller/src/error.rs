@@ -15,6 +15,8 @@ pub enum ErrorKind {
     StreamResponse,
     /// Errors in building the mechanism to send a request to a device.
     Sender,
+    /// Errors caused by events management.
+    Events,
 }
 
 impl ErrorKind {
@@ -26,6 +28,7 @@ impl ErrorKind {
             Self::JsonResponse => "Json Response",
             Self::StreamResponse => "Stream Response",
             Self::Sender => "Response Sender",
+            Self::Events => "Events",
         }
     }
 }
@@ -79,6 +82,12 @@ impl From<reqwest::Error> for Error {
 impl From<mdns_sd::Error> for Error {
     fn from(e: mdns_sd::Error) -> Self {
         Self::new(ErrorKind::Discovery, e.to_string())
+    }
+}
+
+impl From<rumqttc::v5::ClientError> for Error {
+    fn from(e: rumqttc::v5::ClientError) -> Self {
+        Self::new(ErrorKind::Events, e.to_string())
     }
 }
 

@@ -341,9 +341,12 @@ impl Events {
 /// All events to be published over the network, including their associated
 /// topic and broker data.
 pub struct EventsDescription {
-    broker_data: BrokerData,
-    topic: Topic,
-    events: Events,
+    /// Broker data.
+    pub broker_data: BrokerData,
+    /// Topic information.
+    pub topic: Topic,
+    /// All device events.
+    pub events: Events,
 }
 
 impl EventsDescription {

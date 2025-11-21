@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Device Event Stream</title>
+        <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+            color: #333;
+        }
+
+        h1 {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 1.5em;
+        }
+
+        #devices-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            padding: 20px;
+        }
+
+        .device-console {
+            border: 1px solid #ccc;
+            padding: 15px;
+            width: 300px;
+            height: 300px;
+            overflow-y: scroll;
+            background-color: #f4f4f4;
+            font-family: monospace;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .device-console h3 {
+            font-size: 1.2em;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        /* Media Queries for Responsiveness */
+        @media (max-width: 1200px) {
+            .device-console {
+                width: 270px;
+                height: 250px;
+            }
+
+            h1 {
+                font-size: 1.4em;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .device-console {
+                width: 100%; /* Full width on smaller screens */
+                max-width: 320px; /* Prevent overly wide consoles */
+                height: 220px;
+            }
+
+            h1 {
+                font-size: 1.2em;
+            }
+
+            #devices-container {
+                flex-direction: column; /* Stack consoles vertically */
+                gap: 10px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .device-console {
+                height: 200px;
+            }
+
+            h1 {
+                font-size: 1.1em;
+            }
+
+            .device-console h3 {
+                font-size: 1em; /* Smaller font for headers */
+            }
+        }
+        </style>
+    </head>
+    <body>
+        <h1>Device Event Consoles</h1>
+        <div id="devices-container">
+            {% for device_id in device_ids %}
+            <div class="device-console">
+                <h3>Device {{ device_id }}</h3>
+                <div id="events-{{ device_id }}" aria-live="polite"></div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <script>
+            {% for device_id in device_ids %}
+            const deviceId = "{{ device_id }}";
+            var eventSource = new EventSource('/events/' + deviceId);
+
+            eventSource.onmessage = function(event) {
+                const eventDiv = document.getElementById('events-' + deviceId);
+                const eventElement = document.createElement('p');
+                eventElement.textContent = event.data;
+                eventDiv.appendChild(eventElement);
+            };
+
+            eventSource.onerror = function(event) {
+                console.error("EventSource failed:", event);
+            };
+            {% endfor %}
+        </script>
+    </body>
+</html>
