@@ -14,6 +14,7 @@ use tracing::{info, warn};
 
 use crate::device::{Description, Device, Devices, NetworkInformation, build_device_address};
 use crate::error::Error;
+use crate::events::Events;
 use crate::request::create_requests;
 
 // Service top-level domain.
@@ -275,7 +276,9 @@ impl Discovery {
                             complete_address,
                         );
 
-                        devices.add(Device::init(network_info, description, requests));
+                        let events = device_data.events_description.map(Events::new);
+
+                        devices.add(Device::init(network_info, description, requests, events));
 
                         // Only a single address is necessary.
                         break;

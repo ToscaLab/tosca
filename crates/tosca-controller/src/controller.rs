@@ -2,11 +2,14 @@ use std::borrow::Cow;
 
 use tosca::parameters::ParametersValues;
 
-use tracing::warn;
+use tokio::sync::mpsc::{self, Receiver};
+
+use tracing::{error, warn};
 
 use crate::device::{Device, Devices};
 use crate::discovery::Discovery;
 use crate::error::{Error, ErrorKind};
+use crate::events::{EventPayload, EventsRunner};
 use crate::policy::Policy;
 use crate::request::Request;
 use crate::response::Response;
@@ -209,6 +212,59 @@ impl Controller {
         Ok(())
     }
 
+    /// Starts asynchronous event receiver tasks for all [`Device`]s that
+    /// support events.
+    ///
+    /// An event receiver task connects to the broker of a device
+    /// and subscribes to its topic.
+    /// When a device transmits an event to the broker, the task retrieves the
+    /// event payload from the broker, parses the data, and sends the relevant
+    /// content to the [`Receiver`] returned by this method.
+    ///
+    /// The `buffer_size` parameter specifies how many messages the event
+    /// receiver buffer can hold.
+    /// When the buffer is full, subsequent send attempts will wait until
+    /// a message is consumed from the channel.
+    ///
+    /// When the [`Receiver`] is dropped, all tasks terminate automatically.
+    ///
+    /// # Errors
+    ///
+    /// - No event receiver tasks has started
+    /// - An error occurred while subscribing to the broker topic of a device.
+    pub async fn start_event_receivers(
+        &mut self,
+        buffer_size: usize,
+    ) -> Result<Receiver<EventPayload>, Error> {
+        let (tx, rx) = mpsc::channel(buffer_size);
+
+        let mut started_count = 0;
+        for (id, device) in self.devices.iter_mut().enumerate() {
+            if device.event_handle.is_some() {
+                warn!("Skip device with id `{id}`: event receiver already started");
+                continue;
+            }
+
+            let Some(ref events) = device.events else {
+                warn!("Skip device with id `{id}`: it does not support events");
+                continue;
+            };
+
+            EventsRunner::run_global_subscriber(events, id, tx.clone()).await?;
+
+            started_count += 1;
+        }
+
+        if started_count == 0 {
+            return Err(Error::new(
+                ErrorKind::Events,
+                "No event receiver tasks has started",
+            ));
+        }
+
+        Ok(rx)
+    }
+
     /// Returns an immutable reference to the internal [`Devices`].
     #[must_use]
     pub const fn devices(&self) -> &Devices {
@@ -240,6 +296,30 @@ impl Controller {
             device,
             id,
         })
+    }
+
+    /// Shuts down the [`Controller`], stopping all asynchronous tasks and
+    /// releasing all associated resources.
+    ///
+    /// # Note
+    ///
+    /// For a graceful shutdown, this method must be called before dropping
+    /// the [`Controller`].
+    pub async fn shutdown(self) {
+        // Stop all events tasks.
+        for device in self.devices {
+            if let Some(events) = device.events {
+                // Stop the infinite loop
+                events.cancellation_token.cancel();
+            }
+
+            if let Some(event_handle) = device.event_handle {
+                // Await the task.
+                if let Err(e) = event_handle.await {
+                    error!("Failed to await the event task: {e}");
+                }
+            }
+        }
     }
 }
 

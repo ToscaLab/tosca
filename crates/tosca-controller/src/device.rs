@@ -3,9 +3,15 @@ use std::net::IpAddr;
 
 use serde::Serialize;
 
+use tokio::sync::broadcast::{self, Receiver};
+use tokio::task::JoinHandle;
+
 use tosca::device::{DeviceEnvironment, DeviceKind};
+use tosca::events::{Events as ToscaEvents, EventsDescription};
 use tosca::route::RouteConfigs;
 
+use crate::error::{Error, ErrorKind, Result};
+use crate::events::{Events, EventsRunner};
 use crate::request::{Request, RequestInfo, create_requests};
 
 pub(crate) fn build_device_address(scheme: &str, address: &IpAddr, port: u16) -> String {
@@ -52,7 +58,7 @@ impl NetworkInformation {
 /// Device description.
 ///
 /// All properties which describe a device.
-#[derive(Debug, PartialEq, Clone, Serialize)]
+#[derive(Debug, PartialEq)]
 pub struct Description {
     /// Device kind.
     pub kind: DeviceKind,
@@ -75,7 +81,7 @@ impl Description {
 }
 
 /// A compliant device.
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Debug)]
 pub struct Device {
     // Information needed to contact a device in a network.
     network_info: NetworkInformation,
@@ -83,6 +89,20 @@ pub struct Device {
     description: Description,
     // All device requests.
     requests: HashMap<String, Request>,
+    // All device events.
+    //
+    // If [`None`], the device does not support events.
+    pub(crate) events: Option<Events>,
+    // The join handle for the event task.
+    pub(crate) event_handle: Option<JoinHandle<()>>,
+}
+
+impl PartialEq for Device {
+    fn eq(&self, other: &Self) -> bool {
+        self.network_info == other.network_info
+            && self.description == other.description
+            && self.requests == other.requests
+    }
 }
 
 impl Device {
@@ -112,6 +132,8 @@ impl Device {
             network_info,
             description,
             requests,
+            events: None,
+            event_handle: None,
         }
     }
 
@@ -125,6 +147,15 @@ impl Device {
     #[must_use]
     pub const fn description(&self) -> &Description {
         &self.description
+    }
+
+    /// Returns an immutable reference to [`EventsDescription`].
+    ///
+    /// If [`None`], the device does not support events.
+    #[must_use]
+    #[inline]
+    pub fn events_metadata(&self) -> Option<&EventsDescription> {
+        self.events.as_ref().map(|events| &events.description)
     }
 
     /// Returns requests information as a vector of [`RequestInfo`].
@@ -153,15 +184,80 @@ impl Device {
         self.requests.get(route)
     }
 
+    /// Checks if a [`Device`] supports events.
+    #[must_use]
+    pub const fn has_events(&self) -> bool {
+        self.events.is_some()
+    }
+
+    /// Checks if an event receiver for a [`Device`] is running.
+    #[must_use]
+    pub const fn is_event_receiver_running(&self) -> bool {
+        self.event_handle.is_some()
+    }
+
+    /// Starts the asynchronous event receiver if the [`Device`] supports
+    /// events.
+    ///
+    /// An event receiver task connects to the broker of a device
+    /// and subscribes to its topic.
+    /// When a device transmits an event to the broker, the task retrieves the
+    /// event payload from the broker, parses the data, and sends the relevant
+    /// content to the [`Receiver`] returned by this method.
+    ///
+    /// The `buffer_size` parameter specifies how many messages the event
+    /// receiver buffer can hold.
+    /// When the buffer is full, subsequent send attempts will wait until
+    /// a message is consumed from the channel.
+    ///
+    /// When the returned [`Receiver`] is dropped, the event receiver task
+    /// terminates automatically.
+    ///
+    /// # Errors
+    ///
+    /// - The device does not support events
+    /// - The event receiver task has already been started
+    /// - An error occurred while attempting to subscribe to the broker topic
+    #[inline]
+    pub async fn start_event_receiver(
+        &mut self,
+        id: usize,
+        buffer_size: usize,
+    ) -> Result<Receiver<ToscaEvents>> {
+        if self.event_handle.is_some() {
+            return Err(Error::new(
+                ErrorKind::Events,
+                format!("Event receiver already started for device with id `{id}`"),
+            ));
+        }
+
+        let Some(ref events) = self.events else {
+            return Err(Error::new(
+                ErrorKind::Events,
+                format!("The device with `{id}` does not support events"),
+            ));
+        };
+
+        let (tx, _) = broadcast::channel(buffer_size);
+
+        let handle = EventsRunner::run_device_subscriber(events, id, tx.clone()).await?;
+        self.event_handle = Some(handle);
+
+        Ok(tx.subscribe())
+    }
+
     pub(crate) const fn init(
         network_info: NetworkInformation,
         description: Description,
         requests: HashMap<String, Request>,
+        events: Option<Events>,
     ) -> Self {
         Self {
             network_info,
             description,
             requests,
+            events,
+            event_handle: None,
         }
     }
 }

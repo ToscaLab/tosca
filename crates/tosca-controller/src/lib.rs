@@ -23,6 +23,8 @@ pub mod device;
 pub mod discovery;
 /// Error management.
 pub mod error;
+/// Events data.
+pub mod events;
 /// A privacy and security policy manager that determines whether `REST`
 /// requests can be sent or blocked.
 pub mod policy;
