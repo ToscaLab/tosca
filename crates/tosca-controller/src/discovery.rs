@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::net::IpAddr;
 use std::time::Duration;
 
@@ -51,9 +52,9 @@ impl TransportProtocol {
 /// It detects all `tosca`-compliant [`Device`]s in a network.
 #[derive(Debug, PartialEq)]
 pub struct Discovery {
-    domain: &'static str,
+    domain: Cow<'static, str>,
     transport_protocol: TransportProtocol,
-    top_level_domain: &'static str,
+    top_level_domain: Cow<'static, str>,
     timeout: Duration,
     disable_ipv6: bool,
     disable_ip: Option<IpAddr>,
@@ -63,11 +64,12 @@ pub struct Discovery {
 impl Discovery {
     /// Creates a [`Discovery`].
     #[must_use]
-    pub const fn new(domain: &'static str) -> Self {
+    #[inline]
+    pub fn new(domain: impl Into<Cow<'static, str>>) -> Self {
         Self {
-            domain,
+            domain: domain.into(),
             transport_protocol: TransportProtocol::TCP,
-            top_level_domain: TOP_LEVEL_DOMAIN,
+            top_level_domain: Cow::Borrowed(TOP_LEVEL_DOMAIN),
             timeout: Duration::from_secs(2), // Default timeout of 2s.
             disable_ipv6: false,
             disable_ip: None,
@@ -91,15 +93,17 @@ impl Discovery {
 
     /// Changes service domain.
     #[must_use]
-    pub const fn domain(mut self, domain: &'static str) -> Self {
-        self.domain = domain;
+    #[inline]
+    pub fn domain(mut self, domain: impl Into<Cow<'static, str>>) -> Self {
+        self.domain = domain.into();
         self
     }
 
     /// Sets the service top-level domain.
     #[must_use]
-    pub const fn top_level_domain(mut self, top_level_domain: &'static str) -> Self {
-        self.top_level_domain = top_level_domain;
+    #[inline]
+    pub fn top_level_domain(mut self, top_level_domain: impl Into<Cow<'static, str>>) -> Self {
+        self.top_level_domain = top_level_domain.into();
         self
     }
 
