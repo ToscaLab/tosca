@@ -182,13 +182,6 @@ impl Discovery {
                     continue;
                 }
 
-                // A scheme is necessary to get in touch with a device,
-                // so if it is not present, skip that device.
-                if info.get_property("scheme").is_none() {
-                    warn!("No `scheme` property found.");
-                    continue;
-                }
-
                 // If two devices are equal, skip to the next one.
                 if Self::check_device_duplicates(&discovery_service, &info) {
                     continue;
@@ -237,6 +230,8 @@ impl Discovery {
                     service
                         .txt_properties
                         .get_property_val_str("scheme")
+                        // If the scheme is not specified as a property,
+                        // fall back to `http` as default.
                         .unwrap_or("http"),
                     &address.to_ip_addr(),
                     service.port,
