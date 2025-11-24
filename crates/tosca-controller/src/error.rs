@@ -1,5 +1,7 @@
 use std::borrow::Cow;
 
+use tracing::error;
+
 /// All possible error kinds.
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum ErrorKind {
@@ -59,10 +61,9 @@ impl Error {
     /// Creates an [`Error`] from an [`ErrorKind`] and a description.
     #[inline]
     pub fn new(kind: ErrorKind, description: impl Into<Cow<'static, str>>) -> Self {
-        Self {
-            kind,
-            description: description.into(),
-        }
+        let description = description.into();
+        error!("{}", description.as_ref());
+        Self { kind, description }
     }
 
     fn format(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
