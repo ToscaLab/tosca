@@ -1,0 +1,74 @@
+[package]
+name = "events-with-sse"
+version = "0.1.0"
+edition = "2024"
+authors = ["Michele Valsesia <luni-4@hotmail.it>"]
+description = """
+A controller that scans the network for tosca devices, subscribes to their
+brokers to receive events, and displays their data in real-time on a web page.
+"""
+license = "MIT"
+publish = false
+
+[dependencies]
+tosca.path = "../../../tosca"
+tosca.version = "0.1"
+tosca.default-features = false
+
+tosca-controller.path = "../../"
+tosca-controller.version = "0.1"
+tosca-controller.default-features = false
+
+askama.version = "0.14"
+
+axum.version = "0.8"
+axum.default-features = false
+axum.features = ["tokio", "http1"]
+
+clap.version = "4.5"
+clap.features = ["derive"]
+
+futures.version = "0.3.31"
+futures.default-features = false
+
+serde.version = "1.0"
+serde.default-features = false
+serde.features = ["derive", "alloc"]
+
+serde_json.version = "1"
+serde_json.default-features = false
+serde_json.features = ["alloc"]
+
+thiserror = "2.0.17"
+
+tokio.version = "1.0"
+tokio.default-features = false
+tokio.features = ["rt", "rt-multi-thread", "signal"]
+
+tokio-stream.version = "0.1.17"
+tokio-stream.features = ["sync"]
+
+tower-http.version = "0.6.1"
+tower-http.default-features = false
+tower-http.features = ["fs", "trace"]
+
+tracing.version = "0.1"
+tracing.default-features = false
+
+tracing-subscriber.version = "0.3"
+tracing-subscriber.default-features = false
+tracing-subscriber.features = ["ansi", "fmt"]
+
+[profile.release]
+opt-level = 3
+debug = false
+rpath = false
+lto = true
+debug-assertions = false
+codegen-units = 1
+panic = "unwind"
+incremental = false
+overflow-checks = false
+strip = "debuginfo"
+
+[workspace]

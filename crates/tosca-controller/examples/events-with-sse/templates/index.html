@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Device Event With SSE</title>
+        <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+            color: #333;
+        }
+
+        h1 {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 1.5em;
+        }
+
+        #devices-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .device-console {
+            border: 1px solid #ccc;
+            padding: 15px;
+            width: 300px;
+            height: auto;
+            background-color: #f4f4f4;
+            font-family: monospace;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+        }
+
+        .device-console h3 {
+            font-size: 1.2em;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .light-icon {
+            display: block;
+            width: 50px;  /* Slightly larger light icon */
+            height: 50px;
+            margin: 10px auto;
+        }
+
+        .console-container {
+            border: 1px solid #ccc; /* Border for console area */
+            padding: 10px;
+            width: 100%;
+            height: 150px;
+            overflow-y: scroll;
+            background-color: #fff;
+            margin-bottom: 10px;
+        }
+
+        .buttons-container {
+            text-align: center;
+            margin-top: 10px;
+            width: 100%;
+        }
+
+        .device-button {
+            margin: 5px;
+            padding: 10px 20px;
+            font-size: 1em;
+            cursor: pointer;
+            width: 120px; /* Standard button size */
+            border: none;
+            background-color: #007BFF;
+            color: white;
+            border-radius: 5px;
+        }
+
+        .device-button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Media Queries for Responsiveness */
+        @media (max-width: 1200px) {
+            .device-console {
+                width: 280px;
+                height: 250px;
+            }
+
+            h1 {
+                font-size: 1.4em;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .device-console {
+                width: 90%; /* Full width on smaller screens */
+                max-width: 320px; /* Prevent overly wide consoles */
+                height: auto; /* Let the content determine height */
+            }
+
+            .device-button {
+                width: 100%; /* Full width buttons on small screens */
+                padding: 12px 0;
+            }
+
+            h1 {
+                font-size: 1.2em;
+            }
+
+            #devices-container {
+                flex-direction: column; /* Stack consoles vertically */
+                gap: 10px;
+            }
+
+            .light-icon {
+                width: 40px;
+                height: 40px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .device-console {
+                width: 100%;
+                max-width: 300px;
+            }
+
+            h1 {
+                font-size: 1.1em;
+            }
+
+            .device-console h3 {
+                font-size: 1em; /* Smaller font for headers */
+            }
+
+            .device-button {
+                width: 100%; /* Full width on extra small screens */
+                padding: 14px 0;
+            }
+
+            .light-icon {
+                width: 35px;
+                height: 35px;
+            }
+        }
+        </style>
+    </head>
+    <body>
+        <h1>Devices Event with SSE</h1>
+        <div id="devices-container">
+            {% for device_id in devices_ids %}
+            <div class="device-console">
+                <h3>Device {{ device_id }}</h3>
+
+                <!-- Light Icon (off state initially) -->
+                <img id="light-icon-{{ device_id }}" class="light-icon" src="./light-off.svg">
+
+                <!-- Console Container (Events Display) -->
+                <div class="console-container" id="events-{{ device_id }}"></div>
+
+                <!-- Buttons -->
+                <div class="buttons-container">
+                    <button id="start-{{ device_id }}" class="device-button">Start Event</button>
+                    <button id="stop-{{ device_id }}" class="device-button">Stop Event</button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <script>
+            {% for device_id in devices_ids %}
+            const deviceId = "{{ device_id }}";
+            let eventSource;
+
+            // Handle start and stop events
+            document.getElementById("start-" + deviceId).onclick = function() {
+                // Start listening to the events
+                eventSource = new EventSource('/events/' + deviceId);
+
+                eventSource.onmessage = function(event) {
+                    // Parse the JSON data
+                    const eventsData = JSON.parse(event.data);
+
+                    const eventDiv = document.getElementById('events-' + deviceId);
+                    const eventElement = document.createElement('p');
+
+                    eventElement.textContent = eventsData.events;
+                    eventDiv.appendChild(eventElement);
+
+                    const lightIcon = document.getElementById("light-icon-" + deviceId);
+                    const lightStatusMap = {
+                        "On": "./light-on.svg",
+                        "Off": "./light-off.svg"
+                    };
+                    const imagePath = lightStatusMap[eventsData.light_status] || "./light-off.svg";
+
+                    lightIcon.src = imagePath;
+                };
+
+                eventSource.onerror = function(event) {
+                    console.error("EventSource failed:", event);
+                };
+            };
+
+            // Stop listening to events
+            document.getElementById("stop-" + deviceId).onclick = function() {
+                if (eventSource) {
+                    eventSource.close();
+                    console.log("EventSource closed for device " + deviceId);
+                }
+
+                // Reset light icon to off state
+                document.getElementById("light-icon-" + deviceId).src = "light-off.svg";
+            };
+            {% endfor %}
+        </script>
+    </body>
+</html>
