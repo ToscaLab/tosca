@@ -209,10 +209,16 @@ impl Controller {
         Ok(())
     }
 
-    /// Returns controller [`Devices`].
+    /// Returns an immutable reference to the internal [`Devices`].
     #[must_use]
     pub const fn devices(&self) -> &Devices {
         &self.devices
+    }
+
+    /// Returns a mutable reference to the internal [`Devices`].
+    #[must_use]
+    pub const fn devices_mut(&mut self) -> &mut Devices {
+        &mut self.devices
     }
 
     /// Builds a [`DeviceSender`] for the [`Device`] with the given identifier.
