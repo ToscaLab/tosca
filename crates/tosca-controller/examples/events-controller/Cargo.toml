@@ -1,0 +1,48 @@
+[package]
+name = "events-controller"
+version = "0.1.0"
+edition = "2024"
+authors = ["Michele Valsesia <luni-4@hotmail.it>"]
+description = """
+A controller that scans the network for tosca devices and subscribes to
+their brokers to receive events.
+"""
+license = "MIT"
+publish = false
+
+[dependencies]
+tosca.path = "../../../tosca"
+tosca.version = "0.1"
+tosca.default-features = false
+
+tosca-controller.path = "../../"
+tosca-controller.version = "0.1"
+tosca-controller.default-features = false
+
+clap.version = "4.5"
+clap.features = ["derive"]
+
+tokio.version = "1.0"
+tokio.default-features = false
+tokio.features = ["rt", "rt-multi-thread", "signal"]
+
+tracing.version = "0.1"
+tracing.default-features = false
+
+tracing-subscriber.version = "0.3"
+tracing-subscriber.default-features = false
+tracing-subscriber.features = ["ansi", "fmt"]
+
+[profile.release]
+opt-level = 3
+debug = false
+rpath = false
+lto = true
+debug-assertions = false
+codegen-units = 1
+panic = "unwind"
+incremental = false
+overflow-checks = false
+strip = "debuginfo"
+
+[workspace]
