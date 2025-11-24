@@ -167,8 +167,8 @@ impl Device {
 }
 
 /// A collection of [`Device`]s.
-#[derive(Debug, PartialEq, Serialize)]
-pub struct Devices(Vec<Device>);
+#[derive(Debug, PartialEq)]
+pub struct Devices(pub(crate) Vec<Device>);
 
 impl Default for Devices {
     fn default() -> Self {
@@ -191,6 +191,14 @@ impl<'a> IntoIterator for &'a Devices {
 
     fn into_iter(self) -> Self::IntoIter {
         self.iter()
+    }
+}
+
+impl<'a> IntoIterator for &'a mut Devices {
+    type Item = &'a mut Device;
+    type IntoIter = std::slice::IterMut<'a, Device>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.iter_mut()
     }
 }
 
@@ -238,6 +246,12 @@ impl Devices {
     #[inline]
     pub fn iter(&self) -> std::slice::Iter<'_, Device> {
         self.0.iter()
+    }
+
+    /// Returns a mutable iterator over [`Device`]s.
+    #[inline]
+    pub fn iter_mut(&mut self) -> std::slice::IterMut<'_, Device> {
+        self.0.iter_mut()
     }
 }
 
