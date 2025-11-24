@@ -1,6 +1,7 @@
 use alloc::string::String;
 use alloc::vec::Vec;
 
+use core::fmt;
 use core::net::IpAddr;
 use core::time::Duration;
 
@@ -24,11 +25,19 @@ impl BrokerData {
     }
 }
 
+// A fake trait to print the type of an event.
+mod private {
+    #[doc(hidden)]
+    pub trait TypeName {
+        const TYPE: &'static str;
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize)]
 #[cfg_attr(not(feature = "deserialize"), derive(Copy))]
 #[cfg_attr(feature = "deserialize", derive(serde::Deserialize))]
 /// An event producing a determined type.
-pub struct Event<T: Clone + Copy> {
+pub struct Event<T: Clone + Copy + private::TypeName> {
     /// Event name.
     #[cfg(not(feature = "deserialize"))]
     pub name: &'static str,
@@ -49,6 +58,17 @@ pub struct Event<T: Clone + Copy> {
     pub value: T,
 }
 
+impl<T: Clone + Copy + fmt::Display + private::TypeName> fmt::Display for Event<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
+        writeln!(f, "Name: \"{}\"", self.name)?;
+        if let Some(description) = &self.description {
+            writeln!(f, "Description: \"{description}\"")?;
+        }
+        writeln!(f, "Type: {}", T::TYPE)?;
+        writeln!(f, "Value: {}", self.value)
+    }
+}
+
 impl Event<bool> {
     /// Creates an [`Event<bool>`].
     #[must_use]
@@ -62,6 +82,10 @@ impl Event<bool> {
             value: false,
         }
     }
+}
+
+impl private::TypeName for bool {
+    const TYPE: &'static str = "bool";
 }
 
 impl Event<u8> {
@@ -79,7 +103,11 @@ impl Event<u8> {
     }
 }
 
-impl<T: Clone + Copy> Event<T> {
+impl private::TypeName for u8 {
+    const TYPE: &'static str = "u8";
+}
+
+impl<T: Clone + Copy + private::TypeName> Event<T> {
     /// Sets the event description.
     #[must_use]
     #[cfg(not(feature = "deserialize"))]
@@ -126,11 +154,23 @@ impl<T: Clone + Copy> Event<T> {
 /// A periodic [`Event`].
 ///
 /// An event is periodic when it is checked every certain time interval.
-pub struct PeriodicEvent<T: Clone + Copy> {
+pub struct PeriodicEvent<T: Clone + Copy + private::TypeName> {
     /// The underlying [`Event`].
     pub event: Event<T>,
     /// Time interval to verify whether the event occurred.
     pub interval: Duration,
+}
+
+impl<T: Clone + Copy + fmt::Display + private::TypeName> fmt::Display for PeriodicEvent<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
+        writeln!(
+            f,
+            "Interval: {}s {}ms",
+            self.interval.as_secs(),
+            self.interval.subsec_millis()
+        )?;
+        self.event.fmt(f)
+    }
 }
 
 impl PeriodicEvent<bool> {
@@ -191,6 +231,36 @@ pub struct Events {
     periodic_bool_events: Vec<PeriodicEvent<bool>>,
     #[serde(skip_serializing_if = "Vec::is_empty", default)]
     periodic_u8_events: Vec<PeriodicEvent<u8>>,
+}
+
+impl fmt::Display for Events {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
+        if !self.bool_events.is_empty() {
+            for bool_event in &self.bool_events {
+                bool_event.fmt(f)?;
+            }
+        }
+
+        if !self.u8_events.is_empty() {
+            for u8_event in &self.u8_events {
+                u8_event.fmt(f)?;
+            }
+        }
+
+        if !self.periodic_bool_events.is_empty() {
+            for periodic_bool_event in &self.periodic_bool_events {
+                periodic_bool_event.fmt(f)?;
+            }
+        }
+
+        if !self.periodic_u8_events.is_empty() {
+            for periodic_u8_event in &self.periodic_u8_events {
+                periodic_u8_event.fmt(f)?;
+            }
+        }
+
+        Ok(())
+    }
 }
 
 impl Events {
