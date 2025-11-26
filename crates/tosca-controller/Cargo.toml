@@ -34,7 +34,7 @@ reqwest.version = "0.12.12"
 reqwest.default-features = false
 reqwest.features = ["blocking", "json", "stream"]
 
-rumqttc.version = "0.25.0"
+rumqttc.version = "0.25.1"
 rumqttc.default-features = false
 
 tokio.workspace = true
