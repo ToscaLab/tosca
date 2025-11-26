@@ -23,7 +23,7 @@ serde_json.features = ["alloc"]
 
 tracing.workspace = true
 
-bytes.version = "1.10.0"
+bytes.version = "1.11.0"
 bytes.default-features = false
 
 flume.version = "0.11"
