@@ -16,7 +16,7 @@ fn main() {
     // Checks whether device configuration exists
     assert!(
         cfg.exists(),
-        "A `cfg.toml` file with Wi-Fi credentials is required! Use `cfg.toml.example` as a template."
+        "A `cfg.toml` file with Wi-Fi credentials and broker configuration is required! Use `cfg.toml.example` as a template."
     );
 
     let device_config = DEVICE_CONFIG;
@@ -53,12 +53,10 @@ fn linker_be_nice() {
                     eprintln!("💡 Is the linker script `linkall.x` missing?");
                     eprintln!();
                 }
-                "esp_wifi_preempt_enable"
-                | "esp_wifi_preempt_yield_task"
-                | "esp_wifi_preempt_task_create" => {
+                "esp_rtos_initialized" | "esp_rtos_yield_task" | "esp_rtos_task_create" => {
                     eprintln!();
                     eprintln!(
-                        "💡 `esp-wifi` has no scheduler enabled. Make sure you have the `builtin-scheduler` feature enabled, or that you provide an external scheduler."
+                        "💡 `esp-radio` has no scheduler enabled. Make sure you have initialized `esp-rtos` or provided an external scheduler."
                     );
                     eprintln!();
                 }
