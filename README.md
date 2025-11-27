@@ -62,6 +62,8 @@ feature in Cargo is unstable, therefore only available on nightly toolchain.
 [actions]: https://github.com/ToscaLab/tosca/actions
 [codecov]: https://codecov.io/gh/ToscaLab/tosca
 [license]: https://github.com/ToscaLab/tosca/blob/master/LICENSE
+[`embedded-hal`]: https://crates.io/crates/embedded-hal
+[`embedded-hal-async`]: https://crates.io/crates/embedded-hal-async
 
 <!-- Badges -->
 [actions badge]: https://github.com/ToscaLab/tosca/workflows/ci/badge.svg
