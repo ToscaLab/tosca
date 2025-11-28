@@ -268,6 +268,7 @@ async fn main(spawner: Spawner) {
     // - 1 task to check if a button is pressed
     // - 1 task to check if a led state is changed
     let stack = NetworkStack::build::<6>(rng, interfaces.sta, spawner)
+        .await
         .expect("Failed to create network stack.");
 
     // Input button.

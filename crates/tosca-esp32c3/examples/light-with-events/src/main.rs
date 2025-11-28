@@ -262,6 +262,7 @@ async fn main(spawner: Spawner) {
     // - 1 task to check if a led state is changed
     // - 1 task to send data to an external broker
     let stack = NetworkStack::build::<7>(rng, interfaces.sta, spawner)
+        .await
         .expect("Failed to create network stack.");
 
     // Input button.

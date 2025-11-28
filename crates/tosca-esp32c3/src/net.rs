@@ -50,7 +50,7 @@ impl NetworkStack {
     /// # Errors
     ///
     /// Failure to spawn the network stack task.
-    pub fn build<const SOCKET_STACK_SIZE: usize>(
+    pub async fn build<const SOCKET_STACK_SIZE: usize>(
         rng: Rng,
         wifi_interface: WifiDevice<'static>,
         spawner: Spawner,
@@ -66,6 +66,11 @@ impl NetworkStack {
         let (stack, runner) = embassy_net::new(wifi_interface, config, resources, seed);
 
         spawner.spawn(task(runner))?;
+
+        // Wait until the stack has a valid IP configuration.
+        while !stack.is_config_up() {
+            Timer::after_millis(MILLISECONDS_TO_WAIT).await;
+        }
 
         Ok(stack)
     }
