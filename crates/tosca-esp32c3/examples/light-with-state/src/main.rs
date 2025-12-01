@@ -54,6 +54,8 @@ const TIMEOUT: u32 = 15 * 1000;
 static NOTIFY_LED: Signal<CriticalSectionRawMutex, LedInput> = Signal::new();
 // Atomic signal to enable and disable the toggle task.
 static TOGGLE_CONTROLLER: AtomicBool = AtomicBool::new(false);
+// Atomic value storing the toggle interval in seconds.
+static TOGGLE_SECONDS: AtomicU32 = AtomicU32::new(1);
 
 macro_rules! mk_static {
     ($t:ty,$val:expr) => {{
@@ -85,7 +87,7 @@ struct DeviceConfig {
 enum LedInput {
     On,
     Off,
-    Toggle(u64),
+    Toggle,
     Button,
 }
 
@@ -154,10 +156,11 @@ async fn change_led(mut led: Output<'static>) {
             LedInput::Button => {
                 toggle_led(&mut led);
             }
-            LedInput::Toggle(seconds) => {
+            LedInput::Toggle => {
                 while TOGGLE_CONTROLLER.load(Ordering::Relaxed) {
+                    let seconds = TOGGLE_SECONDS.load(Ordering::Relaxed);
                     toggle_led(&mut led);
-                    Timer::after_secs(seconds).await;
+                    Timer::after_secs(u64::from(seconds)).await;
                 }
             }
         }
@@ -222,17 +225,18 @@ async fn stateful_toggle(
 
     let test_value = parameters.bool("test-value")?.value;
 
-    let seconds = parameters.u64("seconds")?;
+    let seconds = parameters.u32("seconds")?;
     let seconds = seconds.value.min(seconds.max);
 
     info!("Test value: {test_value}");
     info!("Seconds: {seconds}");
 
-    // Enable the toggle task.
+    // Set the interval and enable the toggle task.
+    TOGGLE_SECONDS.store(seconds, Ordering::Relaxed);
     TOGGLE_CONTROLLER.store(true, Ordering::Relaxed);
 
     // Notify led.
-    NOTIFY_LED.signal(LedInput::Toggle(seconds));
+    NOTIFY_LED.signal(LedInput::Toggle);
 
     info!("Led toggled through GET route!");
 
@@ -315,11 +319,11 @@ async fn main(spawner: Spawner) {
             },
         )
         .stateful_ok_route(
-            Route::get("Toggle", "/toggle")
+            Route::get("Toggle", "/toggle/with-parameters")
                 .description("Toggle the light on and off based on the given parameters.")
                 .with_parameters(
                     Parameters::new()
-                        .rangeu64_with_default("seconds", (1, 5, 1), 1)
+                        .rangeu32_with_default("seconds", (1, 5, 1), 1)
                         .bool("test-value", false),
                 ),
             stateful_toggle,

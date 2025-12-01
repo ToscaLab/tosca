@@ -8,7 +8,7 @@
 
 extern crate alloc;
 
-use core::sync::atomic::{AtomicBool, Ordering};
+use core::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 
 use tosca::device::DeviceInfo;
 use tosca::parameters::Parameters;
@@ -53,6 +53,8 @@ const TIMEOUT: u32 = 15 * 1000;
 static NOTIFY_LED: Signal<CriticalSectionRawMutex, LedInput> = Signal::new();
 // Atomic signal to enable and disable the toggle task.
 static TOGGLE_CONTROLLER: AtomicBool = AtomicBool::new(false);
+// Atomic value storing the toggle interval in seconds.
+static TOGGLE_SECONDS: AtomicU32 = AtomicU32::new(1);
 
 // This creates a default app-descriptor required by the esp-idf bootloader.
 // For more information see: <https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/system/app_image_format.html#application-description>
@@ -75,7 +77,7 @@ struct DeviceConfig {
 enum LedInput {
     On,
     Off,
-    Toggle(u64),
+    Toggle,
     Button,
 }
 
@@ -144,10 +146,11 @@ async fn change_led(mut led: Output<'static>) {
             LedInput::Button => {
                 toggle_led(&mut led);
             }
-            LedInput::Toggle(seconds) => {
+            LedInput::Toggle => {
                 while TOGGLE_CONTROLLER.load(Ordering::Relaxed) {
+                    let seconds = TOGGLE_SECONDS.load(Ordering::Relaxed);
                     toggle_led(&mut led);
-                    Timer::after_secs(seconds).await;
+                    Timer::after_secs(u64::from(seconds)).await;
                 }
             }
         }
@@ -198,11 +201,12 @@ async fn turn_light_off(
 }
 
 async fn toggle(_parameters: ParametersPayloads) -> Result<OkResponse, ErrorResponse> {
-    // Enable the toggle task.
+    // Set the interval and enable the toggle task.
+    TOGGLE_SECONDS.store(1, Ordering::Relaxed);
     TOGGLE_CONTROLLER.store(true, Ordering::Relaxed);
 
     // Notify led.
-    NOTIFY_LED.signal(LedInput::Toggle(1));
+    NOTIFY_LED.signal(LedInput::Toggle);
 
     info!("Led toggled through GET route!");
 
@@ -213,17 +217,18 @@ async fn toggle_with_parameters(
     mut parameters: ParametersPayloads,
 ) -> Result<OkResponse, ErrorResponse> {
     let test_value = parameters.bool("test-value")?.value;
-    let seconds = parameters.u64("seconds")?;
+    let seconds = parameters.u32("seconds")?;
     let seconds = seconds.value.min(seconds.max);
 
     info!("Test value: {test_value}");
     info!("Seconds: {seconds}");
 
-    // Enable the toggle task.
+    // Set the interval and enable the toggle task.
+    TOGGLE_SECONDS.store(seconds, Ordering::Relaxed);
     TOGGLE_CONTROLLER.store(true, Ordering::Relaxed);
 
     // Notify led.
-    NOTIFY_LED.signal(LedInput::Toggle(seconds));
+    NOTIFY_LED.signal(LedInput::Toggle);
 
     info!("Led toggled through GET route and parameters!");
 
@@ -308,7 +313,7 @@ async fn main(spawner: Spawner) {
                 .description("Toggle the light on and off based on the given parameters.")
                 .with_parameters(
                     Parameters::new()
-                        .rangeu64_with_default("seconds", (1, 5, 1), 1)
+                        .rangeu32_with_default("seconds", (1, 5, 1), 1)
                         .bool("test-value", false),
                 ),
             toggle_with_parameters,
