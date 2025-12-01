@@ -58,7 +58,7 @@ impl NetworkInformation {
 /// Device description.
 ///
 /// All properties which describe a device.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize)]
 pub struct Description {
     /// Device kind.
     pub kind: DeviceKind,
@@ -81,7 +81,7 @@ impl Description {
 }
 
 /// A compliant device.
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct Device {
     // Information needed to contact a device in a network.
     network_info: NetworkInformation,
@@ -92,8 +92,10 @@ pub struct Device {
     // All device events.
     //
     // If [`None`], the device does not support events.
+    #[serde(skip)]
     pub(crate) events: Option<Events>,
     // The join handle for the event task.
+    #[serde(skip)]
     pub(crate) event_handle: Option<JoinHandle<()>>,
 }
 
@@ -263,7 +265,7 @@ impl Device {
 }
 
 /// A collection of [`Device`]s.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize)]
 pub struct Devices(pub(crate) Vec<Device>);
 
 impl Default for Devices {
