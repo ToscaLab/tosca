@@ -470,7 +470,7 @@ where
 
             info!("Route path: {route_path}");
 
-            for _ in 0..route_path_iter.count() {
+            for _ in 0..route_path.split_terminator('/').count() {
                 route_iter.nth(0).ok_or_else(Response::not_found)?;
             }
 
