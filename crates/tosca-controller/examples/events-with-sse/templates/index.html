@@ -52,13 +52,6 @@
             margin-bottom: 10px;
         }
 
-        .light-icon {
-            display: block;
-            width: 50px;  /* Slightly larger light icon */
-            height: 50px;
-            margin: 10px auto;
-        }
-
         .console-container {
             border: 1px solid #ccc; /* Border for console area */
             padding: 10px;
@@ -123,11 +116,6 @@
                 flex-direction: column; /* Stack consoles vertically */
                 gap: 10px;
             }
-
-            .light-icon {
-                width: 40px;
-                height: 40px;
-            }
         }
 
         @media (max-width: 480px) {
@@ -148,11 +136,6 @@
                 width: 100%; /* Full width on extra small screens */
                 padding: 14px 0;
             }
-
-            .light-icon {
-                width: 35px;
-                height: 35px;
-            }
         }
         </style>
     </head>
@@ -162,9 +145,6 @@
             {% for device_id in devices_ids %}
             <div class="device-console">
                 <h3>Device {{ device_id }}</h3>
-
-                <!-- Light Icon (off state initially) -->
-                <img id="light-icon-{{ device_id }}" class="light-icon" src="./light-off.svg">
 
                 <!-- Console Container (Events Display) -->
                 <div class="console-container" id="events-{{ device_id }}"></div>
@@ -189,23 +169,11 @@
                 eventSource = new EventSource('/events/' + deviceId);
 
                 eventSource.onmessage = function(event) {
-                    // Parse the JSON data
-                    const eventsData = JSON.parse(event.data);
-
                     const eventDiv = document.getElementById('events-' + deviceId);
                     const eventElement = document.createElement('p');
 
-                    eventElement.textContent = eventsData.events;
+                    eventElement.textContent = event.data;
                     eventDiv.appendChild(eventElement);
-
-                    const lightIcon = document.getElementById("light-icon-" + deviceId);
-                    const lightStatusMap = {
-                        "On": "./light-on.svg",
-                        "Off": "./light-off.svg"
-                    };
-                    const imagePath = lightStatusMap[eventsData.light_status] || "./light-off.svg";
-
-                    lightIcon.src = imagePath;
                 };
 
                 eventSource.onerror = function(event) {
@@ -219,9 +187,6 @@
                     eventSource.close();
                     console.log("EventSource closed for device " + deviceId);
                 }
-
-                // Reset light icon to off state
-                document.getElementById("light-icon-" + deviceId).src = "light-off.svg";
             };
             {% endfor %}
         </script>

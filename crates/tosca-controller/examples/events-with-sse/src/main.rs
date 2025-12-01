@@ -18,8 +18,6 @@ use clap::Parser;
 
 use futures::stream::Stream;
 
-use serde::Serialize;
-
 use tokio::signal;
 use tokio::sync::broadcast::Receiver;
 
@@ -104,29 +102,6 @@ async fn index(State(state): State<AppState>) -> impl IntoResponse {
     Html(rendered_data)
 }
 
-#[derive(Debug, Serialize)]
-struct EventsData {
-    events: String,
-    light_status: String,
-}
-
-impl std::fmt::Display for EventsData {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), std::fmt::Error> {
-        writeln!(f)?;
-        self.events.fmt(f)
-    }
-}
-
-impl EventsData {
-    fn new(events: &Events, light_status: bool) -> Self {
-        let light_status = if light_status { "On" } else { "Off" }.into();
-        Self {
-            events: format!("{events}").trim().to_string(),
-            light_status,
-        }
-    }
-}
-
 async fn event_stream(
     Path(device_id): Path<usize>,
     State(state): State<AppState>,
@@ -152,30 +127,11 @@ async fn event_stream(
                 }
             };
 
-            let mut light_status = false;
-            // FIXME: This is an hack to associate the event to a light
-            for bool_event in events.bool_events_as_slice() {
-                if bool_event.name == "led" && bool_event.value {
-                    light_status = true;
-                    break;
-                }
-            }
-
-            let events_data = EventsData::new(&events, light_status);
-
-            info!("{events_data}");
-
-            let json_data = match serde_json::to_string(&events_data) {
-                Ok(json_data) => json_data,
-                Err(e) => {
-                    error!("Failed to serialize the events as string: {e}");
-                    return None;
-                }
-            };
+            info!("{events}");
 
             Some(Ok(Event::default()
                 .id(device_id.to_string())
-                .data(json_data)))
+                .data(format!("{events}"))))
         })
         .throttle(THROTTLE);
 
