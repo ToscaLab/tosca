@@ -629,7 +629,7 @@ where
             ParameterKind::U16 { .. } => {
                 Self::into_value::<u16, _>(parameter_value, "u16", ParameterValue::U16)
             }
-            ParameterKind::U32 { .. } => {
+            ParameterKind::U32 { .. } | ParameterKind::RangeU32 { .. } => {
                 Self::into_value::<u32, _>(parameter_value, "u32", ParameterValue::U32)
             }
             ParameterKind::U64 { .. } | ParameterKind::RangeU64 { .. } => {
