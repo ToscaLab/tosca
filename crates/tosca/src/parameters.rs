@@ -202,6 +202,18 @@ pub enum ParameterKind {
         #[serde(default)]
         step: f64,
     },
+    /// A range of [`u32`] values.
+    RangeU32 {
+        /// Minimum [`u32`] value allowed.
+        min: u32,
+        /// Maximum [`u32`] value allowed.
+        max: u32,
+        /// The [`u32`] step necessary to pass from one allowed value
+        /// to another one in the range.
+        step: u32,
+        /// Initial [`u32`] range value.
+        default: u32,
+    },
     /// A range of [`u64`] values.
     RangeU64 {
         /// Minimum [`u64`] value allowed.
@@ -242,6 +254,7 @@ impl ParameterKind {
             Self::U8 { .. } => "U8",
             Self::U16 { .. } => "U16",
             Self::U32 { .. } => "U32",
+            Self::RangeU32 { .. } => "RangeU32",
             Self::U64 { .. } => "U64",
             Self::RangeU64 { .. } => "RangeU64",
             Self::F32 { .. } => "F32",
@@ -258,7 +271,7 @@ impl ParameterKind {
             Self::Bool { .. } => "bool",
             Self::U8 { .. } => "u8",
             Self::U16 { .. } => "u16",
-            Self::U32 { .. } => "u32",
+            Self::U32 { .. } | Self::RangeU32 { .. } => "u32",
             Self::U64 { .. } | Self::RangeU64 { .. } => "u64",
             Self::F32 { .. } => "f32",
             Self::F64 { .. } | Self::RangeF64 { .. } => "f64",
@@ -502,6 +515,33 @@ impl Parameters {
         )
     }
 
+    /// Adds an [`u32`] range without a default value.
+    #[must_use]
+    #[inline]
+    pub fn rangeu32(self, name: &'static str, range: (u32, u32, u32)) -> Self {
+        self.rangeu32_with_default(name, range, 0)
+    }
+
+    /// Adds an [`u32`] range with a default value.
+    #[must_use]
+    #[inline]
+    pub fn rangeu32_with_default(
+        self,
+        name: &'static str,
+        range: (u32, u32, u32),
+        default: u32,
+    ) -> Self {
+        self.create_parameter(
+            name,
+            ParameterKind::RangeU32 {
+                min: range.0,
+                max: range.1,
+                step: range.2,
+                default,
+            },
+        )
+    }
+
     /// Adds an [`u64`] range without a default value.
     #[must_use]
     #[inline]
@@ -652,7 +692,9 @@ impl ParameterValue {
             ParameterKind::Bool { default } => Self::Bool(*default),
             ParameterKind::U8 { default, .. } => Self::U8(*default),
             ParameterKind::U16 { default, .. } => Self::U16(*default),
-            ParameterKind::U32 { default, .. } => Self::U32(*default),
+            ParameterKind::U32 { default, .. } | ParameterKind::RangeU32 { default, .. } => {
+                Self::U32(*default)
+            }
             ParameterKind::U64 { default, .. } | ParameterKind::RangeU64 { default, .. } => {
                 Self::U64(*default)
             }
@@ -687,7 +729,10 @@ impl ParameterValue {
             (Self::Bool(_), ParameterKind::Bool { .. })
                 | (Self::U8(_), ParameterKind::U8 { .. })
                 | (Self::U16(_), ParameterKind::U16 { .. })
-                | (Self::U32(_), ParameterKind::U32 { .. })
+                | (
+                    Self::U32(_),
+                    ParameterKind::U32 { .. } | ParameterKind::RangeU32 { .. }
+                )
                 | (
                     Self::U64(_),
                     ParameterKind::U64 { .. } | ParameterKind::RangeU64 { .. }
@@ -930,6 +975,15 @@ mod tests {
                 },
             )
             .insert(
+                "rangeu32".into(),
+                ParameterKind::RangeU32 {
+                    min: 0,
+                    max: 20,
+                    step: 1,
+                    default: 5,
+                },
+            )
+            .insert(
                 "rangeu64".into(),
                 ParameterKind::RangeU64 {
                     min: 0,
@@ -971,6 +1025,7 @@ mod tests {
             .u64("u64", 0)
             .f32("f32", 0.)
             .f64("f64", 0.)
+            .rangeu32_with_default("rangeu32", (0, 20, 1), 5)
             .rangeu64_with_default("rangeu64", (0, 20, 1), 5)
             .rangef64_with_default("rangef64", (0., 20., 0.1), 5.)
             .characters_sequence("greeting", "hello")
