@@ -31,14 +31,6 @@ clap.features = ["derive"]
 futures.version = "0.3.31"
 futures.default-features = false
 
-serde.version = "1.0"
-serde.default-features = false
-serde.features = ["derive", "alloc"]
-
-serde_json.version = "1"
-serde_json.default-features = false
-serde_json.features = ["alloc"]
-
 thiserror = "2.0.17"
 
 tokio.version = "1.0"
