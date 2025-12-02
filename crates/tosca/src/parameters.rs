@@ -230,7 +230,7 @@ pub enum ParameterKind {
     RangeF64 {
         /// The minimum [`f64`] value allowed.
         min: f64,
-        /// Maximum [`u64`] value allowed.
+        /// Maximum [`f64`] value allowed.
         max: f64,
         /// The [`f64`] step necessary to pass from one allowed value
         /// to another one in the range. It is always a positive value.
