@@ -257,9 +257,13 @@ impl ParametersPayloads {
     #[inline]
     pub fn u32(&mut self, name: &'static str) -> Result<U32Payload, ErrorResponse> {
         self.insert(name, |payload| match (payload.value, payload.kind) {
-            (ParameterValue::U32(v), ParameterKind::U32 { default, min, max }) => {
-                Ok(U32Payload::new(v, default, min, max))
-            }
+            (
+                ParameterValue::U32(v),
+                ParameterKind::U32 { default, min, max }
+                | ParameterKind::RangeU32 {
+                    default, min, max, ..
+                },
+            ) => Ok(U32Payload::new(v, default, min, max)),
             _ => Err(invalid_data(&format!("`{name}` is not a `u32` kind"))),
         })
     }
