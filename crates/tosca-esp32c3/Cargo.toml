@@ -56,7 +56,7 @@ esp-radio.version = "0.17.0"
 esp-radio.features = ["esp-alloc", "esp32c3", "log-04", "wifi"]
 
 # Logging utilities
-log.version = "0.4.28"
+log.version = "0.4.29"
 
 # Mqtt protocol
 rust-mqtt.version = "0.3.0"
