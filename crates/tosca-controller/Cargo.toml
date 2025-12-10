@@ -3,7 +3,7 @@ name = "tosca-controller"
 version.workspace = true
 edition.workspace = true
 authors = ["Michele Valsesia <luni-4@hotmail.it>"]
-description = "A controller to orchestrate Tosca devices in a network."
+description = "A controller to orchestrate Tosca devices within a network."
 license.workspace = true
 
 [dependencies]
