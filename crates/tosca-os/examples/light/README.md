@@ -53,7 +53,7 @@ Starting server...
 ```
 
 <!-- Links -->
-[license]: https://github.com/ToscaLab/tosca/blob/master/LICENSE
+[license]: https://github.com/ToscaLabs/tosca/blob/master/LICENSE
 
 <!-- Badges -->
 [license badge]: https://img.shields.io/badge/license-MIT-blue.svg

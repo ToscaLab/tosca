@@ -59,13 +59,13 @@ The [per-package-target](https://doc.rust-lang.org/cargo/reference/unstable.html
 feature in Cargo is unstable, therefore only available on nightly toolchain.
 
 <!-- Links -->
-[actions]: https://github.com/ToscaLab/tosca/actions
-[codecov]: https://codecov.io/gh/ToscaLab/tosca
-[license]: https://github.com/ToscaLab/tosca/blob/master/LICENSE
+[actions]: https://github.com/ToscaLabs/tosca/actions
+[codecov]: https://codecov.io/gh/ToscaLabs/tosca
+[license]: https://github.com/ToscaLabs/tosca/blob/master/LICENSE
 [`embedded-hal`]: https://crates.io/crates/embedded-hal
 [`embedded-hal-async`]: https://crates.io/crates/embedded-hal-async
 
 <!-- Badges -->
-[actions badge]: https://github.com/ToscaLab/tosca/workflows/ci/badge.svg
-[codecov badge]: https://codecov.io/gh/ToscaLab/tosca/branch/master/graph/badge.svg
+[actions badge]: https://github.com/ToscaLabs/tosca/workflows/ci/badge.svg
+[codecov badge]: https://codecov.io/gh/ToscaLabs/tosca/branch/master/graph/badge.svg
 [license badge]: https://img.shields.io/badge/license-MIT-blue.svg
