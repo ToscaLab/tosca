@@ -1,11 +1,12 @@
 [package]
-name = "events-with-sse"
+name = "events-receiver-with-sse"
 version = "0.1.0"
 edition = "2024"
 authors = ["Michele Valsesia <luni-4@hotmail.it>"]
 description = """
-A controller that scans the network for tosca devices, subscribes to their
-brokers to receive events, and displays their data in real-time on a web page.
+A receiver for events produced by `tosca` devices. It scans the network for
+`tosca` devices, subscribes to their brokers to receive events, and displays
+their data in real-time on a web page using SSE technology.
 """
 license = "MIT"
 publish = false
