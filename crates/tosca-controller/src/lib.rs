@@ -1,16 +1,25 @@
-//! A library crate designed to manage, orchestrate, and interact with all
-//! `tosca` devices within a network.
+//! The `tosca-controller` library crate offers a set of APIs to manage,
+//! orchestrate, and interact with all `tosca`-compliant devices within a
+//! network.
 //!
-//! Key functionalities include:
+//! A device is compliant with the `tosca` architecture if its firmware is built
+//! using the `tosca` APIs designed for the relative microcontroller.
 //!
-//! - Discovering all `tosca` devices on the network
-//! - Constructing and sending `REST` requests to issue commands to the
-//!   discovered devices
-//! - Enforcing security and privacy policies to permit or block requests
+//! The core functionalities of this crate include:
 //!
-//! Some APIs trigger tasks to perform their operations. This design breaks
-//! large operations into smaller and independent tasks, making it easier
-//! to manage system resources more efficiently.
+//! - Discovering all devices within the network that are compliant with the
+//!   `tosca` architecture
+//! - Constructing and sending _REST_ requests to `tosca` devices to trigger
+//!   one or more of their operations
+//! - Defining security and privacy policies to allow or block requests
+//! - Intercepting device events by subscribing to the brokers where
+//!   they are published
+//!
+//! To optimize system resource usage, `tosca-controller` leverages `tokio` as
+//! an asynchronous executor. This improves performance by allowing concurrent
+//! execution of independent tasks. If the underlying machine is multi-threaded,
+//! the performance boost is further amplified, as tasks are distributed across
+//! multiple threads too.
 
 #![forbid(unsafe_code)]
 #![deny(missing_docs)]
