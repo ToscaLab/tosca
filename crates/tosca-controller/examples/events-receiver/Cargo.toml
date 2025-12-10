@@ -1,11 +1,11 @@
 [package]
-name = "events-controller"
+name = "events-receiver"
 version = "0.1.0"
 edition = "2024"
 authors = ["Michele Valsesia <luni-4@hotmail.it>"]
 description = """
-A controller that scans the network for tosca devices and subscribes to
-their brokers to receive events.
+A receiver for events produced by `tosca` devices. It scans the network for
+`tosca` devices and subscribes to their brokers to receive these events.
 """
 license = "MIT"
 publish = false
