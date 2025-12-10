@@ -16,7 +16,7 @@ updates:
       - "crates/tosca-esp32c3/examples/light"
       - "crates/tosca-esp32c3/examples/light-with-state"
       - "crates/tosca-esp32c3/examples/light-with-events"
-      - "crates/tosca-controller/examples/events-controller"
-      - "crates/tosca-controller/examples/events-with-sse"
+      - "crates/tosca-controller/examples/events-receiver"
+      - "crates/tosca-controller/examples/events-receiver-with-sse"
     schedule:
       interval: "daily"
