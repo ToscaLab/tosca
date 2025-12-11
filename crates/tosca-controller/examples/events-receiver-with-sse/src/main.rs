@@ -200,6 +200,9 @@ async fn main() -> Result<(), Error> {
 
     info!("Number of discovered devices: {}", devices.len());
 
+    // TODO: Ensure the process continues even if no devices are found.
+    // Add a button in the web application to trigger device discovery and
+    // update the controller state.
     if devices.is_empty() {
         info!("No devices discovered. Terminating the process without any errors.");
         return Ok(());
