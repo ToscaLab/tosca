@@ -50,6 +50,10 @@ async fn main() -> Result<(), Error> {
 
     info!("Number of discovered devices: {}", devices.len());
 
+    // TODO: Ensure the process continues even if no devices are found.
+    // Implement an asynchronous task to run device discovery
+    // every `n` milliseconds, updating the controller state when new devices
+    // are detected or existing devices are removed.
     if devices.is_empty() {
         info!("No devices discovered. Terminating the process without any errors.");
         return Ok(());
