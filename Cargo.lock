@@ -192,6 +192,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "flume"
+version = "0.12.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5e139bc46ca777eb5efaf62df0ab8cc5fd400866427e56c68b22e414e53bd3be"
+dependencies = [
+ "futures-core",
+ "futures-sink",
+ "spin",
+]
+
+[[package]]
 name = "fnv"
 version = "1.0.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -597,7 +608,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f43e377ae111ceb4630fc8239cf7af8c894193f02bb23976177a475007977417"
 dependencies = [
  "fastrand",
- "flume",
+ "flume 0.11.1",
  "if-addrs",
  "mio",
  "socket-pktinfo",
@@ -841,7 +852,7 @@ checksum = "0feff8d882bff0b2fddaf99355a10336d43dd3ed44204f85ece28cf9626ab519"
 dependencies = [
  "bytes",
  "fixedbitset",
- "flume",
+ "flume 0.11.1",
  "futures-util",
  "log",
  "thiserror",
@@ -1165,7 +1176,7 @@ name = "tosca-controller"
 version = "0.1.0"
 dependencies = [
  "bytes",
- "flume",
+ "flume 0.12.0",
  "futures-util",
  "hashbrown",
  "indexmap",
